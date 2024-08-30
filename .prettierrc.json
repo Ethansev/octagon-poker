@@ -1,0 +1,17 @@
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "printWidth": 100,
+  "parser": "typescript",
+  "bracketSameLine": true,
+  "htmlWhitespaceSensitivity": "css",
+  "arrowParens": "always",
+  "semi": true,
+  "bracketSpacing": true,
+  "plugins": [
+    "prettier-plugin-organize-imports",
+    "prettier-plugin-tailwindcss"
+  ]
+}
