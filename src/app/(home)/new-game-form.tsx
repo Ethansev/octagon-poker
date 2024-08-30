@@ -45,7 +45,9 @@ export function NewGameForm() {
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     const newGameData: NewGameInput = {
-      date: new Date(data.date).toISOString().split('T')[0],
+      // TODO: fix date format on client or server?
+      // date: new Date(data.date).toISOString().split('T')[0],
+      date: data.date,
       buy_in: data.buyIn,
       game_group_id: 1,
     };
