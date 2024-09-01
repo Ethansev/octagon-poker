@@ -3,11 +3,13 @@ export type GameGroup = {
   name: string;
 };
 
+export type ISODateString = `${number}-${number}-${number}`; // YYYY-MM-DD
+
 export type Game = {
   id: number;
   name?: string;
   buy_in: number;
-  date: Date;
+  date: ISODateString;
   game_group_id: number;
 };
 

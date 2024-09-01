@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 // import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import { NewGameInput } from '@/types';
+import { ISODateString, NewGameInput } from '@/types';
 import { toast } from 'sonner';
 import { addNewGame } from '../actions/actions-index';
 
@@ -44,15 +44,15 @@ export function NewGameForm() {
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
+    // Convert date to SQL date format
+    const newDate = data.date.toISOString().split('T')[0] as ISODateString;
+
     const newGameData: NewGameInput = {
-      // TODO: fix date format on client or server?
-      // date: new Date(data.date).toISOString().split('T')[0],
-      date: data.date,
+      date: newDate,
       buy_in: data.buyIn,
       game_group_id: 1,
     };
 
-    console.log('data send to addNewGame: ', newGameData);
     const res = await addNewGame(newGameData);
 
     if (res.success === true) {
