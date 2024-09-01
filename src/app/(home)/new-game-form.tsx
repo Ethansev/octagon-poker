@@ -45,6 +45,7 @@ export function NewGameForm() {
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     // Convert date to SQL date format
+    // TODO: move this to a helper function
     const newDate = data.date.toISOString().split('T')[0] as ISODateString;
 
     const newGameData: NewGameInput = {
