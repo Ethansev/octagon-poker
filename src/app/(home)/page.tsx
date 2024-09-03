@@ -1,17 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { openDb } from '@/lib/db';
-import { Player } from '@/types';
-import SideGroup from './side-group';
+import { getAllGamesWithPlayers } from '@/dal/combined-game-data';
+import { getPlayers } from '@/dal/player';
 import MainGroup from './main-group';
-
-async function getPlayers(): Promise<Player[]> {
-  const db = await openDb();
-  return db.all('SELECT * FROM players');
-}
+import SideGroup from './side-group';
 
 export default async function Home() {
   const players = await getPlayers();
-  // console.log('players', players);
+  const games = await getAllGamesWithPlayers();
+  console.log('printing all games with players: ', games);
 
   return (
     <main className='flex min-h-screen flex-col items-center p-12'>
@@ -24,7 +20,7 @@ export default async function Home() {
             </TabsList>
           </div>
           <TabsContent value='account'>
-            <MainGroup />
+            <MainGroup players={players} games={games} />
           </TabsContent>
           <TabsContent value='password'>
             <SideGroup />

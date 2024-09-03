@@ -1,14 +1,29 @@
 'use server';
-
 import { openDb } from '@/lib/db';
-import { NewGameInput, NewGameResponse } from '@/types';
 
+export type Game = {
+  id: number;
+  name?: string;
+  buy_in: number;
+  date: ISODateString;
+  game_group_id: number;
+};
 
+export type ISODateString = `${number}-${number}-${number}`; // YYYY-MM-DD
+
+export type NewGameInput = Omit<Game, 'id'>;
+
+export type NewGameResponse = {
+  success: boolean;
+  game?: Game;
+  message?: string;
+  error?: Error;
+};
 
 /*
-  Add a new session to the database
+  Create a new game session in the games table
 */
-export async function addNewGame(data: NewGameInput): Promise<NewGameResponse> {
+export async function createNewGame(data: NewGameInput): Promise<NewGameResponse> {
   console.log('data send to addNewGame: ', data);
 
   let db;
@@ -53,4 +68,24 @@ export async function addNewGame(data: NewGameInput): Promise<NewGameResponse> {
       await db.close();
     }
   }
+}
+
+export default async function addNewPlayerToGame() {
+  // TODO: add function to add player to game
+  // will probably accept an array of player ids and a game id
+}
+
+export async function getAllGames(): Promise<Game[]> {
+  // TODO: make game group id a dynamic parameter
+  const db = await openDb();
+  return db.all(`
+        SELECT 
+          g.id, 
+          g.name, 
+          g.buy_in, 
+          g.date, 
+          g.game_group_id,
+        FROM games g
+        WHERE g.game_group_id = 1
+        `);
 }

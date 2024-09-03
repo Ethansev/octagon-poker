@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
@@ -9,52 +11,54 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Player } from '@/types';
-import { openDb } from '../../lib/db';
+import { GameWithPlayers } from '@/dal/combined-game-data';
+import { Player } from '@/dal/player';
+import { formatDate } from '@/lib/utils';
+import { useHomeStore } from '@/store/home';
 import NetEarningsChart from './net-earnings-chart';
 import NewGameDialog from './new-game-dialog';
+import NewPlayerDialog from './new-player-dialog';
 
-async function getPlayers(): Promise<Player[]> {
-  const db = await openDb();
-  return db.all(`
-        SELECT 
-          p.id, 
-          p.first_name, 
-          p.last_name, 
-          p.username, 
-          p.net_earnings, 
-          p.biggest_win, 
-          p.biggest_loss, 
-          p.average_earnings_per_session,
-          p.win_rate,
-          p.games_played
-        FROM players p
-        JOIN players_game_groups pgg ON p.id = pgg.player_id
-        WHERE pgg.game_group_id = 1
-        `);
-}
+type Props = {
+  players: Player[];
+  games: GameWithPlayers[];
+};
 
-export default async function MainGroup() {
+export default function MainGroup(props: Props) {
+  const { players, games } = props;
+
+  const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = useHomeStore((state) => [
+    state.isNewPlayerDialogOpen,
+    state.setIsNewPlayerDialogOpen,
+  ]);
+
+  const [isNewGameDialogOpen, setIsNewGameDialogOpen] = useHomeStore((state) => [
+    state.isNewGameDialogOpen,
+    state.setIsNewGameDialogOpen,
+  ]);
   // GROUP ID: 1
-  const playersData = await getPlayers();
-  // TODO: add table of each player with their respective data, sorted by net earnings. Users should be able to click on a player to see more details about them.
-  // TODO: add a table for all previous game records for the group <- not sure which data to display here.
 
   return (
     <div>
       <div className='mx-auto mb-8 flex max-w-2xl flex-row justify-between'>
         {/* <Button className=''>Add a game</Button> */}
-        <Dialog>
+        <Dialog open={isNewGameDialogOpen} onOpenChange={setIsNewGameDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant='outline'>Add a new game</Button>
+            <Button variant='default'>Add a new game</Button>
           </DialogTrigger>
           <NewGameDialog />
         </Dialog>
-        <Button className=''>Add a new player</Button>
+
+        <Dialog open={isNewPlayerDialogOpen} onOpenChange={setIsNewPlayerDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant='default'>Add a new player</Button>
+          </DialogTrigger>
+          <NewPlayerDialog />
+        </Dialog>
       </div>
 
       <div className='mb-8'>
-        <NetEarningsChart playerData={playersData} />
+        <NetEarningsChart playerData={players} />
       </div>
 
       <Card className='mb-8'>
@@ -76,7 +80,7 @@ export default async function MainGroup() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {playersData.map((player) => (
+              {players.map((player) => (
                 <TableRow key={player.id}>
                   <TableCell className='font-medium'>{player.first_name}</TableCell>
                   <TableCell>${player.net_earnings}</TableCell>
@@ -102,21 +106,19 @@ export default async function MainGroup() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Winner</TableHead>
-                <TableHead>Total Buy-Ins</TableHead>
+                <TableHead>Buy-In Amount</TableHead>
+                <TableHead># of Players</TableHead>
                 {/* <TableHead>Total Pot</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* {recentSessions.map((session) => (
-                <TableRow key={session.id}>
-                  <TableCell>{session.date}</TableCell>
-                  <TableCell>
-                    <Badge variant='outline'>{session.winner}</Badge>
-                  </TableCell>
-                  <TableCell>${session.totalPot}</TableCell>
+              {games.map((game) => (
+                <TableRow key={game.id}>
+                  <TableCell>{formatDate(game.date)}</TableCell>
+                  <TableCell>${game.buy_in}</TableCell>
+                  <TableCell>{game.players.length}</TableCell>
                 </TableRow>
-              ))} */}
+              ))}
             </TableBody>
           </Table>
         </CardContent>

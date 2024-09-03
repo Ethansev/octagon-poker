@@ -19,10 +19,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 // import { toast } from '@/components/ui/use-toast';
+import { ISODateString, NewGameInput } from '@/dal/game';
 import { cn } from '@/lib/utils';
-import { ISODateString, NewGameInput } from '@/types';
+import { useHomeStore } from '@/store/home';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { addNewGame } from '../actions/actions-index';
+import { submitNewGame } from '../actions/game-actions';
 
 const FormSchema = z.object({
   date: z.date({
@@ -39,14 +41,26 @@ const FormSchema = z.object({
 });
 
 export function NewGameForm() {
+  const router = useRouter();
+  const [isNewGameDialogOpen, setIsNewGameDialogOpen] = useHomeStore((state) => [
+    state.isNewGameDialogOpen,
+    state.setIsNewGameDialogOpen,
+  ]);
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
+  // TODO: add a loading state
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
     // Convert date to SQL date format
-    // TODO: move this to a helper function
+    // TODO: move this to a helper function and validate the date using regex
     const newDate = data.date.toISOString().split('T')[0] as ISODateString;
+    const isValidDate = (newDate: string) => /^\d{4}-\d{2}-\d{2}$/.test(newDate);
+    if (!isValidDate(newDate)) {
+      toast.error('Invalid date');
+      return;
+    }
 
     const newGameData: NewGameInput = {
       date: newDate,
@@ -54,9 +68,11 @@ export function NewGameForm() {
       game_group_id: 1,
     };
 
-    const res = await addNewGame(newGameData);
+    const res = await submitNewGame(newGameData);
 
-    if (res.success === true) {
+    if (res.success === true && res.game) {
+      setIsNewGameDialogOpen(false);
+      router.push(`/game/${res.game.id}`);
       toast.success('Event has been created');
     } else {
       toast.error('Error creating event');
@@ -66,24 +82,26 @@ export function NewGameForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-        <div className='flex flex-row gap-4'>
+        <div className='mb-4 space-y-4'>
           <FormField
             control={form.control}
             name='date'
             render={({ field }) => (
               <FormItem className='flex flex-1 flex-col'>
-                <FormLabel>Session Date</FormLabel>
+                <FormLabel>
+                  Session Date <span className='text-red-500'>*</span>
+                </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant={'outline'}
                         className={cn(
-                          'w-full pl-3 text-left font-normal',
+                          'flex w-full items-center justify-start pl-3 text-left font-normal',
                           !field.value && 'text-muted-foreground',
                         )}>
+                        <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                         {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                        <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -108,7 +126,9 @@ export function NewGameForm() {
             name='buyIn'
             render={({ field }) => (
               <FormItem className='flex flex-1 flex-col'>
-                <FormLabel className='m-0'>Buy-In</FormLabel>
+                <FormLabel className='m-0'>
+                  Buy-In <span className='text-red-500'>*</span>
+                </FormLabel>
                 <FormControl>
                   <div className='relative'>
                     <span className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-500'>
