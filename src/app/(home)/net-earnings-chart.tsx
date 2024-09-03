@@ -7,7 +7,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
 } from '@/components/ui/chart';
-import { Player } from '@/types';
+import { Player } from '@/dal/player';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 const chartConfig = {

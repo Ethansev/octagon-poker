@@ -1,7 +1,11 @@
 'use server';
 
-import { addNewPlayerToGroup, createNewPlayer } from '@/dal/player';
-import { NewPlayerInput, NewPlayerResponse } from '@/types';
+import {
+  addNewPlayerToGroup,
+  createNewPlayer,
+  NewPlayerInput,
+  NewPlayerResponse,
+} from '@/dal/player';
 
 export async function submitNewPlayer(data: NewPlayerInput): Promise<NewPlayerResponse> {
   const playerRes = await createNewPlayer(data);

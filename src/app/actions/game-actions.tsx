@@ -1,6 +1,5 @@
 'use server';
-import { createNewGame } from '@/dal/game';
-import { NewGameInput, NewGameResponse } from '@/types';
+import { createNewGame, NewGameInput, NewGameResponse } from '@/dal/game';
 
 export async function submitNewGame(data: NewGameInput): Promise<NewGameResponse> {
   const gameRes = await createNewGame(data);
