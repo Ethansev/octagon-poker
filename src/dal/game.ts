@@ -89,3 +89,14 @@ export async function getAllGames(): Promise<Game[]> {
         WHERE g.game_group_id = 1
         `);
 }
+
+// TODO: handle scenario where game does not exist
+export async function getGameById(gameId: number): Promise<Game | undefined> {
+  const db = await openDb();
+  return db.get(
+    `
+    SELECT id, name, buy_in, date, game_group_id FROM games WHERE id = ?
+  `,
+    [gameId],
+  );
+}

@@ -13,16 +13,21 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   await initDb();
 
   return (
     <html lang='en'>
       <body className={inter.className}>
-        <main>{children}</main>
-        <Toaster richColors theme={'light'}/>
+        <main>
+          {children}
+          {modal}
+        </main>
+        <Toaster richColors theme={'light'} />
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import {
   NewPlayerResponse,
 } from '@/dal/player';
 
+// TODO: move these to dal directory
 export async function submitNewPlayer(data: NewPlayerInput): Promise<NewPlayerResponse> {
   const playerRes = await createNewPlayer(data);
   if (playerRes.success && playerRes.player) {

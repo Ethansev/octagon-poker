@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-interface HomeStore {
+type HomeStore = {
   isNewPlayerDialogOpen: boolean;
   setIsNewPlayerDialogOpen: (isOpen: boolean) => void;
   isNewGameDialogOpen: boolean;

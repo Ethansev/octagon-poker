@@ -15,10 +15,10 @@ import { GameWithPlayers } from '@/dal/combined-game-data';
 import { Player } from '@/dal/player';
 import { formatDate } from '@/lib/utils';
 import { useHomeStore } from '@/store/home';
+import { useRouter } from 'next/navigation';
 import NetEarningsChart from './net-earnings-chart';
 import NewGameDialog from './new-game-dialog';
 import NewPlayerDialog from './new-player-dialog';
-
 type Props = {
   players: Player[];
   games: GameWithPlayers[];
@@ -26,6 +26,7 @@ type Props = {
 
 export default function MainGroup(props: Props) {
   const { players, games } = props;
+  const router = useRouter();
 
   const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = useHomeStore((state) => [
     state.isNewPlayerDialogOpen,
@@ -61,9 +62,10 @@ export default function MainGroup(props: Props) {
         <NetEarningsChart playerData={players} />
       </div>
 
+      {/* TODO: move into separate component */}
       <Card className='mb-8'>
         <CardHeader>
-          <CardTitle>All Player Data</CardTitle>
+          <CardTitle>Player Details</CardTitle>
           <CardDescription>Detailed statistics for all players</CardDescription>
         </CardHeader>
         <CardContent>
@@ -81,7 +83,7 @@ export default function MainGroup(props: Props) {
             </TableHeader>
             <TableBody>
               {players.map((player) => (
-                <TableRow key={player.id}>
+                <TableRow key={player.id} onClick={() => router.push(`player/${player.id}`)}>
                   <TableCell className='font-medium'>{player.first_name}</TableCell>
                   <TableCell>${player.net_earnings}</TableCell>
                   <TableCell>${player.biggest_win}</TableCell>
@@ -96,6 +98,7 @@ export default function MainGroup(props: Props) {
         </CardContent>
       </Card>
 
+      {/* TODO: move into separate component */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Game Sessions</CardTitle>
@@ -107,13 +110,18 @@ export default function MainGroup(props: Props) {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Buy-In Amount</TableHead>
-                <TableHead># of Players</TableHead>
-                {/* <TableHead>Total Pot</TableHead> */}
+                <TableHead>Number of Players</TableHead>
+                {/* <TableHead>Winner</TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
               {games.map((game) => (
-                <TableRow key={game.id}>
+                <TableRow
+                  className='cursor-pointer'
+                  key={game.id}
+                  onClick={() => {
+                    router.push(`/game/${game.id}`);
+                  }}>
                   <TableCell>{formatDate(game.date)}</TableCell>
                   <TableCell>${game.buy_in}</TableCell>
                   <TableCell>{game.players.length}</TableCell>

@@ -104,6 +104,12 @@ export async function addNewPlayerToGroup(playerId: number): Promise<boolean> {
   }
 }
 
+export async function getPlayerById(playerId: number): Promise<Player> {
+  const db = await openDb();
+  const res = await db.get('SELECT * FROM players WHERE id = ?', [playerId]);
+  return res as Player;
+}
+
 export async function getPlayers(): Promise<Player[]> {
   const db = await openDb();
   return db.all(`
@@ -123,3 +129,27 @@ export async function getPlayers(): Promise<Player[]> {
         WHERE pgg.game_group_id = 1
         `);
 }
+
+export async function getPlayersPerGroup(gameGroupId: number): Promise<Player[]> {
+  const db = await openDb();
+  return db.all(
+    `
+        SELECT 
+          p.id, 
+          p.first_name, 
+          p.last_name, 
+          p.username, 
+          p.net_earnings, 
+          p.biggest_win, 
+          p.biggest_loss, 
+          p.average_earnings_per_session,
+          p.win_rate,
+          p.games_played
+        FROM players p
+        JOIN players_game_groups pgg ON p.id = pgg.player_id
+        WHERE pgg.game_group_id = ?
+        `,
+    [gameGroupId],
+  );
+}
+
