@@ -3,7 +3,12 @@ import MainPlayer from '@/components/player/main-player';
 import { getPlayerById } from '@/dal/player';
 import { getPlayerSessionsPerPlayer, PlayerSessionWithPlayerInfo } from '@/dal/player-session';
 
-export default async function PlayerPageModal({ params }: { params: { id: string } }) {
+export type PlayerPageModalProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function PlayerPageModal(props: PlayerPageModalProps) {
+  const params = await props.params;
   const playerSessions: PlayerSessionWithPlayerInfo[] = await getPlayerSessionsPerPlayer(
     Number(params.id),
   );

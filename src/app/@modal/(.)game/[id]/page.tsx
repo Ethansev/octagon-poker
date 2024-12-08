@@ -4,7 +4,12 @@ import { getGameById } from '@/dal/game';
 import { getPlayersPerGroup } from '@/dal/player';
 import { getPlayerSessionsPerGame } from '@/dal/player-session';
 
-export default async function GameIDPage({ params }: { params: { id: string } }) {
+export type GameIDPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export default async function GameIDPage(props: GameIDPageProps) {
+  const params = await props.params;
   const gameId = Number(params.id);
 
   const players = await getPlayersPerGroup(1);
