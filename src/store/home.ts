@@ -7,7 +7,7 @@ type HomeStore = {
   setIsNewPlayerDialogOpen: (isOpen: boolean) => void;
   isNewGameDialogOpen: boolean;
   setIsNewGameDialogOpen: (isOpen: boolean) => void;
-}
+};
 
 export const useHomeStore = create<HomeStore>((set) => ({
   isNewPlayerDialogOpen: false,

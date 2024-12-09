@@ -14,8 +14,8 @@ import {
 import { GameWithPlayers } from '@/dal/combined-game-data';
 import { Player } from '@/dal/player';
 import { formatDate } from '@/lib/utils';
-import { useHomeStore } from '@/store/home';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import NetEarningsChart from './net-earnings-chart';
 import NewGameDialog from './new-game-dialog';
 import NewPlayerDialog from './new-player-dialog';
@@ -28,16 +28,16 @@ export default function MainGroup(props: Props) {
   const { players, games } = props;
   const router = useRouter();
 
-  const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = useHomeStore((state) => [
-    state.isNewPlayerDialogOpen,
-    state.setIsNewPlayerDialogOpen,
-  ]);
+  const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = useState(false);
+  const [isNewGameDialogOpen, setIsNewGameDialogOpen] = useState(false);
 
-  const [isNewGameDialogOpen, setIsNewGameDialogOpen] = useHomeStore((state) => [
-    state.isNewGameDialogOpen,
-    state.setIsNewGameDialogOpen,
-  ]);
-  // GROUP ID: 1
+  function closeNewGameDialogHandler() {
+    setIsNewGameDialogOpen(false);
+  }
+
+  function closeNewPlayerDialogHandler() {
+    setIsNewPlayerDialogOpen(false);
+  }
 
   return (
     <div>
@@ -47,14 +47,14 @@ export default function MainGroup(props: Props) {
           <DialogTrigger asChild>
             <Button variant='default'>Add a new game</Button>
           </DialogTrigger>
-          <NewGameDialog />
+          <NewGameDialog closeDialogHandler={closeNewGameDialogHandler} />
         </Dialog>
 
         <Dialog open={isNewPlayerDialogOpen} onOpenChange={setIsNewPlayerDialogOpen}>
           <DialogTrigger asChild>
             <Button variant='default'>Add a new player</Button>
           </DialogTrigger>
-          <NewPlayerDialog />
+          <NewPlayerDialog closeDialogHandler={closeNewPlayerDialogHandler} />
         </Dialog>
       </div>
 

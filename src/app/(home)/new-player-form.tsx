@@ -16,9 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 // import { toast } from '@/components/ui/use-toast';
 import { NewPlayerInput } from '@/dal/player';
-import { useHomeStore } from '@/store/home';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
 import { toast } from 'sonner';
 import { submitNewPlayer } from '../actions/player-actions';
 
@@ -41,13 +39,13 @@ const FormSchema = z.object({
   username: z.string(),
 });
 
-export function NewPlayerForm() {
+type NewPlayerFormProps = {
+  closeDialogHandler: () => void;
+};
+
+export function NewPlayerForm(props: NewPlayerFormProps) {
+  const { closeDialogHandler } = props;
   const router = useRouter();
-  const [isNewPlayerDialogOpen, setIsNewPlayerDialogOpen] = useHomeStore((state) => [
-    state.isNewPlayerDialogOpen,
-    state.setIsNewPlayerDialogOpen,
-  ]);
-  const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -76,7 +74,6 @@ export function NewPlayerForm() {
     const res = await submitNewPlayer(newPlayerData);
 
     if (res.success) {
-      setIsNewPlayerDialogOpen(false);
       router.refresh();
       toast.success('Player has been added successfully');
     } else {

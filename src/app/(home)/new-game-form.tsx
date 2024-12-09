@@ -20,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ISODateString, NewGameInput } from '@/dal/game';
 import { cn } from '@/lib/utils';
-import { useHomeStore } from '@/store/home';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { submitNewGame } from '../actions/game-actions';
@@ -39,12 +38,13 @@ const FormSchema = z.object({
     .transform((val) => parseFloat(val)),
 });
 
-export function NewGameForm() {
+type NewGameFormProps = {
+  closeDialogHandler: () => void;
+};
+
+export function NewGameForm(props: NewGameFormProps) {
+  const { closeDialogHandler } = props;
   const router = useRouter();
-  const [isNewGameDialogOpen, setIsNewGameDialogOpen] = useHomeStore((state) => [
-    state.isNewGameDialogOpen,
-    state.setIsNewGameDialogOpen,
-  ]);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -70,7 +70,6 @@ export function NewGameForm() {
     const res = await submitNewGame(newGameData);
 
     if (res.success === true && res.game) {
-      setIsNewGameDialogOpen(false);
       router.push(`/game/${res.game.id}`);
       toast.success('Event has been created');
     } else {

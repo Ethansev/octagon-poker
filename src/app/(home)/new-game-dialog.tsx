@@ -6,7 +6,13 @@ import {
 } from '@/components/ui/dialog';
 import { NewGameForm } from './new-game-form';
 
-export default function NewGameDialog() {
+type NewGameDialogProps = {
+  closeDialogHandler: () => void;
+};
+
+export default function NewGameDialog(props: NewGameDialogProps) {
+  const { closeDialogHandler } = props;
+
   return (
     <>
       <DialogContent className='sm:max-w-[425px]'>
@@ -15,7 +21,7 @@ export default function NewGameDialog() {
           <DialogDescription>Add a new game session to the existing group.</DialogDescription>
         </DialogHeader>
 
-        <NewGameForm />
+        <NewGameForm closeDialogHandler={closeDialogHandler} />
 
         {/* <DialogFooter>
           <Button type='submit'>Save changes</Button>

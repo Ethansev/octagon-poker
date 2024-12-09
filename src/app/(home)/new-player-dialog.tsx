@@ -20,7 +20,13 @@ import { NewPlayerForm } from './new-player-form';
 //   return playerRes;
 // }
 
-export default function NewGameDialog() {
+type NewPlayerDialogProps = {
+  closeDialogHandler: () => void;
+};
+
+export default function NewPlayerDialog(props: NewPlayerDialogProps) {
+  const { closeDialogHandler } = props;
+
   return (
     <>
       <DialogContent className='sm:max-w-[425px]'>
@@ -29,7 +35,7 @@ export default function NewGameDialog() {
           <DialogDescription>Add a new player to the existing group.</DialogDescription>
         </DialogHeader>
 
-        <NewPlayerForm />
+        <NewPlayerForm closeDialogHandler={closeDialogHandler} />
       </DialogContent>
     </>
   );
