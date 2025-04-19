@@ -2,7 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getAllGamesWithPlayers } from '@/dal/combined-game-data';
 import { getPlayers } from '@/dal/player';
 import { InfoIcon } from 'lucide-react';
-import MainGroup from './main-group';
+import MainGroup from './elements/HomeContainer';
 
 export default async function Home() {
   const players = await getPlayers();
@@ -22,20 +22,6 @@ export default async function Home() {
           </Alert>
         </div>
         <MainGroup players={players} games={games} />
-        {/* <Tabs defaultValue='account' className='w-full'> */}
-        {/*   <div className='mx-auto mb-4 flex max-w-xl items-center'> */}
-        {/*     <TabsList className='grid w-full grid-cols-2'> */}
-        {/*       <TabsTrigger value='account'>Main Pot</TabsTrigger> */}
-        {/*       <TabsTrigger value='password'>Side Pot</TabsTrigger> */}
-        {/*     </TabsList> */}
-        {/*   </div> */}
-        {/*   <TabsContent value='account'> */}
-        {/*     <MainGroup players={players} games={games} /> */}
-        {/*   </TabsContent> */}
-        {/*   <TabsContent value='password'> */}
-        {/*     <SideGroup /> */}
-        {/*   </TabsContent> */}
-        {/* </Tabs> */}
       </div>
     </main>
   );

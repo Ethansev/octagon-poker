@@ -22,7 +22,7 @@ import { ISODateString, NewGameInput } from '@/dal/game';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { submitNewGame } from '../actions/game-actions';
+import { submitNewGame } from '../../actions/game-actions';
 
 const FormSchema = z.object({
   date: z.date({ required_error: 'A date of birth is required.' }),

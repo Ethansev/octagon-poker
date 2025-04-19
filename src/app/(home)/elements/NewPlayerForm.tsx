@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 // import { toast } from '@/components/ui/use-toast';
+import { submitNewPlayer } from '@/app/actions/player-actions';
 import { NewPlayerInput } from '@/dal/player';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { submitNewPlayer } from '../actions/player-actions';
 
 const FormSchema = z.object({
   // date: z.date({
@@ -32,16 +32,12 @@ const FormSchema = z.object({
   //     message: 'A buy-in amount must be greater than 0.',
   //   })
   //   .transform((val) => parseFloat(val)),
-  first_name: z.string({
-    required_error: 'A first name is required.',
-  }),
+  first_name: z.string({ required_error: 'A first name is required.' }),
   last_name: z.string(),
   username: z.string(),
 });
 
-type NewPlayerFormProps = {
-  closeDialogHandler: () => void;
-};
+type NewPlayerFormProps = { closeDialogHandler: () => void };
 
 export function NewPlayerForm(props: NewPlayerFormProps) {
   const { closeDialogHandler } = props;
@@ -49,11 +45,7 @@ export function NewPlayerForm(props: NewPlayerFormProps) {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      first_name: '',
-      last_name: '',
-      username: '',
-    },
+    defaultValues: { first_name: '', last_name: '', username: '' },
   });
   // TODO: add a loading state
 

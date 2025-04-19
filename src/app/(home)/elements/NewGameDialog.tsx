@@ -4,11 +4,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { NewGameForm } from './new-game-form';
+import { NewGameForm } from './NewGameForm';
 
-type NewGameDialogProps = {
-  closeDialogHandler: () => void;
-};
+type NewGameDialogProps = { closeDialogHandler: () => void };
 
 export default function NewGameDialog(props: NewGameDialogProps) {
   const { closeDialogHandler } = props;

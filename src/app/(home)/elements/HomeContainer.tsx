@@ -16,15 +16,12 @@ import { Player } from '@/dal/player';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import NetEarningsChart from './net-earnings-chart';
-import NewGameDialog from './new-game-dialog';
-import NewPlayerDialog from './new-player-dialog';
-type Props = {
-  players: Player[];
-  games: GameWithPlayers[];
-};
+import NetEarningsChart from './NetEarningsChart';
+import NewGameDialog from './NewGameDialog';
+import NewPlayerDialog from './NewPlayerDialog';
+type Props = { players: Player[]; games: GameWithPlayers[] };
 
-export default function MainGroup(props: Props) {
+export default function HomeContainer(props: Props) {
   const { players, games } = props;
   const router = useRouter();
 

@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { NewPlayerForm } from './new-player-form';
+import { NewPlayerForm } from './NewPlayerForm';
 
 // async function handleNewPlayerSubmit(data: NewPlayerInput): Promise<NewPlayerResponse> {
 //   const playerRes = await createNewPlayer(data);
@@ -20,9 +20,7 @@ import { NewPlayerForm } from './new-player-form';
 //   return playerRes;
 // }
 
-type NewPlayerDialogProps = {
-  closeDialogHandler: () => void;
-};
+type NewPlayerDialogProps = { closeDialogHandler: () => void };
 
 export default function NewPlayerDialog(props: NewPlayerDialogProps) {
   const { closeDialogHandler } = props;
