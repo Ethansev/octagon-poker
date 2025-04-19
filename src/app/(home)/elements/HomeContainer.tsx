@@ -16,7 +16,7 @@ import { Player } from '@/dal/player';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import NetEarningsChart from './NetEarningsChart';
+import NetEarningsChart from '../../../components/charts/NetEarningsChart';
 import NewGameDialog from './NewGameDialog';
 import NewPlayerDialog from './NewPlayerDialog';
 type Props = { players: Player[]; games: GameWithPlayers[] };
