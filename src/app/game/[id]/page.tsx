@@ -1,12 +1,10 @@
-import SingleGame from '@/components/game/game';
+import SingleGame from '@/components/game/Game';
 import { getGameById } from '@/dal/game';
 import { getPlayersPerGroup } from '@/dal/player';
 import { getPlayerSessionsPerGame } from '@/dal/player-session';
 import Link from 'next/link';
 
-export type GameIdPageProps = {
-  params: Promise<{ id: string }>;
-};
+export type GameIdPageProps = { params: Promise<{ id: string }> };
 
 export default async function GameIDPage(props: GameIdPageProps) {
   const params = await props.params;

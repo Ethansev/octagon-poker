@@ -1,24 +1,19 @@
-import { Modal } from '@/components/modal';
-import MainPlayer from '@/components/player/main-player';
+import PlayerDialogWrapper from '@/components/player/PlayerDialogWrapper';
 import { getPlayerById } from '@/dal/player';
-import { getPlayerSessionsPerPlayer, PlayerSessionWithPlayerInfo } from '@/dal/player-session';
+import { getPlayerSessionsPerPlayer } from '@/dal/player-session';
 
-export type PlayerPageModalProps = {
-  params: Promise<{ id: string }>;
-};
+export type PlayerPageModalProps = { params: Promise<{ id: string }> };
 
-export default async function PlayerPageModal(props: PlayerPageModalProps) {
+export default async function PlayerIDPage(props: PlayerPageModalProps) {
   const params = await props.params;
-  const playerSessions: PlayerSessionWithPlayerInfo[] = await getPlayerSessionsPerPlayer(
-    Number(params.id),
-  );
-  const player = await getPlayerById(Number(params.id));
-  console.log('printing player sessions: ', playerSessions);
-  console.log('printing player: ', player);
+  const playerId = Number(params.id);
 
-  return (
-    <Modal title='Player Page'>
-      <MainPlayer playerSessions={playerSessions} player={player} />;
-    </Modal>
-  );
+  const playerSessions = await getPlayerSessionsPerPlayer(playerId);
+  const player = await getPlayerById(playerId);
+
+  if (!player) {
+    return <div>Player not found</div>;
+  }
+
+  return <PlayerDialogWrapper player={player} playerSessions={playerSessions} />;
 }

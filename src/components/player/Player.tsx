@@ -1,22 +1,14 @@
 import EditableTable from '@/components/editable-table';
-import { Player } from '@/dal/player';
+import { Player as PlayerType } from '@/dal/player';
 import { PlayerSessionWithPlayerInfo } from '@/dal/player-session';
-import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import LineChartComponent from './line-chart';
 
-type Props = {
-  playerSessions: PlayerSessionWithPlayerInfo[];
-  player: Player;
-};
+type Props = { playerSessions: PlayerSessionWithPlayerInfo[]; player: PlayerType };
 
+// TODO: need to pass in dynamic data for the stats
 const stats = [
-  {
-    name: 'Average Earnings',
-    value: '$405,091.00',
-    change: '+4.75%',
-    changeType: 'positive',
-  },
+  { name: 'Average Earnings', value: '$405,091.00', change: '+4.75%', changeType: 'positive' },
   { name: 'Win Rate', value: '$405,091.00', change: '+4.75%', changeType: 'positive' },
   { name: 'Biggest Wins', value: '$12,787.00', change: '+54.02%', changeType: 'negative' },
   // { name: 'Outstanding invoices', value: '$245,988.00', change: '-1.39%', changeType: 'positive' },
@@ -24,17 +16,12 @@ const stats = [
   { name: 'Games Played', value: '5', change: '', changeType: 'negative' },
 ];
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
-
-// main player page
-export default function MainPlayer({ playerSessions, player }: Props) {
+export default function Player({ playerSessions, player }: Props) {
   // TODO: hovering over session info can hover over that point in the chart
   // TODO: make it responsive for mobile devices
   return (
-    <div className='p-8'>
-      <Link href='/'> Back to Home</Link>
+    <div className=''>
+      {/* <Link href='/'> Back to Home</Link> */}
       <div className='mb-4 text-4xl font-bold'>
         <h1>
           {player.first_name} {player.last_name}
@@ -76,7 +63,7 @@ export default function MainPlayer({ playerSessions, player }: Props) {
       {/* </div> */}
 
       <LineChartComponent
-        className=''
+        className='mb-6'
         chartTitle='Net Earnings'
         chartDescription='January - June 2024'
       />

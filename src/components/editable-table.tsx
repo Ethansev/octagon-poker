@@ -23,15 +23,13 @@ import { useGameStore } from '@/store/game';
 import { useRouter } from 'next/navigation';
 import React, { ReactElement, useEffect, useState } from 'react';
 
-type Props = {
-  initialData: PlayerSessionWithPlayerInfo[];
-  gameId?: number;
-};
+type Props = { initialData: PlayerSessionWithPlayerInfo[]; gameId?: number };
 
 type FieldInput = 'first_name' | 'total_cashout' | 'total_cashin' | 'total_earnings' | 'rebuys';
 
 // Player Session table
 // TODO: flexible enough to support editing from both the game and player pages
+// TODO: change this name to be EditablePlayerSessionsTable
 export default function EditableTable({ initialData, gameId }: Props) {
   console.log('initialData: ', initialData);
   const router = useRouter();
@@ -94,7 +92,7 @@ export default function EditableTable({ initialData, gameId }: Props) {
       case 'first_name':
         return (
           <Input
-            className='h-8'
+            className='h-8 w-full max-w-[160px]'
             disabled={true}
             defaultValue={inputValue}
             autoFocus
@@ -109,7 +107,7 @@ export default function EditableTable({ initialData, gameId }: Props) {
       case 'total_earnings':
         return (
           <Input
-            className='h-8'
+            className='h-8 w-full max-w-[120px]'
             type='number'
             disabled={true}
             defaultValue={inputValue}
@@ -125,7 +123,7 @@ export default function EditableTable({ initialData, gameId }: Props) {
       case 'rebuys':
         return (
           <Input
-            className='h-8'
+            className='h-8 w-full max-w-[80px]'
             type='number'
             defaultValue={inputValue}
             autoFocus
@@ -139,10 +137,10 @@ export default function EditableTable({ initialData, gameId }: Props) {
 
       default:
         return (
-          <div className='relative'>
-            <span className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-500'>$</span>
+          <div className='relative w-full max-w-[120px]'>
+            <span className='absolute top-1/2 left-3 -translate-y-1/2 text-gray-500'>$</span>
             <Input
-              className='h-8 pl-6 text-left'
+              className='h-8 w-full pl-6 text-left'
               type='number'
               defaultValue={inputValue}
               autoFocus
@@ -166,14 +164,15 @@ export default function EditableTable({ initialData, gameId }: Props) {
         return <></>;
 
       default:
-        return <span className='text-gray-400'>click to edit</span>;
+        return <span className='text-gray-400'>...</span>;
     }
   }
 
   function FieldDisplay(field: FieldInput, personSession: TableEntry): ReactElement {
     switch (field) {
       case 'first_name':
-        return <>{personSession[field as keyof TableEntry]}</>;
+        const name = personSession[field as keyof TableEntry];
+        return <div className='max-w-[9ch] truncate'>{name}</div>;
 
       case 'rebuys':
         return <>{personSession[field as keyof TableEntry]}</>;
@@ -208,6 +207,13 @@ export default function EditableTable({ initialData, gameId }: Props) {
       handleSave(id, field, value);
     } else if (e.key === 'Escape') {
       setEditingCell(null);
+    }
+  }
+
+  function handleCellClick(playerId: number, field: keyof TableEntry) {
+    // Don't allow editing for these fields
+    if (field !== 'first_name' && field !== 'total_earnings') {
+      setEditingCell({ id: playerId, field });
     }
   }
 
@@ -282,50 +288,58 @@ export default function EditableTable({ initialData, gameId }: Props) {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Total Cashin</TableHead>
-            <TableHead>Total Cashout</TableHead>
-            <TableHead>Total Earnings</TableHead>
-            <TableHead>Rebuys</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {playerSessionData.map((personSession) => (
-            <TableRow key={personSession.player_id} className='h-12'>
-              {(
-                ['first_name', 'total_cashin', 'total_cashout', 'total_earnings', 'rebuys'] as const
-              ).map((field) => (
-                <TableCell className='w-1/6 py-0' key={field}>
-                  <div className='block h-full w-full'>
-                    {editingCell?.id === personSession.player_id && editingCell?.field === field ? (
-                      FieldInput(field, personSession)
-                    ) : (
-                      <span
-                        onClick={() =>
-                          // handleEdit(personSession.player_id, field as keyof TableEntry)
-                          setEditingCell({ id: personSession.player_id, field })
-                        }
-                        className='cursor-pointer rounded p-1 hover:bg-gray-100'>
-                        {
-                          personSession[field as keyof TableEntry] !== undefined &&
-                          personSession[field as keyof TableEntry] !== ''
-                            ? FieldDisplay(field, personSession)
-                            : renderFieldPlaceholder(field)
-                          // <em className='text-gray-400'>Click to edit</em>
-                        }
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-              ))}
+      <div className='overflow-x-auto'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className='w-1/6'>Name</TableHead>
+              <TableHead className='w-1/6'>Total Cashin</TableHead>
+              <TableHead className='w-1/6'>Total Cashout</TableHead>
+              <TableHead className='w-1/6'>Total Earnings</TableHead>
+              <TableHead className='w-1/6'>Rebuys</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Button onClick={onSaveHandler}>Save</Button>
+          </TableHeader>
+          <TableBody>
+            {playerSessionData.map((personSession) => (
+              <TableRow key={personSession.player_id} className='h-12'>
+                {(
+                  [
+                    'first_name',
+                    'total_cashin',
+                    'total_cashout',
+                    'total_earnings',
+                    'rebuys',
+                  ] as const
+                ).map((field) => (
+                  <TableCell className='w-1/6 py-0' key={field}>
+                    <div className='block h-full w-full'>
+                      {editingCell?.id === personSession.player_id &&
+                      editingCell?.field === field ? (
+                        FieldInput(field, personSession)
+                      ) : (
+                        <span
+                          onClick={() => handleCellClick(personSession.player_id, field)}
+                          className={`${field === 'first_name' || field === 'total_earnings' ? '' : 'cursor-pointer hover:bg-gray-100'} rounded p-1`}>
+                          {
+                            personSession[field as keyof TableEntry] !== undefined &&
+                            personSession[field as keyof TableEntry] !== ''
+                              ? FieldDisplay(field, personSession)
+                              : renderFieldPlaceholder(field)
+                            // <em className='text-gray-400'>Click to edit</em>
+                          }
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <Button onClick={onSaveHandler} className='mt-4'>
+        Save
+      </Button>
     </>
   );
 }

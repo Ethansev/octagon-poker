@@ -1,12 +1,9 @@
-import SingleGame from '@/components/game/game';
-import { Modal } from '@/components/modal';
+import GameDialogWrapper from '@/components/game/GameDialogWrapper';
 import { getGameById } from '@/dal/game';
 import { getPlayersPerGroup } from '@/dal/player';
 import { getPlayerSessionsPerGame } from '@/dal/player-session';
 
-export type GameIDPageProps = {
-  params: Promise<{ id: string }>;
-};
+export type GameIDPageProps = { params: Promise<{ id: string }> };
 
 export default async function GameIDPage(props: GameIDPageProps) {
   const params = await props.params;
@@ -16,9 +13,9 @@ export default async function GameIDPage(props: GameIDPageProps) {
   const playerSessions = await getPlayerSessionsPerGame(gameId);
   const game = await getGameById(Number(gameId));
 
-  return (
-    <Modal title='Game Session'>
-      <SingleGame game={game} players={players} playerSessions={playerSessions} />
-    </Modal>
-  );
+  if (!game) {
+    return <div>Game not found</div>;
+  }
+
+  return <GameDialogWrapper game={game} players={players} playerSessions={playerSessions} />;
 }

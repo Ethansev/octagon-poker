@@ -6,7 +6,7 @@ import { Player } from '@/dal/player';
 import { PlayerSessionWithPlayerInfo } from '@/dal/player-session';
 import { useGameStore } from '@/store/game';
 import { useEffect } from 'react';
-import PlayerSelection from './player-selection';
+import PlayerSelection from './PlayerSelection';
 
 type Props = {
   game: Game | undefined;
@@ -14,7 +14,6 @@ type Props = {
   playerSessions: PlayerSessionWithPlayerInfo[];
 };
 
-// TODO: move to component directory
 export default function SingleGame({ game, players, playerSessions }: Props) {
   const activePlayerSessionIds = playerSessions.map((session) => session.player_id);
   const { setActivePlayerIds } = useGameStore();
@@ -35,11 +34,12 @@ export default function SingleGame({ game, players, playerSessions }: Props) {
 
   return (
     <>
-      <div>
+      {/* <div className='w-full'> */}
+      <div className=''>
         <h1>Game ID: {game.id}</h1>
         <PlayerSelection players={players} key={game.id} />
 
-        <EditableTable gameId={game.id} initialData={playerSessions} key={game.id} />
+        <EditableTable gameId={game.id} initialData={playerSessions} />
 
         {/* TODO: game summary here */}
       </div>

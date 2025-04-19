@@ -1,10 +1,9 @@
-import MainPlayer from '@/components/player/main-player';
+import Player from '@/components/player/Player';
 import { getPlayerById } from '@/dal/player';
 import { getPlayerSessionsPerPlayer, PlayerSessionWithPlayerInfo } from '@/dal/player-session';
+import Link from 'next/link';
 
-export type PlayerPageProps = {
-  params: Promise<{ id: string }>;
-};
+export type PlayerPageProps = { params: Promise<{ id: string }> };
 
 export default async function PlayerPage(props: PlayerPageProps) {
   const params = await props.params;
@@ -15,5 +14,11 @@ export default async function PlayerPage(props: PlayerPageProps) {
   console.log('printing player sessions: ', playerSessions);
   console.log('printing player: ', player);
 
-  return <MainPlayer playerSessions={playerSessions} player={player} />;
+  // TODO: use a header in layout instead of a link
+  return (
+    <div className='container mx-auto'>
+      <Link href='/'>Back to Home</Link>
+      <Player playerSessions={playerSessions} player={player} />
+    </div>
+  );
 }
