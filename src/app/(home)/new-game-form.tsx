@@ -25,30 +25,21 @@ import { toast } from 'sonner';
 import { submitNewGame } from '../actions/game-actions';
 
 const FormSchema = z.object({
-  date: z.date({
-    required_error: 'A date of birth is required.',
-  }),
+  date: z.date({ required_error: 'A date of birth is required.' }),
   buyIn: z
-    .string({
-      required_error: 'A buy-in amount is required.',
-    })
+    .string({ required_error: 'A buy-in amount is required.' })
     .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
       message: 'A buy-in amount must be greater than 0.',
-    })
-    .transform((val) => parseFloat(val)),
+    }),
 });
 
-type NewGameFormProps = {
-  closeDialogHandler: () => void;
-};
+type NewGameFormProps = { closeDialogHandler: () => void };
 
 export function NewGameForm(props: NewGameFormProps) {
   const { closeDialogHandler } = props;
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-  });
+  const form = useForm<z.infer<typeof FormSchema>>({ resolver: zodResolver(FormSchema) });
   // TODO: add a loading state
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
@@ -63,7 +54,7 @@ export function NewGameForm(props: NewGameFormProps) {
 
     const newGameData: NewGameInput = {
       date: newDate,
-      buy_in: data.buyIn,
+      buy_in: parseFloat(data.buyIn),
       game_group_id: 1,
     };
 
@@ -129,7 +120,7 @@ export function NewGameForm(props: NewGameFormProps) {
                 </FormLabel>
                 <FormControl>
                   <div className='relative'>
-                    <span className='absolute left-3 top-1/2 -translate-y-1/2 text-gray-500'>
+                    <span className='absolute top-1/2 left-3 -translate-y-1/2 text-gray-500'>
                       $
                     </span>
                     <Input
