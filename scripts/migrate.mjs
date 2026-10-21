@@ -3,6 +3,9 @@ import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
 
 export async function runMigrations(connectionString) {
+  if (!connectionString) {
+    throw new Error('Database URL is not set');
+  }
   const pool = new pg.Pool({ connectionString });
   try {
     await migrate(drizzle(pool), { migrationsFolder: 'drizzle' });

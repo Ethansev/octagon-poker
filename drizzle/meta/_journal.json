@@ -8,6 +8,13 @@
       "when": 1792600159283,
       "tag": "0000_warm_pete_wisdom",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792600608422,
+      "tag": "0001_daffy_earthquake",
+      "breakpoints": true
     }
   ]
 }
