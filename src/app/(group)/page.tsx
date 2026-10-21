@@ -58,7 +58,16 @@ export default async function Home({
           <Link href='/nights/new'>Log a night</Link>
         </Button>
       </div>
-      <SeasonSwitcher seasons={seasons} current={season} />
+      <div className='flex items-center justify-between gap-3'>
+        <SeasonSwitcher seasons={seasons} current={season} />
+        {typeof season === 'number' && (
+          <Link
+            href={`/recap/${season}`}
+            className='shrink-0 text-xs font-semibold whitespace-nowrap text-slate-700 underline'>
+            {season} recap
+          </Link>
+        )}
+      </div>
       {last === undefined ? (
         <div className='rounded-xl border border-slate-200 p-4 text-center'>
           <p className='font-semibold text-slate-900'>No nights logged in {label} yet</p>
