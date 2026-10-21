@@ -1,5 +1,7 @@
 export type ParsedDollars = { kind: 'empty' } | { kind: 'amount'; cents: number } | { kind: 'invalid' };
 
+const MAX_CENTS = 10_000_000;
+
 const DOLLARS_PATTERN = /^\$?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{0,2}))?$/;
 
 const wholeFormat = new Intl.NumberFormat('en-US');
@@ -13,7 +15,7 @@ export function parseDollars(input: string): ParsedDollars {
   const dollars = Number(match[1].replaceAll(',', ''));
   const fraction = (match[2] ?? '').padEnd(2, '0');
   const cents = dollars * 100 + Number(fraction);
-  if (!Number.isSafeInteger(cents)) return { kind: 'invalid' };
+  if (cents > MAX_CENTS) return { kind: 'invalid' };
   return { kind: 'amount', cents };
 }
 
