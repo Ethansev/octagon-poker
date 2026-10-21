@@ -1,6 +1,6 @@
+import { db, schema } from '@/db/client';
 import { sql } from 'drizzle-orm';
 import { PgTable } from 'drizzle-orm/pg-core';
-import { db, schema } from '@/db/client';
 
 export async function resetDb(): Promise<void> {
   await db.execute(

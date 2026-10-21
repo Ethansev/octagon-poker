@@ -1,16 +1,29 @@
-import { describe, expect, it } from 'vitest';
 import { standings } from '@/stats/standings';
+import { describe, expect, it } from 'vitest';
 
 const night = (id: string, date: string, nets: Record<string, number>) => ({
   id,
   date,
-  seats: Object.entries(nets).map(([playerId, net]) => ({ playerId, buyInCents: 10000, cashOutCents: 10000 + net })),
+  seats: Object.entries(nets).map(([playerId, net]) => ({
+    playerId,
+    buyInCents: 10000,
+    cashOutCents: 10000 + net,
+  })),
 });
 
 describe('standings', () => {
   const season = [
     night('n1', '2026-01-10', { sid: 300, ivy: 100, dev: -200, tyler: -200 }),
-    night('n2', '2026-02-14', { sid: 112, ivy: 165, ethan: 140, marco: 38, priya: -55, johnny: -180, tyler: -60, dev: -160 }),
+    night('n2', '2026-02-14', {
+      sid: 112,
+      ivy: 165,
+      ethan: 140,
+      marco: 38,
+      priya: -55,
+      johnny: -180,
+      tyler: -60,
+      dev: -160,
+    }),
   ];
 
   it('ranks players who are up by net', () => {
@@ -23,7 +36,12 @@ describe('standings', () => {
   });
 
   it('lists everyone at or below zero unranked, closest to zero first', () => {
-    expect(standings(season).unranked.map((s) => s.playerId)).toEqual(['priya', 'johnny', 'tyler', 'dev']);
+    expect(standings(season).unranked.map((s) => s.playerId)).toEqual([
+      'priya',
+      'johnny',
+      'tyler',
+      'dev',
+    ]);
   });
 
   it('counts nights played and won', () => {

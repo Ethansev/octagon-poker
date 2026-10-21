@@ -1,11 +1,11 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
 import { authClient } from '@/auth/auth-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
+import { useState, type FormEvent } from 'react';
 
 type SignInState = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'failed'; message: string };
 

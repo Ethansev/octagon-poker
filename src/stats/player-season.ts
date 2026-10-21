@@ -12,7 +12,9 @@ export type PlayerSeason = {
 
 export function playerSeason(nights: ClosedNight[], playerId: string): PlayerSeason {
   const history: PlayerSeason['history'] = [];
-  const ordered = [...nights].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+  const ordered = [...nights].sort(
+    (a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id),
+  );
   for (const night of ordered) {
     const seat = night.seats.find((s) => s.playerId === playerId);
     if (!seat) continue;

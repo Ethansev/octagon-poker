@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { generateInviteCode, isMemberCode } from '@/access/invite';
+import { describe, expect, it } from 'vitest';
 
 describe('generateInviteCode', () => {
   it('makes 24 URL-safe characters', () => {

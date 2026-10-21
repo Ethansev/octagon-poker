@@ -1,3 +1,5 @@
+import { groups } from '@/groups/schema';
+import { players } from '@/players/schema';
 import { sql } from 'drizzle-orm';
 import {
   check,
@@ -11,8 +13,6 @@ import {
   unique,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { groups } from '@/groups/schema';
-import { players } from '@/players/schema';
 
 export const nightStatus = pgEnum('night_status', ['open', 'closed']);
 export const actorKind = pgEnum('actor_kind', ['owner', 'member']);

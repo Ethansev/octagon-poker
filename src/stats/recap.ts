@@ -1,6 +1,6 @@
+import type { ClosedNight } from '@/stats/nights';
 import { playerSeason, type PlayerSeason } from '@/stats/player-season';
 import { standings } from '@/stats/standings';
-import type { ClosedNight } from '@/stats/nights';
 
 export type Recap = {
   standings: ReturnType<typeof standings>;

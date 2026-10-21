@@ -1,7 +1,3 @@
-import { and, eq } from 'drizzle-orm';
-import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
-import { connection } from 'next/server';
 import { MEMBER_COOKIE, PLAYER_COOKIE } from '@/access/cookies';
 import { isMemberCode } from '@/access/invite';
 import { getOwnerSession } from '@/auth/session';
@@ -9,6 +5,10 @@ import { db } from '@/db/client';
 import { getGroup } from '@/groups/groups';
 import type { Group } from '@/groups/schema';
 import { players } from '@/players/schema';
+import { and, eq } from 'drizzle-orm';
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 
 export type Viewer =
   | { role: 'owner'; userId: string; group: Group }

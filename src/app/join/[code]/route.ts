@@ -1,8 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server';
 import { accessCookieOptions, MEMBER_COOKIE } from '@/access/cookies';
 import { isMemberCode } from '@/access/invite';
 import { env } from '@/env';
 import { getGroup } from '@/groups/groups';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ code: string }> }) {
   const { code } = await context.params;

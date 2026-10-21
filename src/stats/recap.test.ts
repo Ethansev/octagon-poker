@@ -1,11 +1,15 @@
-import { describe, expect, it } from 'vitest';
 import { recap } from '@/stats/recap';
 import { standings } from '@/stats/standings';
+import { describe, expect, it } from 'vitest';
 
 const night = (id: string, date: string, nets: Record<string, number>) => ({
   id,
   date,
-  seats: Object.entries(nets).map(([playerId, net]) => ({ playerId, buyInCents: 10000, cashOutCents: 10000 + net })),
+  seats: Object.entries(nets).map(([playerId, net]) => ({
+    playerId,
+    buyInCents: 10000,
+    cashOutCents: 10000 + net,
+  })),
 });
 
 describe('recap', () => {
@@ -32,8 +36,16 @@ describe('recap', () => {
   });
 
   it('finds the biggest single night', () => {
-    const nights = [night('n1', '2026-01-01', { a: 100, b: -100 }), night('n2', '2026-02-01', { c: 700, a: -700 })];
-    expect(recap(nights).biggestNight).toEqual({ playerId: 'c', nightId: 'n2', date: '2026-02-01', netCents: 700 });
+    const nights = [
+      night('n1', '2026-01-01', { a: 100, b: -100 }),
+      night('n2', '2026-02-01', { c: 700, a: -700 }),
+    ];
+    expect(recap(nights).biggestNight).toEqual({
+      playerId: 'c',
+      nightId: 'n2',
+      date: '2026-02-01',
+      netCents: 700,
+    });
   });
 
   it('is empty for a season with no closed nights', () => {
@@ -47,7 +59,10 @@ describe('recap', () => {
   });
 
   it('has one season per player who sat, ordered by net then id', () => {
-    const nights = [night('n1', '2026-01-01', { z: 100, y: 100, x: -200 }), night('n2', '2026-01-02', { w: 0, z: 0 })];
+    const nights = [
+      night('n1', '2026-01-01', { z: 100, y: 100, x: -200 }),
+      night('n2', '2026-01-02', { w: 0, z: 0 }),
+    ];
     expect(recap(nights).players.map((p) => [p.playerId, p.netCents])).toEqual([
       ['y', 100],
       ['z', 100],

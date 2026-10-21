@@ -1,10 +1,10 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import { Client, Pool, type ClientConfig } from 'pg';
 import * as auth from '@/auth/schema';
 import { env } from '@/env';
 import * as groups from '@/groups/schema';
 import * as nights from '@/nights/schema';
 import * as players from '@/players/schema';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Client, Pool, type ClientConfig } from 'pg';
 
 export const schema = { ...auth, ...groups, ...players, ...nights };
 

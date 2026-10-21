@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { formatDollars, formatNet, parseDollars } from '@/money/money';
+import { describe, expect, it } from 'vitest';
 
 describe('parseDollars', () => {
   it.each([
@@ -9,13 +9,25 @@ describe('parseDollars', () => {
     { name: 'padded whole dollars', input: ' 20 ', expected: { kind: 'amount', cents: 2000 } },
     { name: 'trailing dot', input: '20.', expected: { kind: 'amount', cents: 2000 } },
     { name: 'one decimal place', input: '20.5', expected: { kind: 'amount', cents: 2050 } },
-    { name: 'dollar sign and thousands commas', input: '$1,200.50', expected: { kind: 'amount', cents: 120050 } },
+    {
+      name: 'dollar sign and thousands commas',
+      input: '$1,200.50',
+      expected: { kind: 'amount', cents: 120050 },
+    },
     { name: 'negative is rejected', input: '-5', expected: { kind: 'invalid' } },
     { name: 'exponent is rejected', input: '1e3', expected: { kind: 'invalid' } },
     { name: 'three decimals are rejected', input: '20.555', expected: { kind: 'invalid' } },
     { name: 'letters are rejected', input: 'abc', expected: { kind: 'invalid' } },
-    { name: 'the maximum amount is accepted', input: '100000', expected: { kind: 'amount', cents: 10000000 } },
-    { name: 'one cent over the maximum is rejected', input: '100000.01', expected: { kind: 'invalid' } },
+    {
+      name: 'the maximum amount is accepted',
+      input: '100000',
+      expected: { kind: 'amount', cents: 10000000 },
+    },
+    {
+      name: 'one cent over the maximum is rejected',
+      input: '100000.01',
+      expected: { kind: 'invalid' },
+    },
     { name: 'misplaced comma is rejected', input: '1,20', expected: { kind: 'invalid' } },
   ])('$name', ({ input, expected }) => {
     expect(parseDollars(input)).toEqual(expected);

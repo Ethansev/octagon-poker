@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm';
 import { generateInviteCode } from '@/access/invite';
 import { db } from '@/db/client';
 import { groups, type Group } from '@/groups/schema';
+import { eq } from 'drizzle-orm';
 
 export async function getGroup(): Promise<Group> {
   const [group] = await db.select().from(groups).limit(1);

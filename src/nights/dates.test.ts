@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { formatNightDate, isRealDate } from '@/nights/dates';
+import { describe, expect, it } from 'vitest';
 
 describe('isRealDate', () => {
   it.each([

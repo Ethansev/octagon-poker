@@ -414,7 +414,10 @@ describe('creating nights', () => {
 
     expect(again).toEqual({ kind: 'existing', id: nightId });
     expect(await db.select().from(nights)).toHaveLength(1);
-    const events = await db.select().from(nightEvents).where(eq(nightEvents.action, 'night.create'));
+    const events = await db
+      .select()
+      .from(nightEvents)
+      .where(eq(nightEvents.action, 'night.create'));
     expect(events).toHaveLength(1);
   });
 

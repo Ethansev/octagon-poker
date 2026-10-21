@@ -1,10 +1,10 @@
-import { eq } from 'drizzle-orm';
 import { createAuth } from '@/auth/auth';
 import { user } from '@/auth/schema';
 import { db } from '@/db/client';
 import { env } from '@/env';
 import { createGroup } from '@/groups/groups';
 import { groups } from '@/groups/schema';
+import { eq } from 'drizzle-orm';
 
 function required(name: string): string {
   const value = process.env[name];

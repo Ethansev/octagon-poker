@@ -1,6 +1,6 @@
-import { headers } from 'next/headers';
 import { auth } from '@/auth/auth';
 import { getGroup } from '@/groups/groups';
+import { headers } from 'next/headers';
 
 export async function getOwnerSession(): Promise<{ userId: string } | null> {
   const session = await auth.api.getSession({ headers: await headers() });

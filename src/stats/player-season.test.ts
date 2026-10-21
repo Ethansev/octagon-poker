@@ -1,16 +1,23 @@
-import { describe, expect, it } from 'vitest';
 import { playerSeason } from '@/stats/player-season';
+import { describe, expect, it } from 'vitest';
 
 const night = (id: string, date: string, nets: Record<string, number>) => ({
   id,
   date,
-  seats: Object.entries(nets).map(([playerId, net]) => ({ playerId, buyInCents: 10000, cashOutCents: 10000 + net })),
+  seats: Object.entries(nets).map(([playerId, net]) => ({
+    playerId,
+    buyInCents: 10000,
+    cashOutCents: 10000 + net,
+  })),
 });
 
 describe('playerSeason', () => {
   it('sorts history by date ascending and marks won nights', () => {
     const result = playerSeason(
-      [night('late', '2026-03-01', { a: -100, b: 100 }), night('early', '2026-01-01', { a: 200, b: -200 })],
+      [
+        night('late', '2026-03-01', { a: -100, b: 100 }),
+        night('early', '2026-01-01', { a: 200, b: -200 }),
+      ],
       'a',
     );
     expect(result.history).toEqual([
@@ -22,14 +29,21 @@ describe('playerSeason', () => {
 
   it('uses the biggest positive night', () => {
     const result = playerSeason(
-      [night('n1', '2026-01-01', { a: 100, b: -100 }), night('n2', '2026-01-02', { a: 400, b: -400 }), night('n3', '2026-01-03', { a: -500, b: 500 })],
+      [
+        night('n1', '2026-01-01', { a: 100, b: -100 }),
+        night('n2', '2026-01-02', { a: 400, b: -400 }),
+        night('n3', '2026-01-03', { a: -500, b: 500 }),
+      ],
       'a',
     );
     expect(result.biggestNight).toEqual({ nightId: 'n2', date: '2026-01-02', netCents: 400 });
   });
 
   it('has no biggest night for a player who was never up', () => {
-    const result = playerSeason([night('n1', '2026-01-01', { a: -100, b: 100 }), night('n2', '2026-01-02', { a: 0, b: 0 })], 'a');
+    const result = playerSeason(
+      [night('n1', '2026-01-01', { a: -100, b: 100 }), night('n2', '2026-01-02', { a: 0, b: 0 })],
+      'a',
+    );
     expect(result.biggestNight).toBeNull();
   });
 

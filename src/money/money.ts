@@ -1,11 +1,15 @@
-export type ParsedDollars = { kind: 'empty' } | { kind: 'amount'; cents: number } | { kind: 'invalid' };
+export type ParsedDollars =
+  { kind: 'empty' } | { kind: 'amount'; cents: number } | { kind: 'invalid' };
 
 const MAX_CENTS = 10_000_000;
 
 const DOLLARS_PATTERN = /^\$?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{0,2}))?$/;
 
 const wholeFormat = new Intl.NumberFormat('en-US');
-const centsFormat = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const centsFormat = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 export function parseDollars(input: string): ParsedDollars {
   const trimmed = input.trim();
