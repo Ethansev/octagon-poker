@@ -11,6 +11,9 @@ export default async function GroupLayout({ children }: { children: React.ReactN
         <p className='text-muted-foreground mt-2'>
           This is a private page for our home game. Open the link from the group chat to get in.
         </p>
+        <Link href='/sign-in' className='text-muted-foreground mt-4 inline-block text-sm underline'>
+          Hosting? Sign in
+        </Link>
       </div>
     );
   }
