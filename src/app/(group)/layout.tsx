@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { getViewer } from '@/access/viewer';
+import Link from 'next/link';
 
 export default async function GroupLayout({ children }: { children: React.ReactNode }) {
   const viewer = await getViewer();
