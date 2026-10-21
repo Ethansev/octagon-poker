@@ -1,10 +1,10 @@
 import { requireOwner } from '@/access/viewer';
 import { env } from '@/env';
 import { listPlayers } from '@/players/players';
-import { InviteLinkCard } from './invite-link-card';
-import { MergePlayersForm } from './merge-players-form';
-import { RenameGroupForm } from './rename-group-form';
-import { SignOutButton } from './sign-out-button';
+import { InviteLinkCard } from '@/app/(group)/settings/invite-link-card';
+import { MergePlayersForm } from '@/app/(group)/settings/merge-players-form';
+import { RenameGroupForm } from '@/app/(group)/settings/rename-group-form';
+import { SignOutButton } from '@/app/(group)/settings/sign-out-button';
 
 export default async function SettingsPage() {
   const viewer = await requireOwner();

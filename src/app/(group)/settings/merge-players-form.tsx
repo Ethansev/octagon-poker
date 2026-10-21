@@ -1,5 +1,16 @@
 'use client';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -12,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { formatNightDate } from '@/nights/dates';
 import { mergePlayersAction } from '@/players/actions';
-import { useState, useTransition, type FormEvent } from 'react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
 type PlayerOption = { id: string; name: string };
@@ -30,8 +41,10 @@ export function MergePlayersForm({ players }: { players: PlayerOption[] }) {
     setRefusal(null);
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const fromName = players.find((player) => player.id === fromId)?.name ?? '';
+  const intoName = players.find((player) => player.id === intoId)?.name ?? '';
+
+  function merge() {
     const form = new FormData();
     form.set('fromId', fromId);
     form.set('intoId', intoId);
@@ -60,7 +73,7 @@ export function MergePlayersForm({ players }: { players: PlayerOption[] }) {
         <CardTitle>Merge players</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className='space-y-3'>
+        <div className='space-y-3'>
           <div className='grid gap-3 sm:grid-cols-2'>
             <PlayerSelect
               label='Merge'
@@ -84,10 +97,28 @@ export function MergePlayersForm({ players }: { players: PlayerOption[] }) {
               first, then merge.
             </p>
           )}
-          <Button type='submit' disabled={pending || fromId === '' || intoId === ''}>
-            Merge players
-          </Button>
-        </form>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button type='button' disabled={pending || fromId === '' || intoId === ''}>
+                Merge players
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Merge {fromName} into {intoName}?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {fromName}&apos;s nights move to {intoName} and {fromName} is removed.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={merge}>Merge players</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </CardContent>
     </Card>
   );
