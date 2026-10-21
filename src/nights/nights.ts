@@ -74,6 +74,8 @@ const seatViewColumns = {
 
 const msNow = sql`date_trunc('milliseconds', clock_timestamp())`;
 
+const nextToken = sql`greatest(${msNow}, date_trunc('milliseconds', ${seats.updatedAt}) + interval '1 millisecond')`;
+
 function actorColumns(actor: Actor): {
   actorKind: 'owner' | 'member';
   actorPlayerId: string | null;
@@ -252,7 +254,7 @@ export async function upsertSeat(
       before = centsOf(existing);
       const [updated] = await tx
         .update(seats)
-        .set({ ...after, updatedAt: msNow })
+        .set({ ...after, updatedAt: nextToken })
         .where(
           and(
             eq(seats.nightId, input.nightId),

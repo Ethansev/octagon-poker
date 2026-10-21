@@ -158,6 +158,43 @@ describe('seating', () => {
     }
   });
 
+  it('issues a strictly newer token even when the previous write is ahead of the clock', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    const t1 = await seat(groupId, nightId, ivy, 2000, null);
+    const future = new Date(t1.getTime() + 60_000);
+    await db.update(seats).set({ updatedAt: future }).where(eq(seats.playerId, ivy));
+
+    const ownerSave = await upsertSeat(
+      {
+        groupId,
+        nightId,
+        playerId: ivy,
+        buyInCents: 2000,
+        cashOutCents: 2600,
+        expectedUpdatedAt: future,
+      },
+      owner,
+    );
+    expect(ownerSave.kind).toBe('saved');
+    if (ownerSave.kind !== 'saved') return;
+    expect(ownerSave.updatedAt.getTime()).toBeGreaterThan(future.getTime());
+
+    const stale = await upsertSeat(
+      {
+        groupId,
+        nightId,
+        playerId: ivy,
+        buyInCents: 3000,
+        cashOutCents: 1000,
+        expectedUpdatedAt: future,
+      },
+      { kind: 'member', playerId: ann },
+    );
+    expect(stale.kind).toBe('conflict');
+    const [row] = await db.select().from(seats).where(eq(seats.playerId, ivy));
+    expect(current(row)).toEqual({ buyInCents: 2000, cashOutCents: 2600 });
+  });
+
   it('treats creating a seat that already exists as a conflict', async () => {
     const { groupId, ivy, nightId } = await setup();
     await seat(groupId, nightId, ivy, 2000, 2500);
