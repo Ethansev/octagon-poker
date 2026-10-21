@@ -8,7 +8,7 @@ on:
 
 jobs:
   mention:
-    if: contains(github.event.comment.body, '@claude')
+    if: vars.CLAUDE_MENTIONS == 'true' && contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
