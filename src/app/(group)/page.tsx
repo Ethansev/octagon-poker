@@ -6,6 +6,7 @@ import { resolveSeason, seasonLabel } from '@/app/(group)/seasons';
 import { StandingsBlock } from '@/app/(group)/standings-block';
 import { currentYearInGroup } from '@/dates/group-time';
 import { Button } from '@/components/ui/button';
+import { formatNightDate } from '@/nights/dates';
 import { listClosedNights, listNights } from '@/nights/nights';
 import { listPlayers } from '@/players/players';
 import { nightsInSeason } from '@/stats/season';
@@ -33,6 +34,7 @@ export default async function Home({
   const { ranked, unranked } = standings(closed);
   const last = closed[0];
   const lastLocation = summaries.find((night) => night.id === last?.id)?.location ?? null;
+  const openNight = summaries.find((night) => night.status === 'open');
   const previousYear = typeof season === 'number' ? season - 1 : null;
   const previousRecap =
     previousYear !== null && closedNights.some((n) => n.date.startsWith(`${previousYear}-`));
@@ -69,9 +71,18 @@ export default async function Home({
           </Link>
         )}
       </div>
+      {openNight && (
+        <Link
+          href={`/nights/${openNight.id}`}
+          className='block rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900'>
+          Open night · {formatNightDate(openNight.date)} — add your numbers
+        </Link>
+      )}
       {last === undefined ? (
         <div className='rounded-xl border border-slate-200 p-4 text-center'>
-          <p className='font-semibold text-slate-900'>No nights logged in {label} yet</p>
+          <p className='font-semibold text-slate-900'>
+            {openNight ? `No closed nights in ${label} yet` : `No nights logged in ${label} yet`}
+          </p>
           {previousRecap && previousYear !== null && (
             <Link
               href={`/recap/${previousYear}`}

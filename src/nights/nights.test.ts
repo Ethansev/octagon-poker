@@ -403,6 +403,49 @@ describe('closing', () => {
   });
 });
 
+describe('creating nights', () => {
+  it('returns the open night already on that date without a second night or event', async () => {
+    const { groupId, nightId } = await setup();
+
+    const again = await createNight(
+      { groupId, date: '2026-03-07', location: 'Zed’s', buyInCents: null },
+      owner,
+    );
+
+    expect(again).toEqual({ kind: 'existing', id: nightId });
+    expect(await db.select().from(nights)).toHaveLength(1);
+    const events = await db.select().from(nightEvents).where(eq(nightEvents.action, 'night.create'));
+    expect(events).toHaveLength(1);
+  });
+
+  it('creates a new night on the same date once the first is closed', async () => {
+    const { groupId, ann, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, 2000);
+    await closeNight(groupId, nightId);
+
+    const again = await createNight(
+      { groupId, date: '2026-03-07', location: null, buyInCents: null },
+      owner,
+    );
+
+    expect(again.kind).toBe('created');
+    expect(again.id).not.toBe(nightId);
+    expect(await db.select().from(nights)).toHaveLength(2);
+  });
+
+  it('creates a night on a different date while another is open', async () => {
+    const { groupId, nightId } = await setup();
+
+    const other = await createNight(
+      { groupId, date: '2026-03-08', location: null, buyInCents: null },
+      owner,
+    );
+
+    expect(other.kind).toBe('created');
+    expect(other.id).not.toBe(nightId);
+  });
+});
+
 describe('lists and delete', () => {
   it('lists closed nights only, with seat results', async () => {
     const { groupId, ann, ivy, nightId } = await setup();

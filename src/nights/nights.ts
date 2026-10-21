@@ -118,11 +118,26 @@ function closedSeats(
   );
 }
 
+export type CreateNightResult = { kind: 'created'; id: string } | { kind: 'existing'; id: string };
+
 export async function createNight(
   input: { groupId: string; date: string; location: string | null; buyInCents: number | null },
   actor: Actor,
-): Promise<{ id: string }> {
+): Promise<CreateNightResult> {
   return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${input.groupId + input.date}))`);
+    const [open] = await tx
+      .select({ id: nights.id })
+      .from(nights)
+      .where(
+        and(
+          eq(nights.groupId, input.groupId),
+          eq(nights.date, input.date),
+          eq(nights.status, 'open'),
+        ),
+      )
+      .limit(1);
+    if (open) return { kind: 'existing', id: open.id };
     const [night] = await tx
       .insert(nights)
       .values({
@@ -138,7 +153,7 @@ export async function createNight(
       action: 'night.create',
       detail: { date: input.date, location: input.location, buyInCents: input.buyInCents },
     });
-    return { id: night.id };
+    return { kind: 'created', id: night.id };
   });
 }
 

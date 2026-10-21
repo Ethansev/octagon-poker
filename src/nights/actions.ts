@@ -70,8 +70,8 @@ export async function createNightAction(formData: FormData): Promise<NightFormIn
   const fields = parseNightFields(formData);
   if ('kind' in fields) return fields;
 
-  const { id } = await createNight({ groupId: viewer.group.id, ...fields }, actorFor(viewer));
-  refreshNight(id);
+  const { id, kind } = await createNight({ groupId: viewer.group.id, ...fields }, actorFor(viewer));
+  if (kind === 'created') refreshNight(id);
   redirect(`/nights/${id}`);
 }
 
