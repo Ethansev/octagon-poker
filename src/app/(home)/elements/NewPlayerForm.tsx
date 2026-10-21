@@ -22,17 +22,17 @@ import { toast } from 'sonner';
 
 const FormSchema = z.object({
   // date: z.date({
-  //   required_error: 'A date of birth is required.',
+  //   error: 'A date of birth is required.',
   // }),
   // buyIn: z
   //   .string({
-  //     required_error: 'A buy-in amount is required.',
+  //     error: 'A buy-in amount is required.',
   //   })
   //   .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
   //     message: 'A buy-in amount must be greater than 0.',
   //   })
   //   .transform((val) => parseFloat(val)),
-  first_name: z.string({ required_error: 'A first name is required.' }),
+  first_name: z.string({ error: 'A first name is required.' }),
   last_name: z.string(),
   username: z.string(),
 });

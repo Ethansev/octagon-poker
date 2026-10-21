@@ -25,9 +25,9 @@ import { toast } from 'sonner';
 import { submitNewGame } from '../../actions/game-actions';
 
 const FormSchema = z.object({
-  date: z.date({ required_error: 'A date of birth is required.' }),
+  date: z.date({ error: 'A date of birth is required.' }),
   buyIn: z
-    .string({ required_error: 'A buy-in amount is required.' })
+    .string({ error: 'A buy-in amount is required.' })
     .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
       message: 'A buy-in amount must be greater than 0.',
     }),
@@ -100,7 +100,7 @@ export function NewGameForm(props: NewGameFormProps) {
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date: Date) => date > new Date() || date < new Date('1900-01-01')}
-                      initialFocus
+                      autoFocus
                     />
                   </PopoverContent>
                 </Popover>
