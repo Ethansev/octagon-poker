@@ -61,6 +61,7 @@ export function SeatRow({ nightId, seat, onSubmitted, onGone }: SeatRowProps) {
       <div className='col-start-3 row-start-2 flex items-center justify-end gap-1 sm:col-start-auto sm:row-start-auto'>
         <Button
           type='submit'
+          tabIndex={-1}
           size='sm'
           variant={row.dirty ? 'default' : 'secondary'}
           disabled={row.pending}>
@@ -68,6 +69,7 @@ export function SeatRow({ nightId, seat, onSubmitted, onGone }: SeatRowProps) {
         </Button>
         <Button
           type='button'
+          tabIndex={-1}
           size='icon'
           variant='ghost'
           className='size-8'

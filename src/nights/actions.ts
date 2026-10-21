@@ -19,7 +19,7 @@ import {
   upsertSeat,
 } from '@/nights/nights';
 import { revalidatePath } from 'next/cache';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 export type NightFormInvalid = { kind: 'invalid'; field: 'date' | 'location' | 'buyIn' };
@@ -162,7 +162,7 @@ export async function reopenNightAction(
 export async function deleteNightAction(nightId: string): Promise<{ kind: 'not-found' }> {
   const viewer = await requireOwner();
   const parsed = idSchema.safeParse(nightId);
-  if (!parsed.success) notFound();
+  if (!parsed.success) return { kind: 'not-found' };
 
   const result = await deleteNight(viewer.group.id, parsed.data);
   if (result.kind === 'not-found') return result;

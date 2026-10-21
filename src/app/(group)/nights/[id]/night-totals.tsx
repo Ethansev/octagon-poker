@@ -4,9 +4,11 @@ import type { NightBalance } from '@/stats/nights';
 import { nightBalance } from '@/stats/nights';
 
 function nameList(ids: string[], seats: SeatView[]): string {
-  return ids
-    .map((id) => seats.find((seat) => seat.playerId === id)?.playerName ?? 'Someone')
-    .join(', ');
+  const names = ids.map(
+    (id) => seats.find((seat) => seat.playerId === id)?.playerName ?? 'Someone',
+  );
+  if (names.length <= 1) return names.join('');
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
 function leftToCountNote(balance: NightBalance, seats: SeatView[]): string {
@@ -38,14 +40,13 @@ export function NightTotals({ seats }: { seats: SeatView[] }) {
   const balance = nightBalance(seats);
   const inCents = seats.reduce((sum, seat) => sum + seat.buyInCents, 0);
   const outCents = seats.reduce((sum, seat) => sum + (seat.cashOutCents ?? 0), 0);
-  const left = Math.abs(inCents - outCents);
 
   return (
     <div className='rounded-xl border border-slate-200 p-3'>
       <div className='grid grid-cols-3 gap-2'>
         <Stat label='In' value={formatDollars(inCents)} />
         <Stat label='Out' value={formatDollars(outCents)} />
-        <Stat label='Left to count' value={formatDollars(left)} />
+        <DifferenceStat inCents={inCents} outCents={outCents} />
       </div>
       <p className='mt-2 text-xs text-slate-500'>{leftToCountNote(balance, seats)}</p>
     </div>
@@ -61,4 +62,11 @@ function Stat({ label, value }: { label: string; value: string }) {
       <div className='text-lg font-bold text-slate-900'>{value}</div>
     </div>
   );
+}
+
+function DifferenceStat({ inCents, outCents }: { inCents: number; outCents: number }) {
+  if (outCents > inCents) return <Stat label='Over by' value={formatDollars(outCents - inCents)} />;
+  if (inCents > outCents)
+    return <Stat label='Left to count' value={formatDollars(inCents - outCents)} />;
+  return <Stat label='Balanced' value={formatDollars(0)} />;
 }

@@ -55,8 +55,8 @@ function useNightStatusActions(nightId: string) {
 
   function remove() {
     startTransition(async () => {
-      await deleteNightAction(nightId);
-      toast.error('Night not found.');
+      const result = await deleteNightAction(nightId);
+      if (result.kind === 'not-found') toast.error('Night not found.');
     });
   }
 
