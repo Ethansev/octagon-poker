@@ -7,16 +7,12 @@ import { SeatTable } from '@/app/(group)/nights/[id]/seat-table';
 import { WhoAreYou } from '@/app/(group)/nights/[id]/who-are-you';
 import { formatDollars, formatNet } from '@/money/money';
 import { formatNightDate } from '@/nights/dates';
+import { joinNames } from '@/nights/names';
 import { getNight } from '@/nights/nights';
 import { listPlayers } from '@/players/players';
 import { seatNet } from '@/stats/nights';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
-
-function joinNames(names: string[]): string {
-  if (names.length <= 1) return names.join('');
-  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
-}
 
 export default async function NightPage({ params }: { params: Promise<{ id: string }> }) {
   const viewer = await getViewer();
