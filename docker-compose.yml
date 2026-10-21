@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: octagon
+      POSTGRES_PASSWORD: octagon
+      POSTGRES_DB: octagon_poker
+    ports:
+      - '15436:5432'
+    volumes:
+      - octagon_pgdata:/var/lib/postgresql/data
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U octagon']
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  octagon_pgdata:

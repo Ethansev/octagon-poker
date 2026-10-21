@@ -10,6 +10,25 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: octagon
+          POSTGRES_PASSWORD: octagon
+          POSTGRES_DB: octagon_poker_test
+        ports:
+          - 15436:5432
+        options: >-
+          --health-cmd "pg_isready -U octagon"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://octagon:octagon@localhost:15436/octagon_poker_test
+      TEST_DATABASE_URL: postgresql://octagon:octagon@localhost:15436/octagon_poker_test
+      BETTER_AUTH_SECRET: ci-secret-at-least-32-characters-long
+      BETTER_AUTH_URL: http://localhost:3410
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -18,4 +37,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check-all
+      - run: npm test
       - run: npm run build
