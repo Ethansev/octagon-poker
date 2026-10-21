@@ -1,6 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { connection } from 'next/server';
 import { MEMBER_COOKIE, PLAYER_COOKIE } from '@/access/cookies';
 import { isMemberCode } from '@/access/invite';
 import { getOwnerSession } from '@/auth/session';
@@ -31,6 +32,7 @@ async function playerInGroup(
 }
 
 export async function getViewer(): Promise<Viewer | null> {
+  await connection();
   const group = await getGroup();
   const owner = await getOwnerSession();
   if (owner) return { role: 'owner', userId: owner.userId, group };
