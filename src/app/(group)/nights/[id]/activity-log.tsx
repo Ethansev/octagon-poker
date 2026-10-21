@@ -1,5 +1,6 @@
+import { dateInGroup, timeInGroup } from '@/dates/group-time';
+import { env } from '@/env';
 import { formatDollars } from '@/money/money';
-import { localDateString } from '@/nights/dates';
 import type { NightEventView } from '@/nights/nights';
 import { z } from 'zod';
 
@@ -20,11 +21,13 @@ function money(cents: number | null): string {
 }
 
 function formatEventTime(createdAt: Date, nightDate: string): string {
-  const time = createdAt
-    .toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-    .replace(/\s?(AM|PM)$/, (_, meridiem: string) => meridiem.toLowerCase());
-  if (localDateString(createdAt) === nightDate) return time;
-  const day = createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const time = timeInGroup(createdAt);
+  if (dateInGroup(createdAt) === nightDate) return time;
+  const day = createdAt.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: env.GROUP_TIME_ZONE,
+  });
   return `${day}, ${time}`;
 }
 

@@ -1,6 +1,6 @@
 import { getViewer } from '@/access/viewer';
 import { NewNightForm } from '@/app/(group)/nights/new/new-night-form';
-import { todayLocalDate } from '@/nights/dates';
+import { todayInGroup } from '@/dates/group-time';
 import { notFound } from 'next/navigation';
 
 export default async function NewNightPage() {
@@ -13,7 +13,7 @@ export default async function NewNightPage() {
         <h1 className='text-xl font-extrabold text-slate-900'>Log a night</h1>
         <p className='mt-1 text-sm text-slate-500'>Add the players on the next page.</p>
       </div>
-      <NewNightForm today={todayLocalDate()} />
+      <NewNightForm today={todayInGroup()} />
     </div>
   );
 }

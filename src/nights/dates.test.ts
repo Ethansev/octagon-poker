@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatNightDate, isRealDate, localDateString } from '@/nights/dates';
+import { formatNightDate, isRealDate } from '@/nights/dates';
 
 describe('isRealDate', () => {
   it.each([
@@ -15,9 +15,5 @@ describe('isRealDate', () => {
 describe('date formatting', () => {
   it('formats a night date without timezone drift', () => {
     expect(formatNightDate('2026-10-17')).toBe('Sat, Oct 17, 2026');
-  });
-
-  it('formats a local date as YYYY-MM-DD', () => {
-    expect(localDateString(new Date(2026, 0, 5))).toBe('2026-01-05');
   });
 });

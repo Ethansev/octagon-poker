@@ -1,13 +1,3 @@
-const pad = (n: number) => String(n).padStart(2, '0');
-
-export function localDateString(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-export function todayLocalDate(): string {
-  return localDateString(new Date());
-}
-
 export function isRealDate(value: string): boolean {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return false;

@@ -2,6 +2,7 @@ import { getViewer } from '@/access/viewer';
 import { AwardCard } from '@/app/(group)/recap/[year]/award-card';
 import { PlayerCard } from '@/app/(group)/recap/[year]/player-card';
 import { StandingsBlock } from '@/app/(group)/standings-block';
+import { currentYearInGroup } from '@/dates/group-time';
 import { formatNet } from '@/money/money';
 import { formatNightDate } from '@/nights/dates';
 import { joinNames } from '@/nights/names';
@@ -17,7 +18,7 @@ export default async function RecapPage({ params }: { params: Promise<{ year: st
   if (!viewer) notFound();
 
   const rawYear = (await params).year;
-  const currentYear = new Date().getFullYear();
+  const currentYear = currentYearInGroup();
   if (!/^\d{4}$/.test(rawYear) || Number(rawYear) > currentYear) notFound();
   const year = Number(rawYear);
 

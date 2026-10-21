@@ -25,6 +25,7 @@ export default defineRailway(() => {
       DATABASE_URL: db.env.DATABASE_URL,
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_URL: preserve(),
+      GROUP_TIME_ZONE: "America/Los_Angeles",
     },
   });
 

@@ -4,6 +4,7 @@ import { RecentNights } from '@/app/(group)/recent-nights';
 import { SeasonSwitcher } from '@/app/(group)/season-switcher';
 import { resolveSeason, seasonLabel } from '@/app/(group)/seasons';
 import { StandingsBlock } from '@/app/(group)/standings-block';
+import { currentYearInGroup } from '@/dates/group-time';
 import { Button } from '@/components/ui/button';
 import { listClosedNights, listNights } from '@/nights/nights';
 import { listPlayers } from '@/players/players';
@@ -39,7 +40,7 @@ export default async function Home({
   const heading =
     season === 'all'
       ? 'Up all time'
-      : season === new Date().getFullYear()
+      : season === currentYearInGroup()
         ? 'Up this year'
         : `Up in ${season}`;
 
