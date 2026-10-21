@@ -1,6 +1,6 @@
+import { groups } from '@/groups/schema';
 import { sql } from 'drizzle-orm';
 import { pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
-import { groups } from '@/groups/schema';
 
 export const players = pgTable(
   'players',
