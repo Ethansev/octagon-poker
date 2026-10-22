@@ -26,14 +26,9 @@ The app runs on http://localhost:3410. Postgres listens on host port 15436.
 
 ## Deploy (Railway)
 
-`.railway/railway.ts` declares the Postgres and `web` service; the `Dockerfile` builds the app, and each release runs `node scripts/migrate.mjs` as the pre-deploy step and is gated on `/api/health`. One-time manual steps:
+`.railway/railway.ts` declares the Postgres and `web` service; the `Dockerfile` builds the app, and each release runs `node dist/predeploy.mjs` (bundled from `scripts/predeploy.ts`) as the pre-deploy step and is gated on `/api/health`. The pre-deploy step runs migrations, then creates the owner and group when `OWNER_PASSWORD` is set. One-time manual steps:
 
 1. Apply `.railway/railway.ts` ([Railway IaC docs](https://docs.railway.com)) for the `Ethansev/octagon-poker` repo, branch `main`.
-2. Set `BETTER_AUTH_SECRET` (generate with `npx auth secret`) and `BETTER_AUTH_URL` (the service's Railway domain). The first deploy fails its health check until these are set; redeploy once they are.
-3. Once the deploy is healthy, create the owner and group by running setup against the Railway Postgres public URL, with the same secret and domain so the printed link is correct:
-
-   ```bash
-   DATABASE_URL=<public url> BETTER_AUTH_URL=https://<your-railway-domain> BETTER_AUTH_SECRET=<same secret> OWNER_EMAIL=… OWNER_PASSWORD=… GROUP_NAME=… npm run setup
-   ```
-
-4. Share the join link it prints with the group. Settings shows the same link after you sign in as the owner.
+2. Set `BETTER_AUTH_SECRET` (generate with `npx auth secret`) and `BETTER_AUTH_URL` (the service's Railway domain) on `web`.
+3. Set `OWNER_EMAIL`, `OWNER_PASSWORD`, and `GROUP_NAME` on `web`. The next deploy's pre-deploy logs print the join link.
+4. Delete `OWNER_PASSWORD` once you can sign in. Later deploys skip setup, and Settings shows the join link.

@@ -1,39 +1,10 @@
-import { createAuth } from '@/auth/auth';
-import { user } from '@/auth/schema';
-import { db } from '@/db/client';
 import { env } from '@/env';
-import { createGroup } from '@/groups/groups';
-import { groups } from '@/groups/schema';
-import { eq } from 'drizzle-orm';
-
-function required(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is not set`);
-  return value;
-}
-
-const email = required('OWNER_EMAIL');
-const password = required('OWNER_PASSWORD');
-const groupName = required('GROUP_NAME');
-
-async function findOwnerId(): Promise<string | null> {
-  const [owner] = await db.select({ id: user.id }).from(user).where(eq(user.email, email)).limit(1);
-  return owner?.id ?? null;
-}
+import { readOwnerSetup, setupOwnerGroup } from '@/groups/setup';
 
 async function main() {
-  let ownerId = await findOwnerId();
-  if (!ownerId) {
-    await createAuth({ allowSignUp: true }).api.signUpEmail({
-      body: { email, password, name: 'Host' },
-    });
-    ownerId = await findOwnerId();
-  }
-  if (!ownerId) throw new Error('Owner account was not created');
-
-  const [existing] = await db.select().from(groups).limit(1);
-  const group = existing ?? (await createGroup({ name: groupName, ownerUserId: ownerId }));
-
+  const setup = readOwnerSetup(process.env);
+  if (!setup) throw new Error('OWNER_PASSWORD is not set');
+  const group = await setupOwnerGroup(setup);
   console.log(`${env.BETTER_AUTH_URL}/join/${group.inviteCode}`);
 }
 
