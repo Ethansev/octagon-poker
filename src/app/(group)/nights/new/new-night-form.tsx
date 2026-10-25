@@ -2,14 +2,23 @@
 
 import { NightForm } from '@/app/(group)/nights/night-form';
 import { createNightAction } from '@/nights/actions';
+import type { NightPicks } from '@/nights/night-hints';
 
-export function NewNightForm({ today }: { today: string }) {
+export function NewNightForm({
+  defaults,
+  picks,
+}: {
+  defaults: { date: string; location: string; buyIn: string };
+  picks: NightPicks;
+}) {
   return (
     <NightForm
       action={createNightAction}
       nightId={null}
-      defaults={{ date: today, location: '', buyIn: '' }}
-      submitLabel='Create night'
+      defaults={defaults}
+      picks={picks}
+      submitLabel='Deal the night'
+      pendingLabel='Dealing…'
     />
   );
 }

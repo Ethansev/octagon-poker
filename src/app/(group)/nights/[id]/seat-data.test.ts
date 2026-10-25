@@ -1,20 +1,5 @@
-import {
-  centsToInput,
-  rebuyCount,
-  seatNetCents,
-  stepAmount,
-} from '@/app/(group)/nights/[id]/seat-data';
+import { rebuyCount, seatNetCents, stepAmount } from '@/app/(group)/nights/[id]/seat-data';
 import { describe, expect, it } from 'vitest';
-
-describe('centsToInput', () => {
-  it.each([
-    { name: 'no amount is an empty field', cents: null, expected: '' },
-    { name: 'whole dollars drop the cents', cents: 2000, expected: '20' },
-    { name: 'partial dollars keep two decimals', cents: 2050, expected: '20.50' },
-  ])('$name', ({ cents, expected }) => {
-    expect(centsToInput(cents)).toBe(expected);
-  });
-});
 
 describe('stepAmount', () => {
   it.each([

@@ -1,4 +1,4 @@
-import { parseDollars } from '@/money/money';
+import { centsToInput, parseDollars } from '@/money/money';
 import type { SeatView } from '@/nights/nights';
 
 export type SeatData = {
@@ -19,11 +19,6 @@ export function toSeatData(seat: SeatView): SeatData {
     cashOutCents: seat.cashOutCents,
     updatedAt: seat.updatedAt.toISOString(),
   };
-}
-
-export function centsToInput(cents: number | null): string {
-  if (cents === null) return '';
-  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
 }
 
 export function stepAmount(text: string, deltaCents: number, floorCents: number): string {

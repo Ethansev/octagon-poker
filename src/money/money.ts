@@ -23,6 +23,11 @@ export function parseDollars(input: string): ParsedDollars {
   return { kind: 'amount', cents };
 }
 
+export function centsToInput(cents: number | null): string {
+  if (cents === null) return '';
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
+}
+
 export function formatDollars(cents: number): string {
   const dollars = cents / 100;
   return `$${cents % 100 === 0 ? wholeFormat.format(dollars) : centsFormat.format(dollars)}`;

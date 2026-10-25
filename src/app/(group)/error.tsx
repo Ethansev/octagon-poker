@@ -1,18 +1,25 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { BrandCard, brandActionClass, brandLinkClass } from '@/components/brand-card';
+import { RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 
-export default function GroupError({ reset }: { error: Error; reset: () => void }) {
+export default function GroupError({ retry }: { error: unknown; retry: () => void }) {
   return (
-    <div className='mx-auto max-w-md space-y-4 p-4 pt-12 text-center'>
-      <h1 className='text-xl font-extrabold text-ink'>Something went wrong.</h1>
-      <div className='flex items-center justify-center gap-3'>
-        <Button onClick={reset}>Try again</Button>
-        <Link href='/' className='text-sm text-ink-2 underline'>
-          Back to the group
-        </Link>
-      </div>
+    <div className='grid place-items-center px-4 py-16 sm:px-6 sm:py-24'>
+      <BrandCard
+        title='Something went wrong'
+        body='The table got bumped and we lost the hand. Give it another shot.'>
+        <div className='flex flex-wrap items-center gap-2'>
+          <button type='button' onClick={retry} className={brandActionClass}>
+            <RotateCcw aria-hidden className='size-4' strokeWidth={2.5} />
+            Try again
+          </button>
+          <Link href='/' className={brandLinkClass}>
+            Back to the group
+          </Link>
+        </div>
+      </BrandCard>
     </div>
   );
 }

@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { deleteNightAction, reopenNightAction, updateNightAction } from '@/nights/actions';
+import { QUICK_BUY_INS } from '@/nights/night-hints';
 import { Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { useCallback, useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -73,7 +74,9 @@ function EditDetails({ nightId, details }: Omit<NightOwnerActionsProps, 'status'
           action={updateNightAction}
           nightId={nightId}
           defaults={details}
+          picks={{ locations: [], buyIns: QUICK_BUY_INS }}
           submitLabel='Save details'
+          pendingLabel='Saving…'
           onSaved={closeDialog}
         />
       </DialogContent>

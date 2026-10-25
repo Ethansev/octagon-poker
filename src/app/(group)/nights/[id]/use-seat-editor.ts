@@ -1,10 +1,10 @@
 'use client';
 
 import type { SeatData } from '@/app/(group)/nights/[id]/seat-data';
-import { centsToInput, stepAmount, toSeatData } from '@/app/(group)/nights/[id]/seat-data';
+import { stepAmount, toSeatData } from '@/app/(group)/nights/[id]/seat-data';
 import type { SeatBase, SeatEdit, SeatField } from '@/app/(group)/nights/[id]/seat-edits';
 import { baseOf, currentEdit, editFrom, isDirty } from '@/app/(group)/nights/[id]/seat-edits';
-import { parseDollars } from '@/money/money';
+import { centsToInput, parseDollars } from '@/money/money';
 import { removeSeatAction, saveSeatAction } from '@/nights/actions';
 import { firstName } from '@/players/first-name';
 import { useRouter } from 'next/navigation';

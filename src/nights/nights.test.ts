@@ -492,11 +492,19 @@ describe('lists and delete', () => {
     const list = await listNights(groupId, 2026);
 
     expect(list).toEqual([
-      { id: open.id, date: '2026-03-14', location: 'Zed’s', status: 'open', winnerNames: [] },
+      {
+        id: open.id,
+        date: '2026-03-14',
+        location: 'Zed’s',
+        buyInCents: null,
+        status: 'open',
+        winnerNames: [],
+      },
       {
         id: nightId,
         date: '2026-03-07',
         location: 'Ann’s',
+        buyInCents: 2000,
         status: 'closed',
         winnerNames: ['Ann', 'Ivy'],
       },

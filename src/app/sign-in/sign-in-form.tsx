@@ -4,6 +4,7 @@ import { authClient } from '@/auth/auth-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CircleAlert } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
@@ -30,11 +31,11 @@ export function SignInForm() {
 
   return (
     <form onSubmit={onSubmit} className='flex flex-col gap-4'>
-      <div className='flex flex-col gap-2'>
+      <div className='flex flex-col gap-2.5'>
         <Label htmlFor='email'>Email</Label>
         <Input id='email' name='email' type='email' autoComplete='email' required />
       </div>
-      <div className='flex flex-col gap-2'>
+      <div className='flex flex-col gap-2.5'>
         <Label htmlFor='password'>Password</Label>
         <Input
           id='password'
@@ -45,12 +46,19 @@ export function SignInForm() {
         />
       </div>
       {state.kind === 'failed' && (
-        <p role='alert' className='text-sm text-error'>
+        <p
+          role='alert'
+          className='flex items-center gap-1.5 rounded-2xl bg-error-soft px-4 py-3 text-sm font-semibold text-error'>
+          <CircleAlert aria-hidden className='size-4 shrink-0' />
           {state.message}
         </p>
       )}
-      <Button type='submit' disabled={state.kind === 'submitting'}>
-        Sign in
+      <Button
+        type='submit'
+        size='lg'
+        disabled={state.kind === 'submitting'}
+        className='mt-1 w-full'>
+        {state.kind === 'submitting' ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>
   );

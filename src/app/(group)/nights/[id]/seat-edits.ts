@@ -1,5 +1,5 @@
 import type { SeatData } from '@/app/(group)/nights/[id]/seat-data';
-import { centsToInput } from '@/app/(group)/nights/[id]/seat-data';
+import { centsToInput } from '@/money/money';
 
 export type SeatField = 'buyIn' | 'cashOut';
 

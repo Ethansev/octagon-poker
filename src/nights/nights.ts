@@ -41,6 +41,7 @@ export type NightSummary = {
   id: string;
   date: string;
   location: string | null;
+  buyInCents: number | null;
   status: 'open' | 'closed';
   winnerNames: string[];
 };
@@ -413,6 +414,7 @@ export async function listNights(groupId: string, season: Season): Promise<Night
       id: nights.id,
       date: nights.date,
       location: nights.location,
+      buyInCents: nights.buyInCents,
       status: nights.status,
     })
     .from(nights)

@@ -1,4 +1,4 @@
-import { formatDollars, formatNet, parseDollars } from '@/money/money';
+import { centsToInput, formatDollars, formatNet, parseDollars } from '@/money/money';
 import { describe, expect, it } from 'vitest';
 
 describe('parseDollars', () => {
@@ -51,5 +51,15 @@ describe('formatNet', () => {
     { name: 'zero has no sign', cents: 0, expected: '$0' },
   ])('$name', ({ cents, expected }) => {
     expect(formatNet(cents)).toBe(expected);
+  });
+});
+
+describe('centsToInput', () => {
+  it.each([
+    { name: 'no amount is an empty field', cents: null, expected: '' },
+    { name: 'whole dollars drop the cents', cents: 2000, expected: '20' },
+    { name: 'partial dollars keep two decimals', cents: 2050, expected: '20.50' },
+  ])('$name', ({ cents, expected }) => {
+    expect(centsToInput(cents)).toBe(expected);
   });
 });
