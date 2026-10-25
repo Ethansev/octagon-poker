@@ -4,7 +4,7 @@ import {
   StorySegments,
   storyCardClass,
   storyLinkClass,
-} from '@/app/(group)/_home/story-card';
+} from '@/app/(group)/story-card';
 import { cn } from '@/lib/utils';
 import { formatDollars, formatNet } from '@/money/money';
 import { formatNightDate } from '@/nights/dates';
@@ -13,6 +13,8 @@ import { firstName } from '@/players/first-name';
 import { PlayerAvatar } from '@/players/player-avatar';
 import { ArrowRight, MapPin } from 'lucide-react';
 import Link from 'next/link';
+
+export const HOME_STORY_COUNT = 5;
 
 const SHOWN_SEATS = 6;
 
@@ -36,7 +38,7 @@ export function LastNightStory({ night }: { night: LastNight }) {
         storyLinkClass,
         'group min-h-[460px] bg-hero text-hero-ink shadow-hero lg:col-span-6 lg:row-span-2 lg:min-h-0',
       )}>
-      <StorySegments index={0} tone='hero' />
+      <StorySegments index={0} count={HOME_STORY_COUNT} tone='hero' />
       <StoryKicker>Last night · {formatNightDate(night.date)}</StoryKicker>
       {night.location && (
         <p className='mt-1 inline-flex items-center gap-1 text-sm font-bold text-current/85'>

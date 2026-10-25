@@ -1,4 +1,4 @@
-import { nightsInSeason, parseSeason, type Season } from '@/stats/season';
+import { nightsInSeason, parseSeason, yearsWithNights, type Season } from '@/stats/season';
 import { describe, expect, it } from 'vitest';
 
 const night = (date: string) => ({ id: date, date, seats: [] });
@@ -32,5 +32,28 @@ describe('parseSeason', () => {
     { name: 'a five-digit number falls back to the current year', value: '20255', expected: 2026 },
   ])('$name', ({ value, expected }) => {
     expect(parseSeason(value, 2026)).toBe(expected);
+  });
+});
+
+describe('yearsWithNights', () => {
+  it.each([
+    { name: 'a quiet current year still shows up', dates: [], expected: [2026] },
+    {
+      name: 'years are listed newest first without repeats',
+      dates: ['2024-02-01', '2026-03-01', '2024-11-11'],
+      expected: [2026, 2024],
+    },
+    {
+      name: 'the current year joins the years that have nights',
+      dates: ['2025-12-31'],
+      expected: [2026, 2025],
+    },
+  ])('$name', ({ dates, expected }) => {
+    expect(
+      yearsWithNights(
+        dates.map((date) => ({ date })),
+        2026,
+      ),
+    ).toEqual(expected);
   });
 });

@@ -1,3 +1,5 @@
+import { runningTotals } from '@/charts/trend-path';
+
 export type SparklineGeometry = {
   path: string;
   zeroY: number;
@@ -11,7 +13,7 @@ export function sparklineGeometry(
   pad = 4,
 ): SparklineGeometry | null {
   if (nets.length < 2) return null;
-  const series = nets.reduce<number[]>((acc, net) => [...acc, (acc.at(-1) ?? 0) + net], [0]);
+  const series = runningTotals(nets);
   const min = Math.min(...series);
   const span = Math.max(...series) - min || 1;
   const y = (value: number) => pad + (1 - (value - min) / span) * (height - pad * 2);

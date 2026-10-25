@@ -4,11 +4,11 @@ import { loadHome } from '@/app/(group)/_home/load-home';
 import { OpenNightBanner } from '@/app/(group)/_home/open-night-banner';
 import { RecapCard } from '@/app/(group)/_home/recap-card';
 import { RecentNightsCard } from '@/app/(group)/_home/recent-nights-card';
-import { seasonGreeting, seasonKicker } from '@/app/(group)/_home/season-copy';
 import { SeasonEmpty } from '@/app/(group)/_home/season-empty';
-import { StandingsCard } from '@/app/(group)/_home/standings-card';
 import { StoryCards } from '@/app/(group)/_home/story-cards';
+import { seasonGreeting, seasonKicker, seasonPrefix } from '@/app/(group)/season-copy';
 import { SeasonSwitcher } from '@/app/(group)/season-switcher';
+import { StandingsCard } from '@/app/(group)/standings-card';
 import { cn } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 
@@ -48,7 +48,11 @@ export default async function Home({
             <StoryCards home={home} />
             <div className='grid gap-6 lg:grid-cols-12 lg:gap-8'>
               <div className='lg:col-span-4'>
-                <StandingsCard players={home.players} scope={scope} />
+                <StandingsCard
+                  players={home.players}
+                  title={`${seasonPrefix(scope)} standings`}
+                  playerHref={(playerId) => `/players/${playerId}`}
+                />
               </div>
               <div className='lg:col-span-8'>
                 <CrewRoster players={home.players} scope={scope} />

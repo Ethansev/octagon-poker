@@ -57,3 +57,7 @@ export function seasonWinNumber(
   const index = wins.findIndex((entry) => entry.nightId === nightId);
   return index === -1 ? null : index + 1;
 }
+
+export function winRate(player: Pick<PlayerSeason, 'nightsPlayed' | 'nightsWon'>): number | null {
+  return player.nightsPlayed === 0 ? null : player.nightsWon / player.nightsPlayed;
+}

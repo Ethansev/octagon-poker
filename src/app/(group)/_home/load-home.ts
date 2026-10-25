@@ -1,17 +1,19 @@
-import { resolveSeason } from '@/app/(group)/seasons';
+import {
+  identifyFrom,
+  seasonPlayers,
+  type Identify,
+  type SeasonPlayer,
+} from '@/app/(group)/season-players';
+import { resolveSeason, seasonScope, type SeasonScope } from '@/app/(group)/seasons';
 import { currentYearInGroup } from '@/dates/group-time';
 import { listClosedNights, listNights, type NightSummary } from '@/nights/nights';
 import { listPlayers } from '@/players/players';
 import { nightPot, nightWinners, seatNet, type ClosedNight } from '@/stats/nights';
-import type { PlayerSeason } from '@/stats/player-season';
 import { recap } from '@/stats/recap';
 import { nightsInSeason, type Season } from '@/stats/season';
 import { hottestStreak, type Heater } from '@/stats/streaks';
 
-export type HomeSeason =
-  { kind: 'current'; year: number } | { kind: 'past'; year: number } | { kind: 'all' };
-
-export type HomePlayer = PlayerSeason & { name: string; colorSlot: number; rank: number | null };
+export type HomePlayer = SeasonPlayer;
 
 export type HomeSeat = { playerId: string; name: string; colorSlot: number; netCents: number };
 
@@ -38,7 +40,7 @@ export type HomeHighlights = {
 export type HomeView = {
   season: Season;
   seasons: number[];
-  scope: HomeSeason;
+  scope: SeasonScope;
   nightsPlayed: number;
   potCents: number;
   players: HomePlayer[];
@@ -48,15 +50,6 @@ export type HomeView = {
   recentNights: RecentNight[];
   previousRecapYear: number | null;
 };
-
-function homeSeason(season: Season, currentYear: number): HomeSeason {
-  if (season === 'all') return { kind: 'all' };
-  return season === currentYear
-    ? { kind: 'current', year: season }
-    : { kind: 'past', year: season };
-}
-
-type Identify = (playerId: string) => { name: string; colorSlot: number };
 
 function seatsOf(night: ClosedNight, identify: Identify): HomeSeat[] {
   return night.seats
@@ -110,20 +103,11 @@ export async function loadHome(
     listNights(groupId, season),
     listPlayers(groupId),
   ]);
-  const byPlayerId = new Map(roster.map((player) => [player.id, player]));
-  const identify: Identify = (playerId) => {
-    const player = byPlayerId.get(playerId);
-    return { name: player?.name ?? 'Unknown', colorSlot: player?.colorSlot ?? 0 };
-  };
-  const scope = homeSeason(season, currentYearInGroup());
+  const identify = identifyFrom(roster);
+  const scope = seasonScope(season, currentYearInGroup());
   const closed = nightsInSeason(allClosed, season);
   const awards = recap(closed);
-  const rankOf = new Map(awards.standings.ranked.map((row, index) => [row.playerId, index + 1]));
-  const players = awards.players.map((player) => ({
-    ...player,
-    ...identify(player.playerId),
-    rank: rankOf.get(player.playerId) ?? null,
-  }));
+  const players = seasonPlayers(awards, identify);
   const byId = new Map(players.map((player) => [player.playerId, player]));
 
   const heater = hottestStreak(awards.players, scope.kind === 'past' ? 'finished' : 'ongoing');

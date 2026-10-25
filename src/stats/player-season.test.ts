@@ -1,4 +1,4 @@
-import { playerSeason, seasonWinNumber } from '@/stats/player-season';
+import { playerSeason, seasonWinNumber, winRate } from '@/stats/player-season';
 import { describe, expect, it } from 'vitest';
 
 const night = (id: string, date: string, nets: Record<string, number>) => ({
@@ -109,5 +109,15 @@ describe('seasonWinNumber', () => {
     { name: 'a night the player skipped has none', nightId: 'n1', playerId: 'c', expected: null },
   ])('$name', ({ nightId, playerId, expected }) => {
     expect(seasonWinNumber(nights, nightId, playerId)).toBe(expected);
+  });
+});
+
+describe('winRate', () => {
+  it.each([
+    { name: 'no nights has no rate', nightsPlayed: 0, nightsWon: 0, expected: null },
+    { name: 'never winning is zero', nightsPlayed: 4, nightsWon: 0, expected: 0 },
+    { name: 'winning one of four is a quarter', nightsPlayed: 4, nightsWon: 1, expected: 0.25 },
+  ])('$name', ({ nightsPlayed, nightsWon, expected }) => {
+    expect(winRate({ nightsPlayed, nightsWon })).toBe(expected);
   });
 });

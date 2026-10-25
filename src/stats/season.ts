@@ -13,3 +13,8 @@ export function parseSeason(value: string | undefined, currentYear: number): Sea
   if (value !== undefined && /^\d{4}$/.test(value)) return Number(value);
   return currentYear;
 }
+
+export function yearsWithNights(nights: { date: string }[], alwaysInclude: number): number[] {
+  const years = new Set([alwaysInclude, ...nights.map((night) => Number(night.date.slice(0, 4)))]);
+  return [...years].sort((a, b) => b - a);
+}

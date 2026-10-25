@@ -1,4 +1,4 @@
-import { sparklineGeometry } from '@/app/(group)/_home/sparkline-path';
+import { sparklineGeometry } from '@/charts/sparkline-path';
 import { describe, expect, it } from 'vitest';
 
 describe('sparklineGeometry', () => {

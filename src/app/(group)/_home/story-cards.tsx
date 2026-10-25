@@ -1,12 +1,12 @@
-import { LastNightStory } from '@/app/(group)/_home/last-night-story';
+import { HOME_STORY_COUNT, LastNightStory } from '@/app/(group)/_home/last-night-story';
 import type { HomePlayer, HomeView } from '@/app/(group)/_home/load-home';
-import { seasonPrefix } from '@/app/(group)/_home/season-copy';
+import { seasonPrefix } from '@/app/(group)/season-copy';
 import {
   StoryKicker,
   StorySegments,
   storyCardClass,
   storyLinkClass,
-} from '@/app/(group)/_home/story-card';
+} from '@/app/(group)/story-card';
 import { cn } from '@/lib/utils';
 import { formatDollars, formatNet } from '@/money/money';
 import { formatNightDate, formatShortNightDate } from '@/nights/dates';
@@ -35,7 +35,7 @@ function PlayerStory({ story }: { story: Story }) {
   const { player } = story;
   const body = (
     <>
-      <StorySegments index={story.index} tone='story' />
+      <StorySegments index={story.index} count={HOME_STORY_COUNT} tone='story' />
       <StoryKicker>{story.kicker}</StoryKicker>
       <div className='mt-4 flex min-h-16 items-center gap-3'>
         {player && (
@@ -180,7 +180,7 @@ function SeasonStats({ home }: { home: HomeView }) {
         storyCardClass,
         'min-h-[300px] bg-story-4 text-story-4-ink shadow-story-4 lg:col-span-3 lg:min-h-[270px]',
       )}>
-      <StorySegments index={4} tone='story' />
+      <StorySegments index={4} count={HOME_STORY_COUNT} tone='story' />
       <StoryKicker>{statsKicker(home)}</StoryKicker>
       <dl className='mt-4 grid grid-cols-2 gap-x-4 gap-y-5'>
         <div className='flex flex-col-reverse'>

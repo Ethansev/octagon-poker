@@ -1,5 +1,4 @@
-import type { HomePlayer, HomeSeason } from '@/app/(group)/_home/load-home';
-import { seasonPrefix } from '@/app/(group)/_home/season-copy';
+import type { SeasonPlayer } from '@/app/(group)/season-players';
 import { formatNet } from '@/money/money';
 import { firstName } from '@/players/first-name';
 import { PlayerAvatar } from '@/players/player-avatar';
@@ -15,7 +14,9 @@ const PODIUM = [
 const rowLink =
   'flex cursor-pointer items-center gap-3 rounded-2xl px-2 transition focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none';
 
-function Podium({ ranked }: { ranked: HomePlayer[] }) {
+type PlayerHref = (playerId: string) => string;
+
+function Podium({ ranked, playerHref }: { ranked: SeasonPlayer[]; playerHref: PlayerHref }) {
   const byPlace = new Map(ranked.map((player) => [player.rank, player]));
   return (
     <ol className='mt-8 grid grid-cols-3 items-end gap-2'>
@@ -26,7 +27,7 @@ function Podium({ ranked }: { ranked: HomePlayer[] }) {
         return (
           <li key={place} className='min-w-0'>
             <Link
-              href={`/players/${player.playerId}`}
+              href={playerHref(player.playerId)}
               className='group flex cursor-pointer flex-col items-center rounded-2xl focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none'>
               <span className='relative transition group-hover:-translate-y-1 motion-reduce:transition-none'>
                 {place === 1 && (
@@ -63,7 +64,15 @@ function Podium({ ranked }: { ranked: HomePlayer[] }) {
   );
 }
 
-export function StandingsCard({ players, scope }: { players: HomePlayer[]; scope: HomeSeason }) {
+export function StandingsCard({
+  players,
+  title,
+  playerHref,
+}: {
+  players: SeasonPlayer[];
+  title: string;
+  playerHref: PlayerHref;
+}) {
   const ranked = players
     .filter((player) => player.rank !== null)
     .sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
@@ -75,14 +84,14 @@ export function StandingsCard({ players, scope }: { players: HomePlayer[]; scope
       aria-labelledby='standings-heading'
       className='h-full rounded-panel bg-surface p-5 shadow-card sm:p-7'>
       <h2 id='standings-heading' className='text-3xl font-bold tracking-tight'>
-        {seasonPrefix(scope)} standings
+        {title}
       </h2>
       <p className='mt-1 text-sm font-semibold text-ink-2'>
         Ranked by money won. Only the winners get a number.
       </p>
 
       {ranked.length > 0 ? (
-        <Podium ranked={ranked} />
+        <Podium ranked={ranked} playerHref={playerHref} />
       ) : (
         <p className='mt-6 rounded-3xl border border-dashed border-line px-4 py-6 text-center text-sm font-bold text-ink-2'>
           Nobody’s up yet. The podium is wide open.
@@ -94,7 +103,7 @@ export function StandingsCard({ players, scope }: { players: HomePlayer[]; scope
           {rest.map((player) => (
             <li key={player.playerId}>
               <Link
-                href={`/players/${player.playerId}`}
+                href={playerHref(player.playerId)}
                 className={`${rowLink} py-2 hover:bg-surface-2`}>
                 <span className='w-6 text-center text-lg font-bold text-ink-3 tabular-nums'>
                   {player.rank}
@@ -119,7 +128,7 @@ export function StandingsCard({ players, scope }: { players: HomePlayer[]; scope
             {unranked.map((player) => (
               <li key={player.playerId}>
                 <Link
-                  href={`/players/${player.playerId}`}
+                  href={playerHref(player.playerId)}
                   className={`${rowLink} py-1.5 text-ink-2 hover:bg-surface hover:text-ink`}>
                   <PlayerAvatar
                     colorSlot={player.colorSlot}

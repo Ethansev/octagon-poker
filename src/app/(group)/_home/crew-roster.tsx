@@ -1,52 +1,18 @@
-import type { HomePlayer, HomeSeason } from '@/app/(group)/_home/load-home';
-import { seasonSpan } from '@/app/(group)/_home/season-copy';
-import { Sparkline } from '@/app/(group)/_home/sparkline';
+import type { HomePlayer } from '@/app/(group)/_home/load-home';
+import { seasonSpan } from '@/app/(group)/season-copy';
+import type { SeasonScope } from '@/app/(group)/seasons';
+import { VibeMark, vibeLabel } from '@/app/(group)/vibe-mark';
+import { Sparkline } from '@/charts/sparkline';
 import { cn } from '@/lib/utils';
 import { formatNet } from '@/money/money';
 import { PlayerAvatar } from '@/players/player-avatar';
 import { playerColor } from '@/players/player-color';
-import { vibe, type Vibe } from '@/stats/vibe';
-import { Equal, Sprout, TrendingUp } from 'lucide-react';
+import { vibe } from '@/stats/vibe';
 import Link from 'next/link';
 
 function bubbleSize(player: HomePlayer, topNet: number): number {
   if (player.netCents <= 0 || topNet <= 0) return 56;
   return Math.round(60 + 28 * (player.netCents / topNet));
-}
-
-function VibeMark({ vibe }: { vibe: Vibe }) {
-  const icon = 'size-3.5 shrink-0';
-  switch (vibe.kind) {
-    case 'leader':
-      return <span aria-hidden>👑</span>;
-    case 'streak':
-      return <span aria-hidden>🔥</span>;
-    case 'night-winner':
-      return <span aria-hidden>🏆</span>;
-    case 'in-the-green':
-      return <TrendingUp aria-hidden className={cn(icon, 'text-win')} strokeWidth={2.5} />;
-    case 'even':
-      return <Equal aria-hidden className={icon} strokeWidth={2.5} />;
-    case 'comeback':
-      return <Sprout aria-hidden className={icon} strokeWidth={2.5} />;
-  }
-}
-
-function vibeLabel(vibe: Vibe): string {
-  switch (vibe.kind) {
-    case 'leader':
-      return 'Top of the table';
-    case 'streak':
-      return `${vibe.count} up in a row`;
-    case 'night-winner':
-      return `${vibe.count}× night winner`;
-    case 'in-the-green':
-      return 'In the green';
-    case 'even':
-      return 'Dead even';
-    case 'comeback':
-      return 'Comeback era';
-  }
 }
 
 function CrewCard({ player, topNet }: { player: HomePlayer; topNet: number }) {
@@ -115,7 +81,7 @@ function CrewCard({ player, topNet }: { player: HomePlayer; topNet: number }) {
   );
 }
 
-export function CrewRoster({ players, scope }: { players: HomePlayer[]; scope: HomeSeason }) {
+export function CrewRoster({ players, scope }: { players: HomePlayer[]; scope: SeasonScope }) {
   const topNet = Math.max(0, ...players.map((player) => player.netCents));
   const alphabetical = [...players].sort((a, b) => a.name.localeCompare(b.name));
 

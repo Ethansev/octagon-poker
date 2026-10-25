@@ -1,15 +1,10 @@
-import type { HomeSeason } from '@/app/(group)/_home/load-home';
-import {
-  seasonGreeting,
-  seasonKicker,
-  seasonPrefix,
-  seasonSpan,
-} from '@/app/(group)/_home/season-copy';
+import { seasonGreeting, seasonKicker, seasonPrefix, seasonSpan } from '@/app/(group)/season-copy';
+import type { SeasonScope } from '@/app/(group)/seasons';
 import { describe, expect, it } from 'vitest';
 
 const rows: {
   name: string;
-  scope: HomeSeason;
+  scope: SeasonScope;
   kicker: string;
   greeting: string;
   prefix: string;
