@@ -5,27 +5,22 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-slate-950 focus-visible:ring-slate-950/50 focus-visible:ring-[3px] aria-invalid:ring-red-500/20 dark:aria-invalid:ring-red-500/40 aria-invalid:border-red-500 dark:focus-visible:border-slate-300 dark:focus-visible:ring-slate-300/50 dark:aria-invalid:ring-red-900/20 dark:dark:aria-invalid:ring-red-900/40 dark:aria-invalid:border-red-900",
+  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-bold whitespace-nowrap transition outline-none focus-visible:ring-4 focus-visible:ring-focus/40 disabled:pointer-events-none disabled:opacity-50 aria-invalid:ring-4 aria-invalid:ring-error/25 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default:
-          'bg-slate-900 text-slate-50 shadow-xs hover:bg-slate-900/90 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90',
-        destructive:
-          'bg-red-500 text-white shadow-xs hover:bg-red-500/90 focus-visible:ring-red-500/20 dark:focus-visible:ring-red-500/40 dark:bg-red-500/60 dark:bg-red-900 dark:hover:bg-red-900/90 dark:focus-visible:ring-red-900/20 dark:dark:focus-visible:ring-red-900/40 dark:dark:bg-red-900/60',
-        outline:
-          'border bg-white shadow-xs hover:bg-slate-100 hover:text-slate-900 dark:bg-slate-200/30 dark:border-slate-200 dark:hover:bg-slate-200/50 dark:bg-slate-950 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:dark:bg-slate-800/30 dark:dark:border-slate-800 dark:dark:hover:bg-slate-800/50',
-        secondary:
-          'bg-slate-100 text-slate-900 shadow-xs hover:bg-slate-100/80 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-800/80',
-        ghost:
-          'hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-100/50 dark:hover:bg-slate-800 dark:hover:text-slate-50 dark:dark:hover:bg-slate-800/50',
-        link: 'text-slate-900 underline-offset-4 hover:underline dark:text-slate-50',
+        default: 'bg-primary text-primary-ink hover:bg-primary-hover',
+        destructive: 'bg-error text-error-ink hover:bg-error/90',
+        outline: 'border border-line bg-surface text-ink hover:border-ink-3 hover:bg-surface-2',
+        secondary: 'bg-surface-3 text-ink hover:bg-line',
+        ghost: 'text-ink-2 hover:bg-surface-3 hover:text-ink',
+        link: 'rounded-md text-primary underline-offset-4 hover:underline',
       },
       size: {
-        default: 'h-9 px-4 py-2 has-[>svg]:px-3',
-        sm: 'h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5',
-        lg: 'h-10 rounded-md px-6 has-[>svg]:px-4',
-        icon: 'size-9',
+        default: 'h-10 px-5 has-[>svg]:px-4',
+        sm: 'h-8 gap-1.5 px-3.5 text-[13px] has-[>svg]:px-3',
+        lg: 'h-12 px-7 text-base has-[>svg]:px-6',
+        icon: 'size-10',
       },
     },
     defaultVariants: {
