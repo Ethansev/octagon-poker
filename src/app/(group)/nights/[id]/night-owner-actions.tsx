@@ -66,7 +66,7 @@ function EditDetails({ nightId, details }: Omit<NightOwnerActionsProps, 'status'
           Edit details
         </button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Edit night details</DialogTitle>
         </DialogHeader>

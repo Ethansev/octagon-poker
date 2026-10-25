@@ -23,7 +23,3 @@ export async function resolveSeason(
   const all = await listNights(groupId, 'all');
   return { season, seasons: yearsWithNights(all, currentYear) };
 }
-
-export function seasonLabel(season: Season): string {
-  return season === 'all' ? 'all time' : String(season);
-}

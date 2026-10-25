@@ -17,7 +17,6 @@
   --focus: #047857;
 
   --win: #047857;
-  --win-soft: #ecfdf5;
   --loss: #78716c;
   --loss-soft: #d6d3d1;
   --live: #047857;
@@ -91,7 +90,6 @@
   --focus: #d4a72c;
 
   --win: #3fb950;
-  --win-soft: rgba(63, 185, 80, 0.14);
   --loss: #8b949e;
   --loss-soft: #484f58;
   --live: #3fb950;
@@ -146,26 +144,6 @@
   --elevation-story-4: 0 0 0 1px #30363d;
 }
 
-:root {
-  --background: var(--bg);
-  --foreground: var(--ink);
-  --card: var(--surface);
-  --card-foreground: var(--ink);
-  --popover: var(--surface);
-  --popover-foreground: var(--ink);
-  --primary-foreground: var(--primary-ink);
-  --secondary: var(--surface-3);
-  --secondary-foreground: var(--ink);
-  --muted: var(--surface-2);
-  --muted-foreground: var(--ink-2);
-  --accent: var(--surface-3);
-  --accent-foreground: var(--ink);
-  --destructive: var(--error);
-  --border: var(--line);
-  --input: var(--line);
-  --ring: var(--focus);
-}
-
 @theme inline {
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
@@ -185,7 +163,6 @@
   --color-focus: var(--focus);
 
   --color-win: var(--win);
-  --color-win-soft: var(--win-soft);
   --color-loss: var(--loss);
   --color-loss-soft: var(--loss-soft);
   --color-live: var(--live);
@@ -231,24 +208,6 @@
   --color-ring-muted: var(--ring-muted);
   --color-frame: var(--frame);
   --color-on-deep: var(--on-deep);
-
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
 
   --shadow-card: var(--elevation-card);
   --shadow-lift: var(--elevation-lift);
