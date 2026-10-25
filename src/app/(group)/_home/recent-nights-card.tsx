@@ -1,5 +1,5 @@
-import { LiveDot } from '@/app/(group)/_home/live-dot';
 import type { RecentNight } from '@/app/(group)/_home/load-home';
+import { LiveDot } from '@/components/live-dot';
 import { cn } from '@/lib/utils';
 import { nightDateParts } from '@/nights/dates';
 import { joinNames } from '@/nights/names';

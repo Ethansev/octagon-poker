@@ -1,4 +1,4 @@
-import { LiveDot } from '@/app/(group)/_home/live-dot';
+import { LiveDot } from '@/components/live-dot';
 import { formatNightDate } from '@/nights/dates';
 import type { NightSummary } from '@/nights/nights';
 import { ArrowRight, Spade } from 'lucide-react';

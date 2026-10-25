@@ -47,3 +47,13 @@ export function playerSeason(nights: ClosedNight[], playerId: string): PlayerSea
     history,
   };
 }
+
+export function seasonWinNumber(
+  nights: ClosedNight[],
+  nightId: string,
+  playerId: string,
+): number | null {
+  const wins = playerSeason(nights, playerId).history.filter((entry) => entry.won);
+  const index = wins.findIndex((entry) => entry.nightId === nightId);
+  return index === -1 ? null : index + 1;
+}

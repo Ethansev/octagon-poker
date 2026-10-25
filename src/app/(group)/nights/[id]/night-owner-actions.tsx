@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -20,36 +19,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  closeNightAction,
-  deleteNightAction,
-  reopenNightAction,
-  updateNightAction,
-} from '@/nights/actions';
+import { deleteNightAction, reopenNightAction, updateNightAction } from '@/nights/actions';
+import { Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { useCallback, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
 type NightOwnerActionsProps = {
   nightId: string;
   status: 'open' | 'closed';
-  closeBlockedReason: string | null;
   details: { date: string; location: string; buyIn: string };
 };
+
+const pill =
+  'inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-extrabold text-ink transition hover:border-ink-3 hover:bg-surface-2 focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 
 function useNightStatusActions(nightId: string) {
   const [pending, startTransition] = useTransition();
 
-  function close() {
-    startTransition(async () => {
-      const result = await closeNightAction(nightId);
-      if (result.kind === 'not-balanced') toast.error("The night doesn't balance yet.");
-      if (result.kind === 'not-found') toast.error('Night not found.');
-    });
-  }
-
   function reopen() {
     startTransition(async () => {
-      await reopenNightAction(nightId);
+      const result = await reopenNightAction(nightId);
+      if (result.kind === 'not-found') toast.error('Night not found.');
     });
   }
 
@@ -60,25 +50,20 @@ function useNightStatusActions(nightId: string) {
     });
   }
 
-  return { pending, close, reopen, remove };
+  return { pending, reopen, remove };
 }
 
-function EditDetails({
-  nightId,
-  details,
-}: {
-  nightId: string;
-  details: NightOwnerActionsProps['details'];
-}) {
+function EditDetails({ nightId, details }: Omit<NightOwnerActionsProps, 'status'>) {
   const [open, setOpen] = useState(false);
   const closeDialog = useCallback(() => setOpen(false), []);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline' size='sm'>
+        <button type='button' className={pill}>
+          <Pencil aria-hidden className='size-4' />
           Edit details
-        </Button>
+        </button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -100,20 +85,20 @@ function DeleteNight({ pending, onConfirm }: { pending: boolean; onConfirm: () =
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button
-          variant='ghost'
-          size='sm'
-          className='text-error hover:bg-error-soft hover:text-error'
-          disabled={pending}>
-          Delete
-        </Button>
+        <button
+          type='button'
+          aria-label='Delete night'
+          title='Delete night'
+          disabled={pending}
+          className='inline-grid size-10 cursor-pointer place-items-center rounded-full border border-line bg-surface text-ink-2 transition hover:border-error/40 hover:bg-error-soft hover:text-error focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'>
+          <Trash2 aria-hidden className='size-4' />
+        </button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete this night?</AlertDialogTitle>
           <AlertDialogDescription>
-            Its players&apos; rows and activity log go with it, and the standings change. This
-            can&apos;t be undone.
+            Its seats and activity go with it, and the standings change. This can&apos;t be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -127,37 +112,20 @@ function DeleteNight({ pending, onConfirm }: { pending: boolean; onConfirm: () =
   );
 }
 
-export function NightOwnerActions({
-  nightId,
-  status,
-  closeBlockedReason,
-  details,
-}: NightOwnerActionsProps) {
+export function NightOwnerActions({ nightId, status, details }: NightOwnerActionsProps) {
   const actions = useNightStatusActions(nightId);
 
   return (
-    <div className='space-y-2'>
-      <div className='flex flex-wrap items-center gap-2'>
-        {status === 'open' ? (
-          <>
-            <Button
-              size='sm'
-              disabled={closeBlockedReason !== null || actions.pending}
-              onClick={actions.close}>
-              Close night
-            </Button>
-            <EditDetails nightId={nightId} details={details} />
-          </>
-        ) : (
-          <Button size='sm' variant='outline' disabled={actions.pending} onClick={actions.reopen}>
-            Reopen night
-          </Button>
-        )}
-        <DeleteNight pending={actions.pending} onConfirm={actions.remove} />
-      </div>
-      {status === 'open' && closeBlockedReason !== null && (
-        <p className='text-sm text-ink-2'>{closeBlockedReason}</p>
+    <div role='group' aria-label='Host actions' className='flex items-center gap-2'>
+      {status === 'open' ? (
+        <EditDetails nightId={nightId} details={details} />
+      ) : (
+        <button type='button' className={pill} disabled={actions.pending} onClick={actions.reopen}>
+          <RotateCcw aria-hidden className='size-4' />
+          {actions.pending ? 'Reopening…' : 'Reopen night'}
+        </button>
       )}
+      <DeleteNight pending={actions.pending} onConfirm={actions.remove} />
     </div>
   );
 }

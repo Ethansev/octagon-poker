@@ -1,4 +1,4 @@
-import { playerSeason } from '@/stats/player-season';
+import { playerSeason, seasonWinNumber } from '@/stats/player-season';
 import { describe, expect, it } from 'vitest';
 
 const night = (id: string, date: string, nets: Record<string, number>) => ({
@@ -90,5 +90,24 @@ describe('playerSeason', () => {
       longestUpStreak: 0,
       history: [],
     });
+  });
+});
+
+describe('seasonWinNumber', () => {
+  const nights = [
+    night('n3', '2026-03-01', { a: 300, b: -300 }),
+    night('n1', '2026-01-01', { a: 100, b: -100 }),
+    night('n2', '2026-02-01', { a: -200, b: 200 }),
+    night('n4', '2026-04-01', { a: 50, b: 50, c: -100 }),
+  ];
+
+  it.each([
+    { name: 'the first night won is win number one', nightId: 'n1', playerId: 'a', expected: 1 },
+    { name: 'a lost night in between is not counted', nightId: 'n3', playerId: 'a', expected: 2 },
+    { name: 'a shared top spot counts as a win', nightId: 'n4', playerId: 'b', expected: 2 },
+    { name: 'a night the player lost has no number', nightId: 'n2', playerId: 'a', expected: null },
+    { name: 'a night the player skipped has none', nightId: 'n1', playerId: 'c', expected: null },
+  ])('$name', ({ nightId, playerId, expected }) => {
+    expect(seasonWinNumber(nights, nightId, playerId)).toBe(expected);
   });
 });

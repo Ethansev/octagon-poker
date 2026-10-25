@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { addPlayerAction, chooseMeAction } from '@/players/actions';
 import type { Player } from '@/players/players';
+import { Hand } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -47,8 +48,24 @@ export function WhoAreYou({ players }: { players: Player[] }) {
   const [name, setName] = useState('');
 
   return (
-    <div className='flex flex-wrap items-center gap-2 rounded-2xl bg-surface px-3 py-2 shadow-card'>
-      <span className='text-sm font-semibold text-ink'>Who are you?</span>
+    <section
+      aria-labelledby='who-heading'
+      className='flex flex-col gap-4 rounded-panel bg-surface p-5 shadow-card sm:flex-row sm:items-center sm:p-6'>
+      <div className='flex flex-1 items-center gap-4'>
+        <span
+          aria-hidden
+          className='grid size-12 shrink-0 place-items-center rounded-2xl bg-surface-3 text-ink'>
+          <Hand className='size-6' />
+        </span>
+        <div className='min-w-0'>
+          <h2 id='who-heading' className='text-xl font-bold tracking-tight'>
+            Hey, who are you?
+          </h2>
+          <p className='text-sm font-semibold text-ink-2'>
+            Pick your name so we can save your seat as “You”.
+          </p>
+        </div>
+      </div>
       {adding ? (
         <form
           className='flex items-center gap-2'
@@ -62,16 +79,16 @@ export function WhoAreYou({ players }: { players: Player[] }) {
             value={name}
             autoFocus
             onChange={(event) => setName(event.target.value)}
-            className='h-8 w-40'
+            className='w-full sm:w-44'
           />
-          <Button type='submit' size='sm' disabled={me.pending || name.trim() === ''}>
+          <Button type='submit' disabled={me.pending || name.trim() === ''}>
             Continue
           </Button>
         </form>
       ) : (
-        <>
+        <div className='flex items-center gap-2'>
           <Select disabled={me.pending} onValueChange={me.chooseExisting}>
-            <SelectTrigger size='sm' aria-label='Pick your name' className='w-40'>
+            <SelectTrigger aria-label='Pick your name' className='w-full sm:w-44'>
               <SelectValue placeholder='Pick your name' />
             </SelectTrigger>
             <SelectContent>
@@ -82,11 +99,11 @@ export function WhoAreYou({ players }: { players: Player[] }) {
               ))}
             </SelectContent>
           </Select>
-          <Button type='button' size='sm' variant='outline' onClick={() => setAdding(true)}>
+          <Button type='button' variant='outline' onClick={() => setAdding(true)}>
             I&apos;m new
           </Button>
-        </>
+        </div>
       )}
-    </div>
+    </section>
   );
 }
