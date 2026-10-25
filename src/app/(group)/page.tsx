@@ -1,17 +1,15 @@
 import { getViewer } from '@/access/viewer';
-import { LastNightCard } from '@/app/(group)/last-night-card';
-import { RecentNights } from '@/app/(group)/recent-nights';
+import { CrewRoster } from '@/app/(group)/_home/crew-roster';
+import { loadHome } from '@/app/(group)/_home/load-home';
+import { OpenNightBanner } from '@/app/(group)/_home/open-night-banner';
+import { RecapCard } from '@/app/(group)/_home/recap-card';
+import { RecentNightsCard } from '@/app/(group)/_home/recent-nights-card';
+import { seasonGreeting, seasonKicker } from '@/app/(group)/_home/season-copy';
+import { SeasonEmpty } from '@/app/(group)/_home/season-empty';
+import { StandingsCard } from '@/app/(group)/_home/standings-card';
+import { StoryCards } from '@/app/(group)/_home/story-cards';
 import { SeasonSwitcher } from '@/app/(group)/season-switcher';
-import { resolveSeason, seasonLabel } from '@/app/(group)/seasons';
-import { StandingsBlock } from '@/app/(group)/standings-block';
-import { Button } from '@/components/ui/button';
-import { currentYearInGroup } from '@/dates/group-time';
-import { formatNightDate } from '@/nights/dates';
-import { listClosedNights, listNights } from '@/nights/nights';
-import { listPlayers } from '@/players/players';
-import { nightsInSeason } from '@/stats/season';
-import { standings } from '@/stats/standings';
-import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 
 export default async function Home({
@@ -22,80 +20,58 @@ export default async function Home({
   const viewer = await getViewer();
   if (!viewer) notFound();
 
-  const groupId = viewer.group.id;
-  const { season, seasons } = await resolveSeason(groupId, (await searchParams).season);
-  const [closedNights, summaries, players] = await Promise.all([
-    listClosedNights(groupId),
-    listNights(groupId, season),
-    listPlayers(groupId),
-  ]);
-  const names = new Map(players.map((player) => [player.id, player.name]));
-  const closed = nightsInSeason(closedNights, season);
-  const { ranked, unranked } = standings(closed);
-  const last = closed[0];
-  const lastLocation = summaries.find((night) => night.id === last?.id)?.location ?? null;
-  const openNight = summaries.find((night) => night.status === 'open');
-  const previousYear = typeof season === 'number' ? season - 1 : null;
-  const previousRecap =
-    previousYear !== null && closedNights.some((n) => n.date.startsWith(`${previousYear}-`));
-  const label = seasonLabel(season);
-  const heading =
-    season === 'all'
-      ? 'Up all time'
-      : season === currentYearInGroup()
-        ? 'Up this year'
-        : `Up in ${season}`;
+  const home = await loadHome(viewer.group.id, (await searchParams).season);
+  const { scope } = home;
+  const recapYear = scope.kind === 'all' || home.nightsPlayed === 0 ? null : scope.year;
 
   return (
-    <div className='mx-auto max-w-md space-y-4 p-4 pt-6'>
-      <div className='flex items-start justify-between gap-3'>
-        <div>
-          <h1 className='text-xl font-extrabold text-ink'>{viewer.group.name}</h1>
-          <p className='mt-0.5 text-xs text-ink-2'>
-            {closed.length} {closed.length === 1 ? 'night' : 'nights'} ·{' '}
-            {ranked.length + unranked.length}{' '}
-            {ranked.length + unranked.length === 1 ? 'player' : 'players'}
+    <div className='mx-auto max-w-[1360px] px-4 pt-6 pb-20 sm:px-6 lg:px-10 lg:pt-10'>
+      <div className='mb-6 flex flex-col gap-5 lg:mb-8 lg:flex-row lg:items-end lg:justify-between'>
+        <div className='min-w-0'>
+          <p className='text-sm font-extrabold tracking-[0.14em] text-ink-2 uppercase'>
+            {seasonKicker(scope)}
           </p>
+          <h1 className='mt-1 text-4xl leading-[1.02] font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl'>
+            {seasonGreeting(scope)}
+          </h1>
         </div>
-        <Button asChild>
-          <Link href='/nights/new'>Log a night</Link>
-        </Button>
+        <SeasonSwitcher seasons={home.seasons} current={home.season} />
       </div>
-      <div className='flex items-center justify-between gap-3'>
-        <SeasonSwitcher seasons={seasons} current={season} />
-        {typeof season === 'number' && (
-          <Link
-            href={`/recap/${season}`}
-            className='shrink-0 text-xs font-semibold whitespace-nowrap text-ink-2 underline'>
-            {season} recap
-          </Link>
+
+      <div className='space-y-6 lg:space-y-8'>
+        {home.openNight && <OpenNightBanner night={home.openNight} />}
+
+        {home.nightsPlayed === 0 ? (
+          <SeasonEmpty home={home} />
+        ) : (
+          <>
+            <StoryCards home={home} />
+            <div className='grid gap-6 lg:grid-cols-12 lg:gap-8'>
+              <div className='lg:col-span-4'>
+                <StandingsCard players={home.players} scope={scope} />
+              </div>
+              <div className='lg:col-span-8'>
+                <CrewRoster players={home.players} scope={scope} />
+              </div>
+            </div>
+          </>
+        )}
+
+        {(home.recentNights.length > 0 || recapYear !== null) && (
+          <div className='grid gap-6 lg:grid-cols-12 lg:gap-8'>
+            {home.recentNights.length > 0 && (
+              <div className={cn(recapYear === null ? 'lg:col-span-12' : 'lg:col-span-8')}>
+                <RecentNightsCard nights={home.recentNights} />
+              </div>
+            )}
+            {recapYear !== null && (
+              <div className='lg:col-span-4'>
+                <RecapCard year={recapYear} mostNightsWon={home.highlights.mostNightsWon} />
+              </div>
+            )}
+          </div>
         )}
       </div>
-      {openNight && (
-        <Link
-          href={`/nights/${openNight.id}`}
-          className='block rounded-2xl border border-live/30 bg-live-soft px-4 py-3 text-sm font-semibold text-live transition hover:border-live/60'>
-          Open night · {formatNightDate(openNight.date)} — add your numbers
-        </Link>
-      )}
-      {last === undefined ? (
-        <div className='rounded-2xl bg-surface p-4 text-center shadow-card'>
-          <p className='font-semibold text-ink'>
-            {openNight ? `No closed nights in ${label} yet` : `No nights logged in ${label} yet`}
-          </p>
-          {previousRecap && previousYear !== null && (
-            <Link
-              href={`/recap/${previousYear}`}
-              className='mt-1 inline-block text-sm text-ink-2 underline'>
-              See the {previousYear} recap
-            </Link>
-          )}
-        </div>
-      ) : (
-        <LastNightCard night={last} location={lastLocation} names={names} />
-      )}
-      <StandingsBlock ranked={ranked} unranked={unranked} names={names} heading={heading} />
-      <RecentNights nights={summaries} />
     </div>
   );
 }

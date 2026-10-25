@@ -1,4 +1,4 @@
-import { formatNightDate, isRealDate } from '@/nights/dates';
+import { formatNightDate, formatShortNightDate, isRealDate, nightDateParts } from '@/nights/dates';
 import { describe, expect, it } from 'vitest';
 
 describe('isRealDate', () => {
@@ -15,5 +15,28 @@ describe('isRealDate', () => {
 describe('date formatting', () => {
   it('formats a night date without timezone drift', () => {
     expect(formatNightDate('2026-10-17')).toBe('Sat, Oct 17, 2026');
+  });
+});
+
+describe('nightDateParts', () => {
+  it.each([
+    {
+      name: 'splits a night into its calendar tile parts',
+      value: '2026-10-17',
+      expected: { month: 'Oct', day: 17, weekday: 'Saturday' },
+    },
+    {
+      name: 'the first of the year stays in January',
+      value: '2026-01-01',
+      expected: { month: 'Jan', day: 1, weekday: 'Thursday' },
+    },
+  ])('$name', ({ value, expected }) => {
+    expect(nightDateParts(value)).toEqual(expected);
+  });
+});
+
+describe('formatShortNightDate', () => {
+  it('drops the year', () => {
+    expect(formatShortNightDate('2026-03-07')).toBe('Sat, Mar 7');
   });
 });

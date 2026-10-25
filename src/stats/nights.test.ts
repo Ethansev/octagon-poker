@@ -1,4 +1,4 @@
-import { nightBalance, nightWinners, seatNet } from '@/stats/nights';
+import { nightBalance, nightPot, nightWinners, seatNet } from '@/stats/nights';
 import { describe, expect, it } from 'vitest';
 
 const seat = (playerId: string, net: number) => ({
@@ -10,6 +10,22 @@ const seat = (playerId: string, net: number) => ({
 describe('seatNet', () => {
   it('is cash-out minus buy-in', () => {
     expect(seatNet({ playerId: 'a', buyInCents: 2000, cashOutCents: 500 })).toBe(-1500);
+  });
+});
+
+describe('nightPot', () => {
+  it.each([
+    { name: 'an empty night has no pot', seats: [], expected: 0 },
+    {
+      name: 'the pot is every buy-in added up',
+      seats: [
+        { playerId: 'a', buyInCents: 2000, cashOutCents: 0 },
+        { playerId: 'b', buyInCents: 3500, cashOutCents: 5500 },
+      ],
+      expected: 5500,
+    },
+  ])('$name', ({ seats, expected }) => {
+    expect(nightPot(seats)).toBe(expected);
   });
 });
 

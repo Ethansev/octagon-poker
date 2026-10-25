@@ -15,3 +15,24 @@ export function formatNightDate(value: string): string {
     year: 'numeric',
   });
 }
+
+export type NightDateParts = { month: string; day: number; weekday: string };
+
+export function nightDateParts(value: string): NightDateParts {
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return {
+    month: date.toLocaleDateString('en-US', { month: 'short' }),
+    day,
+    weekday: date.toLocaleDateString('en-US', { weekday: 'long' }),
+  };
+}
+
+export function formatShortNightDate(value: string): string {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+}

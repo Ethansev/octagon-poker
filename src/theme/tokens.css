@@ -35,6 +35,16 @@
   --hero-ink: #faf8f5;
   --hero-muted: rgba(250, 248, 245, 0.62);
   --hero-figure: #6ee7b7;
+  --hero-chip: #faf8f5;
+  --hero-chip-ink: #1c1917;
+  --hero-chip-win: #047857;
+  --hero-chip-muted: rgba(250, 248, 245, 0.08);
+
+  --recap: #f1ede6;
+  --recap-ink: #1c1917;
+  --recap-panel: #ffffff;
+  --recap-cta: #1c1917;
+  --recap-cta-ink: #faf8f5;
 
   --story-1: #e8eee5;
   --story-1-ink: #1c1917;
@@ -50,6 +60,8 @@
   --story-4-figure: #1c1917;
 
   --ring-gap: #ffffff;
+  --frame: #ffffff;
+  --on-deep: #ffffff;
   --ring-muted: #e7e5e4;
 
   --elevation-card: 0 0 0 1px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
@@ -97,6 +109,16 @@
   --hero-ink: #e6edf3;
   --hero-muted: #7d8590;
   --hero-figure: #d4a72c;
+  --hero-chip: #21262d;
+  --hero-chip-ink: #e6edf3;
+  --hero-chip-win: #3fb950;
+  --hero-chip-muted: rgba(230, 237, 243, 0.03);
+
+  --recap: #1c2128;
+  --recap-ink: #e6edf3;
+  --recap-panel: #21262d;
+  --recap-cta: #d4a72c;
+  --recap-cta-ink: #0d1117;
 
   --story-1: #161b22;
   --story-1-ink: #e6edf3;
@@ -112,6 +134,8 @@
   --story-4-figure: #e6edf3;
 
   --ring-gap: #161b22;
+  --frame: #0d1117;
+  --on-deep: #0d1117;
   --ring-muted: #30363d;
 
   --elevation-card: 0 0 0 1px #30363d;
@@ -179,6 +203,16 @@
   --color-hero-ink: var(--hero-ink);
   --color-hero-muted: var(--hero-muted);
   --color-hero-figure: var(--hero-figure);
+  --color-hero-chip: var(--hero-chip);
+  --color-hero-chip-ink: var(--hero-chip-ink);
+  --color-hero-chip-win: var(--hero-chip-win);
+  --color-hero-chip-muted: var(--hero-chip-muted);
+
+  --color-recap: var(--recap);
+  --color-recap-ink: var(--recap-ink);
+  --color-recap-panel: var(--recap-panel);
+  --color-recap-cta: var(--recap-cta);
+  --color-recap-cta-ink: var(--recap-cta-ink);
 
   --color-story-1: var(--story-1);
   --color-story-1-ink: var(--story-1-ink);
@@ -195,6 +229,8 @@
 
   --color-ring-gap: var(--ring-gap);
   --color-ring-muted: var(--ring-muted);
+  --color-frame: var(--frame);
+  --color-on-deep: var(--on-deep);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -11,6 +11,10 @@ export function seatNet(seat: SeatResult): number {
   return seat.cashOutCents - seat.buyInCents;
 }
 
+export function nightPot(seats: SeatResult[]): number {
+  return seats.reduce((sum, seat) => sum + seat.buyInCents, 0);
+}
+
 export function nightWinners(seats: SeatResult[]): string[] {
   const top = Math.max(0, ...seats.map(seatNet));
   if (top <= 0) return [];
