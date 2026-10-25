@@ -10,8 +10,8 @@ export default async function NewNightPage() {
   return (
     <div className='mx-auto max-w-md space-y-6 p-4 pt-8'>
       <div>
-        <h1 className='text-xl font-extrabold text-slate-900'>Log a night</h1>
-        <p className='mt-1 text-sm text-slate-500'>Add the players on the next page.</p>
+        <h1 className='text-xl font-extrabold text-ink'>Log a night</h1>
+        <p className='mt-1 text-sm text-ink-2'>Add the players on the next page.</p>
       </div>
       <NewNightForm today={todayInGroup()} />
     </div>

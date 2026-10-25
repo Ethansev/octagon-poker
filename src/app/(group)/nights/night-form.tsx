@@ -48,7 +48,7 @@ export function NightForm({ action, nightId, defaults, submitLabel, onSaved }: N
           defaultValue={defaults.date}
           aria-invalid={invalidField === 'date'}
         />
-        {invalidField === 'date' && <p className='text-sm text-red-600'>{fieldMessages.date}</p>}
+        {invalidField === 'date' && <p className='text-sm text-error'>{fieldMessages.date}</p>}
       </div>
       <div className='space-y-1.5'>
         <Label htmlFor='night-location'>Location (optional)</Label>
@@ -60,7 +60,7 @@ export function NightForm({ action, nightId, defaults, submitLabel, onSaved }: N
           aria-invalid={invalidField === 'location'}
         />
         {invalidField === 'location' && (
-          <p className='text-sm text-red-600'>{fieldMessages.location}</p>
+          <p className='text-sm text-error'>{fieldMessages.location}</p>
         )}
       </div>
       <div className='space-y-1.5'>
@@ -73,12 +73,12 @@ export function NightForm({ action, nightId, defaults, submitLabel, onSaved }: N
           placeholder='20'
           aria-invalid={invalidField === 'buyIn'}
         />
-        {invalidField === 'buyIn' && <p className='text-sm text-red-600'>{fieldMessages.buyIn}</p>}
+        {invalidField === 'buyIn' && <p className='text-sm text-error'>{fieldMessages.buyIn}</p>}
       </div>
       {result?.kind === 'night-closed' && (
-        <p className='text-sm text-red-600'>This night is closed. Reopen it to edit.</p>
+        <p className='text-sm text-error'>This night is closed. Reopen it to edit.</p>
       )}
-      {result?.kind === 'not-found' && <p className='text-sm text-red-600'>Night not found.</p>}
+      {result?.kind === 'not-found' && <p className='text-sm text-error'>Night not found.</p>}
       <Button type='submit' disabled={pending}>
         {submitLabel}
       </Button>

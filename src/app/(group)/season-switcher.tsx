@@ -3,7 +3,9 @@ import Link from 'next/link';
 
 function pillClass(active: boolean): string {
   return `rounded-full border px-3 py-1 text-xs ${
-    active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-600'
+    active
+      ? 'border-ink bg-ink text-bg'
+      : 'border-line text-ink-2 hover:border-ink-3 hover:text-ink'
   }`;
 }
 

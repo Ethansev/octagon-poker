@@ -70,20 +70,20 @@ function ReadOnlyRows({ seats }: { seats: SeatData[] }) {
             ? seat.cashOutCents - seat.buyInCents
             : null;
         return (
-          <div key={seat.playerId} className={`${rowGrid} border-b border-slate-100 py-2`}>
-            <span className='col-span-2 truncate font-semibold text-slate-900 sm:col-span-1'>
+          <div key={seat.playerId} className={`${rowGrid} border-b border-line/60 py-2`}>
+            <span className='col-span-2 truncate font-semibold text-ink sm:col-span-1'>
               {seat.playerName}
             </span>
-            <span className='col-start-1 row-start-2 text-slate-600 sm:col-start-auto sm:row-start-auto'>
-              <span className='text-slate-400 sm:hidden'>In </span>
+            <span className='col-start-1 row-start-2 text-ink-2 tabular-nums sm:col-start-auto sm:row-start-auto'>
+              <span className='text-ink-3 sm:hidden'>In </span>
               {seat.buyInCents === null ? '' : formatDollars(seat.buyInCents)}
             </span>
-            <span className='col-start-2 row-start-2 text-slate-600 sm:col-start-auto sm:row-start-auto'>
-              <span className='text-slate-400 sm:hidden'>Out </span>
+            <span className='col-start-2 row-start-2 text-ink-2 tabular-nums sm:col-start-auto sm:row-start-auto'>
+              <span className='text-ink-3 sm:hidden'>Out </span>
               {seat.cashOutCents === null ? '' : formatDollars(seat.cashOutCents)}
             </span>
             <span
-              className={`col-start-3 row-start-1 text-right font-bold sm:col-start-auto sm:row-start-auto ${net !== null && net > 0 ? 'text-green-700' : 'text-slate-400'}`}>
+              className={`col-start-3 row-start-1 text-right font-bold tabular-nums sm:col-start-auto sm:row-start-auto ${net !== null && net > 0 ? 'text-win' : 'text-loss'}`}>
               {net === null ? '' : formatNet(net)}
             </span>
           </div>
@@ -108,7 +108,7 @@ export function SeatTable({
 
   if (readOnly) {
     return seats.length === 0 ? (
-      <p className='text-sm text-slate-500'>No players were logged.</p>
+      <p className='text-sm text-ink-2'>No players were logged.</p>
     ) : (
       <ReadOnlyRows seats={seats} />
     );
@@ -116,7 +116,7 @@ export function SeatTable({
 
   return (
     <div ref={container}>
-      <div className='hidden grid-cols-[1fr_6rem_6rem_4.5rem_auto] gap-2 pb-1 text-[10px] font-semibold tracking-wider text-slate-500 uppercase sm:grid'>
+      <div className='hidden grid-cols-[1fr_6rem_6rem_4.5rem_auto] gap-2 pb-1 text-[10px] font-semibold tracking-wider text-ink-2 uppercase sm:grid'>
         <span>Player</span>
         <span>Buy-in</span>
         <span>Cash-out</span>

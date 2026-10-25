@@ -22,8 +22,8 @@ export function LastNightCard({
   return (
     <Link
       href={`/nights/${night.id}`}
-      className='block rounded-xl bg-slate-900 px-3 py-2.5 text-white'>
-      <div className='text-[10px] font-semibold tracking-wider text-slate-400 uppercase'>
+      className='block rounded-2xl bg-hero px-4 py-3 text-hero-ink shadow-hero transition hover:-translate-y-0.5 motion-reduce:transition-none'>
+      <div className='text-[10px] font-semibold tracking-wider text-hero-muted uppercase'>
         Last night · {formatNightDate(night.date)}
         {location ? ` at ${location}` : ''}
       </div>
@@ -33,7 +33,7 @@ export function LastNightCard({
         ) : (
           <>
             {joinNames(winnerNames)} took it{' '}
-            <span className='text-green-400'>{formatNet(seatNet(top))}</span>
+            <span className='text-hero-figure tabular-nums'>{formatNet(seatNet(top))}</span>
           </>
         )}
       </div>

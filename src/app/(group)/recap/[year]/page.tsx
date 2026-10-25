@@ -36,13 +36,13 @@ export default async function RecapPage({ params }: { params: Promise<{ year: st
   return (
     <div className='mx-auto max-w-md space-y-5 p-4 pt-6'>
       <div>
-        <Link href={`/?season=${year}`} className='text-xs text-slate-500'>
+        <Link href={`/?season=${year}`} className='text-xs text-ink-2'>
           ← {viewer.group.name}
         </Link>
-        <h1 className='text-xl font-extrabold text-slate-900'>{title}</h1>
+        <h1 className='text-xl font-extrabold text-ink'>{title}</h1>
       </div>
       {result.players.length === 0 ? (
-        <p className='rounded-xl border border-slate-200 p-4 text-center text-slate-600'>
+        <p className='rounded-2xl bg-surface p-4 text-center text-ink-2 shadow-card'>
           No nights logged in {year}.
         </p>
       ) : (
@@ -55,7 +55,7 @@ export default async function RecapPage({ params }: { params: Promise<{ year: st
           />
           {(mostNightsWon || biggestNight || longestUpStreak) && (
             <section className='space-y-2'>
-              <h2 className='text-[10px] font-semibold tracking-wider text-slate-500 uppercase'>
+              <h2 className='text-[10px] font-semibold tracking-wider text-ink-2 uppercase'>
                 Awards
               </h2>
               {mostNightsWon && (
@@ -82,7 +82,7 @@ export default async function RecapPage({ params }: { params: Promise<{ year: st
             </section>
           )}
           <section>
-            <h2 className='mb-2 text-[10px] font-semibold tracking-wider text-slate-500 uppercase'>
+            <h2 className='mb-2 text-[10px] font-semibold tracking-wider text-ink-2 uppercase'>
               Players
             </h2>
             <ul className='space-y-2'>

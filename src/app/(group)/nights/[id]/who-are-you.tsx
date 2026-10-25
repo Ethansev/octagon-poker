@@ -47,8 +47,8 @@ export function WhoAreYou({ players }: { players: Player[] }) {
   const [name, setName] = useState('');
 
   return (
-    <div className='flex flex-wrap items-center gap-2 rounded-lg border border-slate-200 px-3 py-2'>
-      <span className='text-sm font-semibold text-slate-900'>Who are you?</span>
+    <div className='flex flex-wrap items-center gap-2 rounded-2xl bg-surface px-3 py-2 shadow-card'>
+      <span className='text-sm font-semibold text-ink'>Who are you?</span>
       {adding ? (
         <form
           className='flex items-center gap-2'

@@ -42,13 +42,13 @@ export function NightTotals({ seats }: { seats: SeatView[] }) {
   const outCents = seats.reduce((sum, seat) => sum + (seat.cashOutCents ?? 0), 0);
 
   return (
-    <div className='rounded-xl border border-slate-200 p-3'>
+    <div className='rounded-2xl bg-surface p-3 shadow-card'>
       <div className='grid grid-cols-3 gap-2'>
         <Stat label='In' value={formatDollars(inCents)} />
         <Stat label='Out' value={formatDollars(outCents)} />
         <DifferenceStat inCents={inCents} outCents={outCents} />
       </div>
-      <p className='mt-2 text-xs text-slate-500'>{leftToCountNote(balance, seats)}</p>
+      <p className='mt-2 text-xs text-ink-2'>{leftToCountNote(balance, seats)}</p>
     </div>
   );
 }
@@ -56,10 +56,8 @@ export function NightTotals({ seats }: { seats: SeatView[] }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className='text-[10px] font-semibold tracking-wider text-slate-500 uppercase'>
-        {label}
-      </div>
-      <div className='text-lg font-bold text-slate-900'>{value}</div>
+      <div className='text-[10px] font-semibold tracking-wider text-ink-2 uppercase'>{label}</div>
+      <div className='text-lg font-bold text-ink tabular-nums'>{value}</div>
     </div>
   );
 }

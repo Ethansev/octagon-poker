@@ -84,13 +84,13 @@ export function ActivityLog({
 }) {
   return (
     <details className='group'>
-      <summary className='cursor-pointer text-[10px] font-semibold tracking-wider text-slate-500 uppercase'>
+      <summary className='cursor-pointer text-[10px] font-semibold tracking-wider text-ink-2 uppercase'>
         Activity ({events.length})
       </summary>
-      <ul className='mt-2 space-y-1.5 text-sm text-slate-600'>
+      <ul className='mt-2 space-y-1.5 text-sm text-ink-2'>
         {events.map((event) => (
           <li key={event.id}>
-            <span className='text-slate-400'>{formatEventTime(event.createdAt, nightDate)} · </span>
+            <span className='text-ink-3'>{formatEventTime(event.createdAt, nightDate)} · </span>
             {describe(event, names)}
           </li>
         ))}

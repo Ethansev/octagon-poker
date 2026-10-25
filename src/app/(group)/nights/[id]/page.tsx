@@ -41,8 +41,8 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
     <div className='mx-auto max-w-3xl space-y-5 p-4 pt-6'>
       <div className='flex items-start justify-between gap-3'>
         <div>
-          <h1 className='text-xl font-extrabold text-slate-900'>{formatNightDate(night.date)}</h1>
-          <p className='mt-0.5 text-xs text-slate-500'>
+          <h1 className='text-xl font-extrabold text-ink'>{formatNightDate(night.date)}</h1>
+          <p className='mt-0.5 text-xs text-ink-2'>
             {[
               night.location,
               night.buyInCents === null ? null : `${formatDollars(night.buyInCents)} buy-in`,
@@ -54,8 +54,8 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
         <span
           className={`rounded-full border px-2.5 py-0.5 text-xs ${
             closed
-              ? 'border-slate-200 text-slate-600'
-              : 'border-green-200 bg-green-50 text-green-700'
+              ? 'border-line text-ink-2'
+              : 'border-live/30 bg-live-soft font-semibold text-live'
           }`}>
           {closed ? 'Closed' : 'Open'}
         </span>
@@ -64,8 +64,8 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
       {viewer.role === 'member' && viewer.playerId === null && <WhoAreYou players={players} />}
 
       {closed && (
-        <div className='rounded-xl bg-slate-900 px-3 py-2.5 text-white'>
-          <div className='text-[10px] font-semibold tracking-wider text-slate-400 uppercase'>
+        <div className='rounded-2xl bg-hero px-4 py-3 text-hero-ink shadow-hero'>
+          <div className='text-[10px] font-semibold tracking-wider text-hero-muted uppercase'>
             Winner
           </div>
           <div className='text-base font-bold'>
@@ -74,7 +74,7 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
             ) : (
               <>
                 {joinNames(winnerSeats.map((seat) => seat.playerName))} took it{' '}
-                <span className='text-green-400'>{formatNet(winnerNet)}</span>
+                <span className='text-hero-figure tabular-nums'>{formatNet(winnerNet)}</span>
               </>
             )}
           </div>
@@ -84,7 +84,7 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
       <NightTotals seats={night.seats} />
 
       <section>
-        <h2 className='mb-1 text-[10px] font-semibold tracking-wider text-slate-500 uppercase'>
+        <h2 className='mb-1 text-[10px] font-semibold tracking-wider text-ink-2 uppercase'>
           Players
         </h2>
         <SeatTable

@@ -88,11 +88,11 @@ export function MergePlayersForm({ players }: { players: PlayerOption[] }) {
               players={players}
             />
           </div>
-          <p className='text-sm text-slate-500'>
+          <p className='text-sm text-ink-2'>
             The first player&apos;s nights move to the second, and the first is removed.
           </p>
           {refusal && (
-            <p role='alert' className='text-sm text-red-600'>
+            <p role='alert' className='text-sm text-error'>
               Both played on {refusal.dates.map(formatNightDate).join(', ')}. Fix those nights
               first, then merge.
             </p>

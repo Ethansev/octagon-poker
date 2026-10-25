@@ -103,7 +103,7 @@ function DeleteNight({ pending, onConfirm }: { pending: boolean; onConfirm: () =
         <Button
           variant='ghost'
           size='sm'
-          className='text-red-600 hover:text-red-700'
+          className='text-error hover:bg-error-soft hover:text-error'
           disabled={pending}>
           Delete
         </Button>
@@ -118,7 +118,9 @@ function DeleteNight({ pending, onConfirm }: { pending: boolean; onConfirm: () =
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Keep it</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Delete night</AlertDialogAction>
+          <AlertDialogAction variant='destructive' onClick={onConfirm}>
+            Delete night
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -154,7 +156,7 @@ export function NightOwnerActions({
         <DeleteNight pending={actions.pending} onConfirm={actions.remove} />
       </div>
       {status === 'open' && closeBlockedReason !== null && (
-        <p className='text-sm text-slate-500'>{closeBlockedReason}</p>
+        <p className='text-sm text-ink-2'>{closeBlockedReason}</p>
       )}
     </div>
   );

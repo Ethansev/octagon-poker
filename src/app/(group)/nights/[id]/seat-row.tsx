@@ -20,13 +20,13 @@ export function SeatRow({ nightId, seat, onSubmitted, onGone }: SeatRowProps) {
 
   return (
     <form
-      className={`${rowGrid} border-b border-slate-100 py-2`}
+      className={`${rowGrid} border-b border-line/60 py-2`}
       onSubmit={(event) => {
         event.preventDefault();
         row.save();
         onSubmitted();
       }}>
-      <span className='col-span-2 truncate font-semibold text-slate-900 sm:col-span-1'>
+      <span className='col-span-2 truncate font-semibold text-ink sm:col-span-1'>
         {seat.playerName}
       </span>
       <Input
@@ -53,8 +53,8 @@ export function SeatRow({ nightId, seat, onSubmitted, onGone }: SeatRowProps) {
         className='col-start-2 row-start-2 sm:col-start-auto sm:row-start-auto'
       />
       <span
-        className={`col-start-3 row-start-1 text-right font-bold sm:col-start-auto sm:row-start-auto ${
-          row.net !== null && row.net > 0 ? 'text-green-700' : 'text-slate-400'
+        className={`col-start-3 row-start-1 text-right font-bold tabular-nums sm:col-start-auto sm:row-start-auto ${
+          row.net !== null && row.net > 0 ? 'text-win' : 'text-loss'
         }`}>
         {row.net === null ? '' : formatNet(row.net)}
       </span>
@@ -80,7 +80,7 @@ export function SeatRow({ nightId, seat, onSubmitted, onGone }: SeatRowProps) {
         </Button>
       </div>
       {row.invalidField !== null && (
-        <p className='col-span-full text-sm text-red-600'>Enter an amount like 20 or 20.50</p>
+        <p className='col-span-full text-sm text-error'>Enter an amount like 20 or 20.50</p>
       )}
     </form>
   );

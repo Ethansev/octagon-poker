@@ -45,7 +45,7 @@ export function SignInForm() {
         />
       </div>
       {state.kind === 'failed' && (
-        <p role='alert' className='text-sm text-red-600'>
+        <p role='alert' className='text-sm text-error'>
           {state.message}
         </p>
       )}
