@@ -1,10 +1,12 @@
 import { db } from '@/db/client';
+import { groups } from '@/groups/schema';
 import { nightEvents, nights, seats } from '@/nights/schema';
+import { leastUsedSlot } from '@/players/player-color';
 import { players } from '@/players/schema';
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
-export type Player = { id: string; groupId: string; name: string };
+export type Player = { id: string; groupId: string; name: string; colorSlot: number };
 
 export type AddPlayerResult =
   { kind: 'added'; player: Player } | { kind: 'exists'; player: Player } | { kind: 'invalid-name' };
@@ -17,7 +19,12 @@ export type MergePlayersResult =
 
 const MAX_NAME_LENGTH = 40;
 
-const playerColumns = { id: players.id, groupId: players.groupId, name: players.name };
+const playerColumns = {
+  id: players.id,
+  groupId: players.groupId,
+  name: players.name,
+  colorSlot: players.colorSlot,
+};
 
 function normalizeName(raw: string): string {
   return raw.trim().replace(/\s+/g, ' ');
@@ -30,20 +37,35 @@ export async function addPlayer(input: {
   const name = normalizeName(input.name);
   if (name.length === 0 || name.length > MAX_NAME_LENGTH) return { kind: 'invalid-name' };
 
-  const [added] = await db
-    .insert(players)
-    .values({ groupId: input.groupId, name })
-    .onConflictDoNothing()
-    .returning(playerColumns);
-  if (added) return { kind: 'added', player: added };
+  return db.transaction(async (tx): Promise<AddPlayerResult> => {
+    await tx
+      .select({ id: groups.id })
+      .from(groups)
+      .where(eq(groups.id, input.groupId))
+      .for('update');
+    const used = await tx
+      .select({ colorSlot: players.colorSlot })
+      .from(players)
+      .where(eq(players.groupId, input.groupId));
+    const [added] = await tx
+      .insert(players)
+      .values({
+        groupId: input.groupId,
+        name,
+        colorSlot: leastUsedSlot(used.map((row) => row.colorSlot)),
+      })
+      .onConflictDoNothing()
+      .returning(playerColumns);
+    if (added) return { kind: 'added', player: added };
 
-  const [existing] = await db
-    .select(playerColumns)
-    .from(players)
-    .where(and(eq(players.groupId, input.groupId), sql`lower(${players.name}) = lower(${name})`))
-    .limit(1);
-  if (!existing) throw new Error('Player insert conflicted but no matching player was found');
-  return { kind: 'exists', player: existing };
+    const [existing] = await tx
+      .select(playerColumns)
+      .from(players)
+      .where(and(eq(players.groupId, input.groupId), sql`lower(${players.name}) = lower(${name})`))
+      .limit(1);
+    if (!existing) throw new Error('Player insert conflicted but no matching player was found');
+    return { kind: 'exists', player: existing };
+  });
 }
 
 export async function listPlayers(groupId: string): Promise<Player[]> {

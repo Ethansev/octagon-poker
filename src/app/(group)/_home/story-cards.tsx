@@ -40,7 +40,7 @@ function PlayerStory({ story }: { story: Story }) {
       <div className='mt-4 flex min-h-16 items-center gap-3'>
         {player && (
           <span className='rounded-full bg-frame p-1'>
-            <PlayerAvatar playerId={player.playerId} name={player.name} size={56} />
+            <PlayerAvatar colorSlot={player.colorSlot} name={player.name} size={56} />
           </span>
         )}
         {story.mark}

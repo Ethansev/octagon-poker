@@ -22,7 +22,7 @@ function Podium({ ranked }: { ranked: HomePlayer[] }) {
       {PODIUM.map(({ place, height, avatar }) => {
         const player = byPlace.get(place);
         if (!player) return <li key={place} aria-hidden />;
-        const color = playerColor(player.playerId);
+        const color = playerColor(player.colorSlot);
         return (
           <li key={place} className='min-w-0'>
             <Link
@@ -37,7 +37,7 @@ function Podium({ ranked }: { ranked: HomePlayer[] }) {
                   </span>
                 )}
                 <PlayerAvatar
-                  playerId={player.playerId}
+                  colorSlot={player.colorSlot}
                   name={player.name}
                   size={avatar}
                   ring={3}
@@ -99,7 +99,7 @@ export function StandingsCard({ players, scope }: { players: HomePlayer[]; scope
                 <span className='w-6 text-center text-lg font-bold text-ink-3 tabular-nums'>
                   {player.rank}
                 </span>
-                <PlayerAvatar playerId={player.playerId} name={player.name} size={36} />
+                <PlayerAvatar colorSlot={player.colorSlot} name={player.name} size={36} />
                 <span className='min-w-0 flex-1 truncate font-bold'>{player.name}</span>
                 <span className='text-lg font-bold text-win tabular-nums'>
                   {formatNet(player.netCents)}
@@ -122,7 +122,7 @@ export function StandingsCard({ players, scope }: { players: HomePlayer[]; scope
                   href={`/players/${player.playerId}`}
                   className={`${rowLink} py-1.5 text-ink-2 hover:bg-surface hover:text-ink`}>
                   <PlayerAvatar
-                    playerId={player.playerId}
+                    colorSlot={player.colorSlot}
                     name={player.name}
                     size={28}
                     tone='muted'

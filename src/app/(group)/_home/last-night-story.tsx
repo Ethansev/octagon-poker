@@ -54,12 +54,12 @@ export function LastNightStory({ night }: { night: LastNight }) {
               👑
             </span>
             <span className='block rounded-full bg-frame p-1.5'>
-              <PlayerAvatar playerId={lead.playerId} name={lead.name} size={96} />
+              <PlayerAvatar colorSlot={lead.colorSlot} name={lead.name} size={96} />
             </span>
           </span>
           {coWinners.slice(0, 2).map((winner) => (
             <span key={winner.playerId} className='-ml-6 block rounded-full bg-frame p-1'>
-              <PlayerAvatar playerId={winner.playerId} name={winner.name} size={72} />
+              <PlayerAvatar colorSlot={winner.colorSlot} name={winner.name} size={72} />
             </span>
           ))}
         </div>
@@ -87,7 +87,7 @@ export function LastNightStory({ night }: { night: LastNight }) {
                   up ? 'bg-hero-chip text-hero-chip-ink' : 'bg-hero-chip-muted text-hero-muted',
                 )}>
                 <PlayerAvatar
-                  playerId={seat.playerId}
+                  colorSlot={seat.colorSlot}
                   name={seat.name}
                   size={24}
                   tone={up ? 'solid' : 'muted'}

@@ -111,6 +111,68 @@ describe('addPlayer', () => {
   });
 });
 
+describe('player color slots', () => {
+  async function slotsOf(groupId: string): Promise<number[]> {
+    const rows = await db
+      .select({ colorSlot: players.colorSlot })
+      .from(players)
+      .where(eq(players.groupId, groupId))
+      .orderBy(players.createdAt);
+    return rows.map((row) => row.colorSlot);
+  }
+
+  it('gives the first 16 players in a group distinct slots in order', async () => {
+    const groupId = await newGroup();
+    for (let i = 0; i < 16; i++) await newPlayer(groupId, `Player ${i}`);
+
+    expect(await slotsOf(groupId)).toEqual(Array.from({ length: 16 }, (_, slot) => slot));
+  });
+
+  it('wraps the 17th player back to the first slot', async () => {
+    const groupId = await newGroup();
+    for (let i = 0; i < 16; i++) await newPlayer(groupId, `Player ${i}`);
+
+    const result = await addPlayer({ groupId, name: 'Late arrival' });
+
+    expect(result.kind === 'added' && result.player.colorSlot).toBe(0);
+  });
+
+  it('counts slots per group', async () => {
+    const first = await newGroup('One');
+    const second = await newGroup('Two');
+    await newPlayer(first, 'Ivy');
+    await newPlayer(first, 'Sid');
+
+    const result = await addPlayer({ groupId: second, name: 'Dev' });
+
+    expect(result.kind === 'added' && result.player.colorSlot).toBe(0);
+  });
+
+  it('gives concurrent new players different slots', async () => {
+    const groupId = await newGroup();
+
+    await Promise.all([
+      addPlayer({ groupId, name: 'Ivy' }),
+      addPlayer({ groupId, name: 'Sid' }),
+      addPlayer({ groupId, name: 'Dev' }),
+    ]);
+
+    expect([...(await slotsOf(groupId))].sort()).toEqual([0, 1, 2]);
+  });
+
+  it('keeps the target slot on merge and reuses the freed slot', async () => {
+    const groupId = await newGroup();
+    const fromId = await newPlayer(groupId, 'Ivy B');
+    const intoId = await newPlayer(groupId, 'Ivy');
+
+    await mergePlayers({ groupId, fromId, intoId });
+
+    expect((await getPlayer(groupId, intoId))?.colorSlot).toBe(1);
+    const next = await addPlayer({ groupId, name: 'Sid' });
+    expect(next.kind === 'added' && next.player.colorSlot).toBe(0);
+  });
+});
+
 describe('listPlayers and getPlayer', () => {
   it('lists players sorted by name and scopes getPlayer to the group', async () => {
     const groupId = await newGroup('One');
@@ -119,7 +181,7 @@ describe('listPlayers and getPlayer', () => {
     await newPlayer(groupId, 'Amy');
 
     expect((await listPlayers(groupId)).map((p) => p.name)).toEqual(['Amy', 'Zed']);
-    expect(await getPlayer(groupId, zed)).toEqual({ id: zed, groupId, name: 'Zed' });
+    expect(await getPlayer(groupId, zed)).toEqual({ id: zed, groupId, name: 'Zed', colorSlot: 0 });
     expect(await getPlayer(otherGroupId, zed)).toBeNull();
   });
 });

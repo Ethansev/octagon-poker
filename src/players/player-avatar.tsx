@@ -3,7 +3,7 @@ import { initials } from '@/players/initials';
 import { playerColor } from '@/players/player-color';
 
 type PlayerAvatarProps = {
-  playerId: string;
+  colorSlot: number;
   name: string;
   size?: number;
   tone?: 'solid' | 'muted';
@@ -12,14 +12,14 @@ type PlayerAvatarProps = {
 };
 
 export function PlayerAvatar({
-  playerId,
+  colorSlot,
   name,
   size = 40,
   tone = 'solid',
   ring = 0,
   className,
 }: PlayerAvatarProps) {
-  const color = playerColor(playerId);
+  const color = playerColor(colorSlot);
   const letters = initials(name);
   const muted = tone === 'muted';
 

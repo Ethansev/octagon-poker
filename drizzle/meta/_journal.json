@@ -15,6 +15,13 @@
       "when": 1792600608422,
       "tag": "0001_daffy_earthquake",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792919647569,
+      "tag": "0002_player_color_slot",
+      "breakpoints": true
     }
   ]
 }

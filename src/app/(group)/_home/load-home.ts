@@ -11,9 +11,9 @@ import { hottestStreak, type Heater } from '@/stats/streaks';
 export type HomeSeason =
   { kind: 'current'; year: number } | { kind: 'past'; year: number } | { kind: 'all' };
 
-export type HomePlayer = PlayerSeason & { name: string; rank: number | null };
+export type HomePlayer = PlayerSeason & { name: string; colorSlot: number; rank: number | null };
 
-export type HomeSeat = { playerId: string; name: string; netCents: number };
+export type HomeSeat = { playerId: string; name: string; colorSlot: number; netCents: number };
 
 export type LastNight = {
   id: string;
@@ -24,7 +24,9 @@ export type LastNight = {
   seats: HomeSeat[];
 };
 
-export type RecentNight = NightSummary & { winners: { playerId: string; name: string }[] };
+export type RecentNight = NightSummary & {
+  winners: { playerId: string; name: string; colorSlot: number }[];
+};
 
 export type HomeHighlights = {
   leader: HomePlayer | null;
@@ -54,11 +56,13 @@ function homeSeason(season: Season, currentYear: number): HomeSeason {
     : { kind: 'past', year: season };
 }
 
-function seatsOf(night: ClosedNight, nameOf: (id: string) => string): HomeSeat[] {
+type Identify = (playerId: string) => { name: string; colorSlot: number };
+
+function seatsOf(night: ClosedNight, identify: Identify): HomeSeat[] {
   return night.seats
     .map((seat) => ({
       playerId: seat.playerId,
-      name: nameOf(seat.playerId),
+      ...identify(seat.playerId),
       netCents: seatNet(seat),
     }))
     .sort((a, b) => b.netCents - a.netCents || a.name.localeCompare(b.name));
@@ -67,11 +71,11 @@ function seatsOf(night: ClosedNight, nameOf: (id: string) => string): HomeSeat[]
 function lastNightOf(
   night: ClosedNight | undefined,
   summaries: NightSummary[],
-  nameOf: (id: string) => string,
+  identify: Identify,
 ): LastNight | null {
   if (!night) return null;
   const winnerIds = new Set(nightWinners(night.seats));
-  const seats = seatsOf(night, nameOf);
+  const seats = seatsOf(night, identify);
   return {
     id: night.id,
     date: night.date,
@@ -85,13 +89,13 @@ function lastNightOf(
 function recentNightsOf(
   summaries: NightSummary[],
   closed: ClosedNight[],
-  nameOf: (id: string) => string,
+  identify: Identify,
 ): RecentNight[] {
   const seatsById = new Map(closed.map((night) => [night.id, night.seats]));
   return summaries.map((summary) => ({
     ...summary,
     winners: nightWinners(seatsById.get(summary.id) ?? [])
-      .map((playerId) => ({ playerId, name: nameOf(playerId) }))
+      .map((playerId) => ({ playerId, ...identify(playerId) }))
       .sort((a, b) => a.name.localeCompare(b.name)),
   }));
 }
@@ -106,15 +110,18 @@ export async function loadHome(
     listNights(groupId, season),
     listPlayers(groupId),
   ]);
-  const names = new Map(roster.map((player) => [player.id, player.name]));
-  const nameOf = (id: string) => names.get(id) ?? 'Unknown';
+  const byPlayerId = new Map(roster.map((player) => [player.id, player]));
+  const identify: Identify = (playerId) => {
+    const player = byPlayerId.get(playerId);
+    return { name: player?.name ?? 'Unknown', colorSlot: player?.colorSlot ?? 0 };
+  };
   const scope = homeSeason(season, currentYearInGroup());
   const closed = nightsInSeason(allClosed, season);
   const awards = recap(closed);
   const rankOf = new Map(awards.standings.ranked.map((row, index) => [row.playerId, index + 1]));
   const players = awards.players.map((player) => ({
     ...player,
-    name: nameOf(player.playerId),
+    ...identify(player.playerId),
     rank: rankOf.get(player.playerId) ?? null,
   }));
   const byId = new Map(players.map((player) => [player.playerId, player]));
@@ -147,9 +154,9 @@ export async function loadHome(
           }
         : null,
     },
-    lastNight: lastNightOf(closed[0], summaries, nameOf),
+    lastNight: lastNightOf(closed[0], summaries, identify),
     openNight: summaries.find((night) => night.status === 'open') ?? null,
-    recentNights: recentNightsOf(summaries, closed, nameOf),
+    recentNights: recentNightsOf(summaries, closed, identify),
     previousRecapYear:
       previousYear !== null && allClosed.some((night) => night.date.startsWith(`${previousYear}-`))
         ? previousYear

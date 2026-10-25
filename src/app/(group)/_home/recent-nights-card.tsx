@@ -51,7 +51,7 @@ function NightRow({ night }: { night: RecentNight }) {
         <span aria-hidden className='flex -space-x-2'>
           {night.winners.slice(0, 2).map((winner) => (
             <span key={winner.playerId} className='rounded-full ring-2 ring-surface'>
-              <PlayerAvatar playerId={winner.playerId} name={winner.name} size={30} />
+              <PlayerAvatar colorSlot={winner.colorSlot} name={winner.name} size={30} />
             </span>
           ))}
         </span>

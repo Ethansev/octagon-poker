@@ -50,7 +50,7 @@ function vibeLabel(vibe: Vibe): string {
 }
 
 function CrewCard({ player, topNet }: { player: HomePlayer; topNet: number }) {
-  const color = playerColor(player.playerId);
+  const color = playerColor(player.colorSlot);
   const up = player.netCents > 0;
   const mood = vibe(player, player.rank);
 
@@ -73,7 +73,7 @@ function CrewCard({ player, topNet }: { player: HomePlayer; topNet: number }) {
         )}
         <div className='grid h-24 place-items-center'>
           <PlayerAvatar
-            playerId={player.playerId}
+            colorSlot={player.colorSlot}
             name={player.name}
             size={bubbleSize(player, topNet)}
             tone={up ? 'solid' : 'muted'}

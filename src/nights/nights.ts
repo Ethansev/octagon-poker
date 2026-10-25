@@ -11,6 +11,7 @@ import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
 export type SeatView = {
   playerId: string;
   playerName: string;
+  playerColorSlot: number;
   buyInCents: number;
   cashOutCents: number | null;
   updatedAt: Date;
@@ -67,6 +68,7 @@ type Cents = { buyInCents: number; cashOutCents: number | null };
 const seatViewColumns = {
   playerId: seats.playerId,
   playerName: players.name,
+  playerColorSlot: players.colorSlot,
   buyInCents: seats.buyInCents,
   cashOutCents: seats.cashOutCents,
   updatedAt: seats.updatedAt,

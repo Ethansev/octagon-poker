@@ -9,17 +9,16 @@ export type PlayerColor = {
   glow: string;
 };
 
-export function playerSlot(playerId: string): number {
-  let hash = 0x811c9dc5;
-  for (const char of playerId.toLowerCase()) {
-    hash ^= char.codePointAt(0) ?? 0;
-    hash = Math.imul(hash, 0x01000193);
+export function leastUsedSlot(usedSlots: number[]): number {
+  const counts = new Array<number>(PLAYER_PALETTE_SLOTS).fill(0);
+  for (const slot of usedSlots) {
+    if (slot >= 0 && slot < PLAYER_PALETTE_SLOTS) counts[slot]++;
   }
-  return (hash >>> 0) % PLAYER_PALETTE_SLOTS;
+  return counts.indexOf(Math.min(...counts));
 }
 
-export function playerColor(playerId: string): PlayerColor {
-  const slot = playerSlot(playerId);
+export function playerColor(colorSlot: number): PlayerColor {
+  const slot = ((colorSlot % PLAYER_PALETTE_SLOTS) + PLAYER_PALETTE_SLOTS) % PLAYER_PALETTE_SLOTS;
   return {
     slot,
     solid: `var(--player-${slot}-solid)`,
