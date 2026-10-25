@@ -19,7 +19,7 @@ export default defineRailway(() => {
 
   const web = service('web', {
     source,
-    build: { builder: 'DOCKERFILE', watchPatterns: WATCH },
+    build: { watchPatterns: WATCH },
     deploy: { healthcheckPath: '/api/health', preDeployCommand: ['node dist/predeploy.mjs'] },
     env: {
       DATABASE_URL: db.env.DATABASE_URL,
