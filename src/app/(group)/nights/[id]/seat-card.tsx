@@ -4,19 +4,18 @@ import { cn } from '@/lib/utils';
 import { formatDollars, formatNet } from '@/money/money';
 import { PlayerAvatar } from '@/players/player-avatar';
 import { playerColor } from '@/players/player-color';
+import { PencilLine } from 'lucide-react';
 
 type SeatCardProps = {
   seat: SeatData;
   isYou: boolean;
   selected: boolean;
+  unsaved: boolean;
   onOpen: () => void;
 };
 
 function SeatOutcome({ seat }: { seat: SeatData }) {
   const net = seatNetCents(seat);
-  if (seat.updatedAt === null) {
-    return <span className='text-sm font-extrabold text-ink-2'>Not saved yet</span>;
-  }
   if (net === null) {
     return (
       <span className='inline-flex items-center gap-1.5 text-sm font-extrabold text-pending'>
@@ -24,6 +23,9 @@ function SeatOutcome({ seat }: { seat: SeatData }) {
         Still playing
       </span>
     );
+  }
+  if (net === 0) {
+    return <span className='text-2xl leading-none font-bold tracking-tight text-ink-2'>Even</span>;
   }
   return (
     <span
@@ -36,9 +38,43 @@ function SeatOutcome({ seat }: { seat: SeatData }) {
   );
 }
 
-export function SeatCard({ seat, isYou, selected, onOpen }: SeatCardProps) {
+function UnsavedChip() {
+  return (
+    <span className='inline-flex shrink-0 items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-ink-2 uppercase shadow-card'>
+      <PencilLine aria-hidden className='size-3' />
+      Unsaved
+    </span>
+  );
+}
+
+function SeatSummary({ seat, unsaved }: { seat: SeatData; unsaved: boolean }) {
+  return (
+    <>
+      <span className='block w-full text-xs font-bold text-ink-2 tabular-nums'>
+        {seat.buyInCents === null ? 'No buy-in yet' : `${formatDollars(seat.buyInCents)} in`}
+        {seat.cashOutCents !== null && ` · ${formatDollars(seat.cashOutCents)} out`}
+      </span>
+      <span className='mt-auto flex w-full flex-wrap items-center justify-between gap-2'>
+        <SeatOutcome seat={seat} />
+        {unsaved && <UnsavedChip />}
+      </span>
+    </>
+  );
+}
+
+function NewSeatSummary() {
+  return (
+    <>
+      <span className='block w-full text-xs font-bold text-ink-3'>Buy-in not locked in</span>
+      <span className='mt-auto text-sm font-extrabold text-ink-2'>Not saved yet</span>
+    </>
+  );
+}
+
+export function SeatCard({ seat, isYou, selected, unsaved, onOpen }: SeatCardProps) {
   const color = playerColor(seat.colorSlot);
-  const waiting = seat.cashOutCents === null;
+  const isNew = seat.updatedAt === null;
+  const waiting = !isNew && seat.cashOutCents === null;
 
   return (
     <button
@@ -48,7 +84,8 @@ export function SeatCard({ seat, isYou, selected, onOpen }: SeatCardProps) {
       onClick={onOpen}
       className={cn(
         'group flex h-full w-full cursor-pointer flex-col items-start gap-3 rounded-card p-3.5 text-left transition hover:-translate-y-0.5 hover:shadow-lift focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none motion-reduce:transition-none sm:p-4',
-        !selected && 'bg-surface-2 hover:bg-surface-3',
+        !selected && !isNew && 'bg-surface-2 hover:bg-surface-3',
+        !selected && isNew && 'border-2 border-dashed border-line hover:bg-surface-2',
       )}
       style={
         selected
@@ -57,7 +94,12 @@ export function SeatCard({ seat, isYou, selected, onOpen }: SeatCardProps) {
       }>
       <span className='flex w-full min-w-0 items-center gap-2.5'>
         <span className='relative shrink-0'>
-          <PlayerAvatar colorSlot={seat.colorSlot} name={seat.playerName} size={44} />
+          <PlayerAvatar
+            colorSlot={seat.colorSlot}
+            name={seat.playerName}
+            size={44}
+            tone={isNew ? 'muted' : 'solid'}
+          />
           {waiting && (
             <span
               aria-hidden
@@ -65,8 +107,8 @@ export function SeatCard({ seat, isYou, selected, onOpen }: SeatCardProps) {
             />
           )}
         </span>
-        <span className='flex min-w-0 flex-1 items-center gap-1.5'>
-          <span className='truncate font-extrabold'>{seat.playerName}</span>
+        <span className='flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-0.5'>
+          <span className='max-w-full truncate font-extrabold'>{seat.playerName}</span>
           {isYou && (
             <span className='shrink-0 rounded-full bg-ink px-1.5 py-px text-[10px] font-extrabold tracking-wider text-surface uppercase'>
               You
@@ -74,13 +116,7 @@ export function SeatCard({ seat, isYou, selected, onOpen }: SeatCardProps) {
           )}
         </span>
       </span>
-      <span className='block w-full text-xs font-bold text-ink-2 tabular-nums'>
-        {seat.buyInCents === null ? 'No buy-in yet' : `${formatDollars(seat.buyInCents)} in`}
-        {seat.cashOutCents !== null && ` · ${formatDollars(seat.cashOutCents)} out`}
-      </span>
-      <span className='mt-auto'>
-        <SeatOutcome seat={seat} />
-      </span>
+      {isNew ? <NewSeatSummary /> : <SeatSummary seat={seat} unsaved={unsaved} />}
     </button>
   );
 }

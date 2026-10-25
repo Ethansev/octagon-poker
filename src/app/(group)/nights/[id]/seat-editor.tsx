@@ -2,12 +2,9 @@
 
 import type { SeatData } from '@/app/(group)/nights/[id]/seat-data';
 import { rebuyCount } from '@/app/(group)/nights/[id]/seat-data';
-import type { SeatField } from '@/app/(group)/nights/[id]/use-seat-editor';
-import {
-  useSeatDraft,
-  useSeatRemoval,
-  useSeatSave,
-} from '@/app/(group)/nights/[id]/use-seat-editor';
+import type { SeatField } from '@/app/(group)/nights/[id]/seat-edits';
+import type { SeatEdits } from '@/app/(group)/nights/[id]/use-seat-editor';
+import { seatDraft, useSeatRemoval, useSeatSave } from '@/app/(group)/nights/[id]/use-seat-editor';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +30,7 @@ type SeatEditorProps = {
   stepCents: number | null;
   isYou: boolean;
   focusField: SeatField | null;
+  edits: SeatEdits;
   onSaved: () => void;
   onGone: () => void;
 };
@@ -59,8 +57,9 @@ function useFocusOnMount(field: SeatField | null) {
   return { buyInRef, cashOutRef };
 }
 
-function seatStatus(seat: SeatData, isYou: boolean): string {
+function seatStatus(seat: SeatData, isYou: boolean, dirty: boolean): string {
   if (seat.updatedAt === null) return 'New at the table';
+  if (dirty) return 'Unsaved changes';
   if (isYou)
     return seat.cashOutCents === null
       ? 'That’s you. Still playing.'
@@ -69,16 +68,19 @@ function seatStatus(seat: SeatData, isYou: boolean): string {
 }
 
 function NetPreview({
-  net,
-  typo,
-  invalid,
+  draft,
 }: {
-  net: number | null;
-  typo: boolean;
-  invalid: boolean;
+  draft: Pick<
+    ReturnType<typeof seatDraft>,
+    'net' | 'typo' | 'invalidField' | 'buyInCents' | 'cashOutCents'
+  >;
 }) {
-  if (typo || invalid) {
+  const { net } = draft;
+  if (draft.typo.cashOut || draft.invalidField === 'cashOut') {
     return <span className='text-error'>Enter an amount like 20 or 20.50</span>;
+  }
+  if (draft.cashOutCents !== null && draft.buyInCents === null) {
+    return <span className='text-error'>Fix the buy-in above to see the net.</span>;
   }
   if (net === null)
     return <span className='text-ink-3'>Leave it blank while they’re still playing.</span>;
@@ -138,10 +140,11 @@ export function SeatEditor({
   stepCents,
   isYou,
   focusField,
+  edits,
   onSaved,
   onGone,
 }: SeatEditorProps) {
-  const draft = useSeatDraft(seat);
+  const draft = seatDraft(seat, edits);
   const saving = useSeatSave(nightId, seat, draft, onSaved);
   const removal = useSeatRemoval(nightId, seat.playerId, draft, onGone);
   const { buyInRef, cashOutRef } = useFocusOnMount(focusField);
@@ -170,7 +173,7 @@ export function SeatEditor({
               </span>
             )}
           </p>
-          <p className='text-sm font-bold text-ink-2'>{seatStatus(seat, isYou)}</p>
+          <p className='text-sm font-bold text-ink-2'>{seatStatus(seat, isYou, draft.dirty)}</p>
         </div>
       </div>
 
@@ -217,7 +220,14 @@ export function SeatEditor({
               </button>
               <button
                 type='button'
-                onClick={() => draft.stepBuyIn(stepCents, stepCents)}
+                onClick={() => {
+                  if (draft.typo.buyIn) {
+                    draft.markInvalid('buyIn');
+                    buyInRef.current?.focus();
+                    return;
+                  }
+                  draft.stepBuyIn(stepCents, stepCents);
+                }}
                 className={cn(roundButton, 'w-auto gap-1 px-4 text-sm font-extrabold')}>
                 <span className='inline-flex items-center gap-1'>
                   <Plus aria-hidden className='size-4' strokeWidth={3} />
@@ -261,11 +271,7 @@ export function SeatEditor({
           id={`${ids}-net`}
           aria-live='polite'
           className='mt-1 min-h-5 text-sm font-extrabold tabular-nums'>
-          <NetPreview
-            net={draft.net}
-            typo={draft.typo.cashOut}
-            invalid={draft.invalidField === 'cashOut'}
-          />
+          <NetPreview draft={draft} />
         </p>
       </div>
 

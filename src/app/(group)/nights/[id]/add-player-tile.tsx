@@ -14,7 +14,7 @@ import { PlayerAvatar } from '@/players/player-avatar';
 import type { Player } from '@/players/players';
 import { Plus, UserPlus } from 'lucide-react';
 import type { Ref } from 'react';
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
 type AddPlayerTileProps = {
@@ -28,12 +28,14 @@ function useAddPlayer(allNames: string[], onPick: (player: Player) => void) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [pending, startTransition] = useTransition();
+  const picked = useRef(false);
 
   const typed = query.trim();
   const canCreate =
     typed !== '' && !allNames.some((name) => name.toLowerCase() === typed.toLowerCase());
 
   function choose(player: Player) {
+    picked.current = true;
     setOpen(false);
     setQuery('');
     onPick(player);
@@ -49,7 +51,23 @@ function useAddPlayer(allNames: string[], onPick: (player: Player) => void) {
     });
   }
 
-  return { open, setOpen, query, setQuery, typed, canCreate, pending, choose, create };
+  function keepFocusOnPick(event: Event) {
+    if (picked.current) event.preventDefault();
+    picked.current = false;
+  }
+
+  return {
+    open,
+    setOpen,
+    query,
+    setQuery,
+    typed,
+    canCreate,
+    pending,
+    choose,
+    create,
+    keepFocusOnPick,
+  };
 }
 
 export function AddPlayerTile({ available, allNames, onPick, ref }: AddPlayerTileProps) {
@@ -71,7 +89,10 @@ export function AddPlayerTile({ available, allNames, onPick, ref }: AddPlayerTil
           Add player
         </button>
       </PopoverTrigger>
-      <PopoverContent align='start' className='w-72 overflow-hidden p-0'>
+      <PopoverContent
+        align='start'
+        className='w-72 overflow-hidden p-0'
+        onCloseAutoFocus={add.keepFocusOnPick}>
         <Command shouldFilter={false}>
           <CommandInput
             placeholder='Search or add a name'

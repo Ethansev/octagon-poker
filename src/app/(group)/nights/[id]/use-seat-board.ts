@@ -1,10 +1,10 @@
 'use client';
 
 import type { SeatData } from '@/app/(group)/nights/[id]/seat-data';
-import type { SeatField } from '@/app/(group)/nights/[id]/use-seat-editor';
+import type { SeatField } from '@/app/(group)/nights/[id]/seat-edits';
 import type { Player } from '@/players/players';
 import type { RefObject } from 'react';
-import { useState, useSyncExternalStore } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 
 export type BoardLayout = 'desktop' | 'mobile' | 'unknown';
 
@@ -80,43 +80,51 @@ export function useSeatSelection(
     const playerId = firstPick(initialSeats, viewerPlayerId);
     return playerId === null ? null : { playerId, focus: null };
   });
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const editingRef = useRef(editing);
+  const [sheetFor, setSheetFor] = useState<string | null>(null);
 
   const selected = rows.find((seat) => seat.playerId === editing?.playerId) ?? null;
 
+  function select(next: Editing | null) {
+    editingRef.current = next;
+    setEditing(next);
+  }
+
+  function closeSheetFor(playerId: string) {
+    setSheetFor((current) => (current === playerId ? null : current));
+  }
+
   function open(playerId: string, focus: SeatField) {
     if (layout === 'mobile') {
-      setEditing({ playerId, focus: null });
-      setSheetOpen(true);
+      select({ playerId, focus: null });
+      setSheetFor(playerId);
       return;
     }
-    setEditing({ playerId, focus });
+    select({ playerId, focus });
   }
 
   function afterSave(playerId: string) {
-    if (layout === 'mobile') {
-      setSheetOpen(false);
-      return;
-    }
+    closeSheetFor(playerId);
+    if (layout === 'mobile' || editingRef.current?.playerId !== playerId) return;
     const next = rows[rows.findIndex((seat) => seat.playerId === playerId) + 1];
     if (next) {
-      setEditing({ playerId: next.playerId, focus: 'cashOut' });
+      select({ playerId: next.playerId, focus: 'cashOut' });
       return;
     }
-    setEditing({ playerId, focus: null });
+    select({ playerId, focus: null });
     addTileRef.current?.focus();
   }
 
-  function afterRemove() {
-    setEditing(null);
-    setSheetOpen(false);
+  function afterRemove(playerId: string) {
+    closeSheetFor(playerId);
+    if (editingRef.current?.playerId === playerId) select(null);
   }
 
   return {
     selected,
     focus: editing?.focus ?? null,
-    sheetOpen: sheetOpen && selected !== null,
-    setSheetOpen,
+    sheetOpen: sheetFor !== null && sheetFor === selected?.playerId,
+    closeSheet: () => setSheetFor(null),
     open,
     afterSave,
     afterRemove,

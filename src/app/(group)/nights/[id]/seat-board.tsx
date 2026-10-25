@@ -4,11 +4,13 @@ import { AddPlayerTile } from '@/app/(group)/nights/[id]/add-player-tile';
 import { SeatCard } from '@/app/(group)/nights/[id]/seat-card';
 import type { SeatData } from '@/app/(group)/nights/[id]/seat-data';
 import { SeatEditor } from '@/app/(group)/nights/[id]/seat-editor';
+import { isDirty } from '@/app/(group)/nights/[id]/seat-edits';
 import {
   useBoardLayout,
   useDraftSeats,
   useSeatSelection,
 } from '@/app/(group)/nights/[id]/use-seat-board';
+import { useSeatEdits } from '@/app/(group)/nights/[id]/use-seat-editor';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { playerColor } from '@/players/player-color';
 import type { Player } from '@/players/players';
@@ -54,20 +56,23 @@ export function SeatBoard({
   const selection = useSeatSelection(rows, seats, viewerPlayerId, layout, addTileRef);
   const seatedIds = new Set(rows.map((row) => row.playerId));
   const available = players.filter((player) => !seatedIds.has(player.id));
+  const edits = useSeatEdits();
   const { selected } = selection;
 
-  const editor = selected && (
+  const editor = selected && layout !== 'unknown' && (
     <SeatEditor
-      key={`${selected.playerId}:${selected.updatedAt ?? 'new'}`}
+      key={selected.playerId}
       nightId={nightId}
       seat={selected}
       stepCents={stepCents}
       isYou={selected.playerId === viewerPlayerId}
       focusField={selection.focus}
+      edits={edits}
       onSaved={() => selection.afterSave(selected.playerId)}
       onGone={() => {
         dropDraft(selected.playerId);
-        selection.afterRemove();
+        edits.forget(selected.playerId);
+        selection.afterRemove(selected.playerId);
       }}
     />
   );
@@ -90,7 +95,8 @@ export function SeatBoard({
                 <SeatCard
                   seat={seat}
                   isYou={seat.playerId === viewerPlayerId}
-                  selected={layout !== 'mobile' && seat.playerId === selected?.playerId}
+                  selected={layout === 'desktop' && seat.playerId === selected?.playerId}
+                  unsaved={seat.updatedAt !== null && isDirty(edits.editFor(seat))}
                   onOpen={() => selection.open(seat.playerId, 'cashOut')}
                 />
               </li>
@@ -114,7 +120,7 @@ export function SeatBoard({
       {layout !== 'mobile' && (
         <aside aria-label='Seat editor' className='hidden lg:col-span-5 lg:block'>
           <div className='sticky top-24'>
-            {selected ? (
+            {layout === 'unknown' ? null : selected ? (
               <div
                 className='rounded-panel p-6 shadow-card'
                 style={{ background: playerColor(selected.colorSlot).soft }}>
@@ -128,7 +134,11 @@ export function SeatBoard({
       )}
 
       {layout === 'mobile' && (
-        <Sheet open={selection.sheetOpen} onOpenChange={selection.setSheetOpen}>
+        <Sheet
+          open={selection.sheetOpen}
+          onOpenChange={(open) => {
+            if (!open) selection.closeSheet();
+          }}>
           <SheetContent
             aria-describedby={undefined}
             onOpenAutoFocus={(event) => {

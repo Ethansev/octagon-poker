@@ -2,24 +2,14 @@
 
 import type { SeatData } from '@/app/(group)/nights/[id]/seat-data';
 import { centsToInput, stepAmount, toSeatData } from '@/app/(group)/nights/[id]/seat-data';
+import type { SeatBase, SeatEdit, SeatField } from '@/app/(group)/nights/[id]/seat-edits';
+import { baseOf, currentEdit, editFrom, isDirty } from '@/app/(group)/nights/[id]/seat-edits';
 import { parseDollars } from '@/money/money';
 import { removeSeatAction, saveSeatAction } from '@/nights/actions';
 import { firstName } from '@/players/first-name';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
-
-export type SeatField = 'buyIn' | 'cashOut';
-
-type SeatBase = { buyIn: string; cashOut: string; updatedAt: string | null };
-
-function baseOf(seat: SeatData): SeatBase {
-  return {
-    buyIn: centsToInput(seat.buyInCents),
-    cashOut: centsToInput(seat.cashOutCents),
-    updatedAt: seat.updatedAt,
-  };
-}
 
 function normalize(text: string): string {
   const parsed = parseDollars(text);
@@ -31,56 +21,84 @@ function centsOf(text: string): number | null {
   return parsed.kind === 'amount' ? parsed.cents : null;
 }
 
-export function useSeatDraft(seat: SeatData) {
-  const [base, setBase] = useState(() => baseOf(seat));
-  const [buyIn, setBuyIn] = useState(base.buyIn);
-  const [cashOut, setCashOut] = useState(base.cashOut);
-  const [invalidField, setInvalidField] = useState<SeatField | null>(null);
+export function useSeatEdits() {
+  const [edits, setEdits] = useState<Record<string, SeatEdit>>({});
 
-  const buyInCents = centsOf(buyIn);
-  const cashOutCents = centsOf(cashOut);
-
-  function changeBuyIn(value: string) {
-    setBuyIn(value);
-    if (invalidField === 'buyIn') setInvalidField(null);
+  function updateEdit(seat: SeatData, change: (edit: SeatEdit) => SeatEdit) {
+    setEdits((current) => ({
+      ...current,
+      [seat.playerId]: change(currentEdit(seat, current[seat.playerId])),
+    }));
   }
 
-  function changeCashOut(value: string) {
-    setCashOut(value);
-    if (invalidField === 'cashOut') setInvalidField(null);
+  function adopt(playerId: string, base: SeatBase) {
+    setEdits((current) => ({ ...current, [playerId]: editFrom(base) }));
   }
 
-  function adopt(next: SeatBase) {
-    setBase(next);
-    setBuyIn(next.buyIn);
-    setCashOut(next.cashOut);
+  function forget(playerId: string) {
+    setEdits((current) =>
+      Object.fromEntries(Object.entries(current).filter(([id]) => id !== playerId)),
+    );
   }
 
   return {
-    base,
-    buyIn,
-    cashOut,
-    buyInCents,
-    cashOutCents,
-    typo: {
-      buyIn: parseDollars(buyIn).kind === 'invalid',
-      cashOut: parseDollars(cashOut).kind === 'invalid',
-    },
-    net: buyInCents !== null && cashOutCents !== null ? cashOutCents - buyInCents : null,
-    dirty: base.updatedAt === null || buyIn !== base.buyIn || cashOut !== base.cashOut,
-    invalidField,
-    markInvalid: setInvalidField,
-    changeBuyIn,
-    changeCashOut,
-    stepBuyIn: (deltaCents: number, floorCents: number) =>
-      changeBuyIn(stepAmount(buyIn, deltaCents, floorCents)),
-    stepCashOut: (deltaCents: number) => changeCashOut(stepAmount(cashOut, deltaCents, 0)),
-    setCashOutCents: (cents: number) => changeCashOut(centsToInput(cents)),
+    editFor: (seat: SeatData) => currentEdit(seat, edits[seat.playerId]),
+    updateEdit,
     adopt,
+    forget,
   };
 }
 
-type SeatDraft = ReturnType<typeof useSeatDraft>;
+export type SeatEdits = ReturnType<typeof useSeatEdits>;
+
+function clearing(edit: SeatEdit, field: SeatField): SeatField | null {
+  return edit.invalidField === field ? null : edit.invalidField;
+}
+
+export function seatDraft(seat: SeatData, edits: SeatEdits) {
+  const edit = edits.editFor(seat);
+  const buyInCents = centsOf(edit.buyIn);
+  const cashOutCents = centsOf(edit.cashOut);
+  const update = (change: (edit: SeatEdit) => SeatEdit) => edits.updateEdit(seat, change);
+  const changeCashOut = (next: (edit: SeatEdit) => string) =>
+    update((current) => ({
+      ...current,
+      cashOut: next(current),
+      invalidField: clearing(current, 'cashOut'),
+    }));
+  const changeBuyIn = (next: (edit: SeatEdit) => string) =>
+    update((current) => ({
+      ...current,
+      buyIn: next(current),
+      invalidField: clearing(current, 'buyIn'),
+    }));
+
+  return {
+    base: edit.base,
+    buyIn: edit.buyIn,
+    cashOut: edit.cashOut,
+    buyInCents,
+    cashOutCents,
+    typo: {
+      buyIn: parseDollars(edit.buyIn).kind === 'invalid',
+      cashOut: parseDollars(edit.cashOut).kind === 'invalid',
+    },
+    net: buyInCents !== null && cashOutCents !== null ? cashOutCents - buyInCents : null,
+    dirty: isDirty(edit),
+    invalidField: edit.invalidField,
+    markInvalid: (field: SeatField) => update((current) => ({ ...current, invalidField: field })),
+    changeBuyIn: (value: string) => changeBuyIn(() => value),
+    changeCashOut: (value: string) => changeCashOut(() => value),
+    stepBuyIn: (deltaCents: number, floorCents: number) =>
+      changeBuyIn((current) => stepAmount(current.buyIn, deltaCents, floorCents)),
+    stepCashOut: (deltaCents: number) =>
+      changeCashOut((current) => stepAmount(current.cashOut, deltaCents, 0)),
+    setCashOutCents: (cents: number) => changeCashOut(() => centsToInput(cents)),
+    adopt: (base: SeatBase) => edits.adopt(seat.playerId, base),
+  };
+}
+
+type SeatDraft = ReturnType<typeof seatDraft>;
 
 export function useSeatSave(
   nightId: string,
