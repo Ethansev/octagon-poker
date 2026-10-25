@@ -1,9 +1,14 @@
 import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/theme/theme-provider';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Manrope } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-manrope',
+});
 
 export const metadata: Metadata = {
   title: 'Octagon Poker',
@@ -12,10 +17,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang='en'>
-      <body className={inter.className}>
-        <main>{children}</main>
-        <Toaster richColors theme={'light'} />
+    <html lang='en' className={manrope.variable} suppressHydrationWarning>
+      <body className='min-h-dvh font-sans'>
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

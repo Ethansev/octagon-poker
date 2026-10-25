@@ -1,0 +1,226 @@
+:root {
+  color-scheme: light;
+
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --surface-2: #f5f2ed;
+  --surface-3: #f3f0eb;
+  --line: #e7e2da;
+  --ink: #1c1917;
+  --ink-2: #6b6560;
+  --ink-3: #a19b96;
+  --overlay: rgba(28, 25, 23, 0.4);
+
+  --primary: #047857;
+  --primary-hover: #065f46;
+  --primary-ink: #ffffff;
+  --focus: #047857;
+
+  --win: #047857;
+  --win-soft: #ecfdf5;
+  --loss: #78716c;
+  --loss-soft: #d6d3d1;
+  --live: #047857;
+  --live-ink: #ffffff;
+  --live-soft: #ecfdf5;
+  --pending: #c2410c;
+  --error: #b42318;
+  --error-ink: #ffffff;
+  --error-soft: #fef3f2;
+
+  --logo: #1c1917;
+  --logo-ink: #faf8f5;
+
+  --hero: #1c1917;
+  --hero-ink: #faf8f5;
+  --hero-muted: rgba(250, 248, 245, 0.62);
+  --hero-figure: #6ee7b7;
+
+  --story-1: #e8eee5;
+  --story-1-ink: #1c1917;
+  --story-1-figure: #047857;
+  --story-2: #f3ebdd;
+  --story-2-ink: #1c1917;
+  --story-2-figure: #1c1917;
+  --story-3: #eeeae4;
+  --story-3-ink: #1c1917;
+  --story-3-figure: #047857;
+  --story-4: #ffffff;
+  --story-4-ink: #1c1917;
+  --story-4-figure: #1c1917;
+
+  --ring-gap: #ffffff;
+  --ring-muted: #e7e5e4;
+
+  --elevation-card: 0 0 0 1px rgba(28, 25, 23, 0.06), 0 1px 2px rgba(28, 25, 23, 0.04);
+  --elevation-lift: 0 0 0 1px rgba(28, 25, 23, 0.08), 0 16px 32px -20px rgba(28, 25, 23, 0.35);
+  --elevation-pop: 0 0 0 1px rgba(28, 25, 23, 0.08), 0 18px 40px -16px rgba(28, 25, 23, 0.3);
+  --elevation-hero: 0 24px 48px -30px rgba(28, 25, 23, 0.55);
+  --elevation-story: 0 0 #0000;
+  --elevation-story-4: var(--elevation-card);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface-2: #1c2128;
+  --surface-3: #21262d;
+  --line: #30363d;
+  --ink: #e6edf3;
+  --ink-2: #9198a1;
+  --ink-3: #6e7681;
+  --overlay: rgba(1, 4, 9, 0.7);
+
+  --primary: #d4a72c;
+  --primary-hover: #e0b84a;
+  --primary-ink: #0d1117;
+  --focus: #d4a72c;
+
+  --win: #3fb950;
+  --win-soft: rgba(63, 185, 80, 0.14);
+  --loss: #8b949e;
+  --loss-soft: #484f58;
+  --live: #3fb950;
+  --live-ink: #0d1117;
+  --live-soft: rgba(63, 185, 80, 0.14);
+  --pending: #d29922;
+  --error: #f85149;
+  --error-ink: #0d1117;
+  --error-soft: rgba(248, 81, 73, 0.12);
+
+  --logo: #d4a72c;
+  --logo-ink: #0d1117;
+
+  --hero: #161b22;
+  --hero-ink: #e6edf3;
+  --hero-muted: #7d8590;
+  --hero-figure: #d4a72c;
+
+  --story-1: #161b22;
+  --story-1-ink: #e6edf3;
+  --story-1-figure: #d4a72c;
+  --story-2: #161b22;
+  --story-2-ink: #e6edf3;
+  --story-2-figure: #e6edf3;
+  --story-3: #161b22;
+  --story-3-ink: #e6edf3;
+  --story-3-figure: #3fb950;
+  --story-4: #161b22;
+  --story-4-ink: #e6edf3;
+  --story-4-figure: #e6edf3;
+
+  --ring-gap: #161b22;
+  --ring-muted: #30363d;
+
+  --elevation-card: 0 0 0 1px #30363d;
+  --elevation-lift: 0 0 0 1px #484f58, 0 16px 32px -20px rgba(0, 0, 0, 0.7);
+  --elevation-pop: 0 0 0 1px #30363d, 0 18px 40px -16px rgba(0, 0, 0, 0.7);
+  --elevation-hero: 0 0 0 1px #30363d;
+  --elevation-story: 0 0 0 1px #30363d;
+  --elevation-story-4: 0 0 0 1px #30363d;
+}
+
+:root {
+  --background: var(--bg);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary-foreground: var(--primary-ink);
+  --secondary: var(--surface-3);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--ink-2);
+  --accent: var(--surface-3);
+  --accent-foreground: var(--ink);
+  --destructive: var(--error);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--focus);
+}
+
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-overlay: var(--overlay);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-ink: var(--primary-ink);
+  --color-focus: var(--focus);
+
+  --color-win: var(--win);
+  --color-win-soft: var(--win-soft);
+  --color-loss: var(--loss);
+  --color-loss-soft: var(--loss-soft);
+  --color-live: var(--live);
+  --color-live-ink: var(--live-ink);
+  --color-live-soft: var(--live-soft);
+  --color-pending: var(--pending);
+  --color-error: var(--error);
+  --color-error-ink: var(--error-ink);
+  --color-error-soft: var(--error-soft);
+
+  --color-logo: var(--logo);
+  --color-logo-ink: var(--logo-ink);
+
+  --color-hero: var(--hero);
+  --color-hero-ink: var(--hero-ink);
+  --color-hero-muted: var(--hero-muted);
+  --color-hero-figure: var(--hero-figure);
+
+  --color-story-1: var(--story-1);
+  --color-story-1-ink: var(--story-1-ink);
+  --color-story-1-figure: var(--story-1-figure);
+  --color-story-2: var(--story-2);
+  --color-story-2-ink: var(--story-2-ink);
+  --color-story-2-figure: var(--story-2-figure);
+  --color-story-3: var(--story-3);
+  --color-story-3-ink: var(--story-3-ink);
+  --color-story-3-figure: var(--story-3-figure);
+  --color-story-4: var(--story-4);
+  --color-story-4-ink: var(--story-4-ink);
+  --color-story-4-figure: var(--story-4-figure);
+
+  --color-ring-gap: var(--ring-gap);
+  --color-ring-muted: var(--ring-muted);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --shadow-card: var(--elevation-card);
+  --shadow-lift: var(--elevation-lift);
+  --shadow-pop: var(--elevation-pop);
+  --shadow-hero: var(--elevation-hero);
+  --shadow-story: var(--elevation-story);
+  --shadow-story-4: var(--elevation-story-4);
+
+  --radius-card: 1.75rem;
+  --radius-panel: 2.25rem;
+}
