@@ -24,6 +24,8 @@ The app runs on http://localhost:3410. Postgres listens on host port 15436.
 
 `npm test` runs against `TEST_DATABASE_URL` (created by the compose init script).
 
+`npm run test:e2e` builds the app, serves it on port 3411 against `TEST_DATABASE_URL` (wiped per test), and plays a full night on desktop and phone. Run `npx playwright install chromium` once first.
+
 ## Deploy (Railway)
 
 `.railway/railway.ts` declares the Postgres and `web` service; the `Dockerfile` builds the app, and each release runs `node dist/predeploy.mjs` (bundled from `scripts/predeploy.ts`) as the pre-deploy step and is gated on `/api/health`. The pre-deploy step runs migrations, then creates the owner and group when `OWNER_PASSWORD` is set. One-time manual steps:

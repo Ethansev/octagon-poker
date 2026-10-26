@@ -1,6 +1,6 @@
 import { loadEnvFile } from 'node:process';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 try {
   loadEnvFile();
@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   test: {
     environment: 'node',
+    exclude: [...configDefaults.exclude, 'e2e/**'],
     globalSetup: './vitest.global-setup.ts',
     fileParallelism: false,
     env: {
