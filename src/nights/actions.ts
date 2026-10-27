@@ -5,6 +5,7 @@ import { parseDollars } from '@/money/money';
 import { isRealDate } from '@/nights/dates';
 import type {
   CloseNightResult,
+  MarkPaidResult,
   RemoveSeatResult,
   SetBankResult,
   UpdateNightResult,
@@ -14,6 +15,7 @@ import {
   closeNight,
   createNight,
   deleteNight,
+  markPaid,
   removeSeat,
   reopenNight,
   setBank,
@@ -148,6 +150,22 @@ export async function setBankAction(input: {
   if (!parsed.success) return { kind: 'not-found' };
 
   const result = await setBank({ groupId: viewer.group.id, ...parsed.data }, actorFor(viewer));
+  refreshNight(parsed.data.nightId);
+  return result;
+}
+
+export async function markPaidAction(input: {
+  nightId: string;
+  playerId: string;
+  paid: boolean;
+}): Promise<MarkPaidResult> {
+  const viewer = await requireViewer();
+  const parsed = z
+    .object({ nightId: z.uuid(), playerId: z.uuid(), paid: z.boolean() })
+    .safeParse(input);
+  if (!parsed.success) return { kind: 'not-found' };
+
+  const result = await markPaid({ groupId: viewer.group.id, ...parsed.data }, actorFor(viewer));
   refreshNight(parsed.data.nightId);
   return result;
 }

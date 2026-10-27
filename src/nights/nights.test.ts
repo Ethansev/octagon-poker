@@ -9,6 +9,7 @@ import {
   getNight,
   listClosedNights,
   listNights,
+  markPaid,
   removeSeat,
   reopenNight,
   setBank,
@@ -474,6 +475,105 @@ describe('the bank', () => {
     expect(await setBank({ groupId, nightId, playerId: ivy }, owner)).toEqual({
       kind: 'night-closed',
     });
+  });
+});
+
+describe('pay-outs', () => {
+  async function closedNight() {
+    const base = await setup();
+    const { groupId, ann, ivy, nightId } = base;
+    const bo = await newPlayer(groupId, 'Bo');
+    const zed = await newPlayer(groupId, 'Zed');
+    await seat(groupId, nightId, ann, 2000, 3500);
+    await seat(groupId, nightId, ivy, 2000, 1000);
+    await seat(groupId, nightId, bo, 2000, 0);
+    await seat(groupId, nightId, zed, 2000, 3500);
+    await closeWithBank(groupId, nightId, zed);
+    return { ...base, bo, zed };
+  }
+
+  async function seatOf(groupId: string, nightId: string, playerId: string) {
+    const found = (await getNight(groupId, nightId))?.seats.find((s) => s.playerId === playerId);
+    if (!found) throw new Error('missing seat');
+    return found;
+  }
+
+  it('marks and unmarks a pay-out once, logging each change', async () => {
+    const { groupId, ann, nightId } = await closedNight();
+    const member: Actor = { kind: 'member', playerId: ann };
+
+    expect(await markPaid({ groupId, nightId, playerId: ann, paid: true }, member)).toEqual({
+      kind: 'saved',
+    });
+    expect(await markPaid({ groupId, nightId, playerId: ann, paid: true }, member)).toEqual({
+      kind: 'saved',
+    });
+    expect((await seatOf(groupId, nightId, ann)).paidOutAt).toBeInstanceOf(Date);
+
+    await markPaid({ groupId, nightId, playerId: ann, paid: false }, owner);
+    expect((await seatOf(groupId, nightId, ann)).paidOutAt).toBeNull();
+    const night = await getNight(groupId, nightId);
+    expect(night?.events.slice(0, 3).map((e) => [e.action, e.detail])).toEqual([
+      ['seat.unpaid', { playerId: ann, cents: 3500 }],
+      ['seat.paid', { playerId: ann, cents: 3500 }],
+      ['night.close', expect.anything()],
+    ]);
+  });
+
+  it.each([
+    { name: 'the bank paying itself', payee: (night: { zed: string }) => night.zed },
+    { name: 'a busted player who is owed nothing', payee: (night: { bo: string }) => night.bo },
+  ])('refuses $name', async ({ payee }) => {
+    const night = await closedNight();
+    const { groupId, nightId } = night;
+
+    expect(await markPaid({ groupId, nightId, playerId: payee(night), paid: true }, owner)).toEqual(
+      { kind: 'nothing-owed' },
+    );
+  });
+
+  it('waits until the night is closed', async () => {
+    const { groupId, ann, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, 3000);
+
+    expect(await markPaid({ groupId, nightId, playerId: ann, paid: true }, owner)).toEqual({
+      kind: 'night-open',
+    });
+  });
+
+  it('clears a pay-out when the cash-out changes after a reopen and keeps the others', async () => {
+    const { groupId, ann, ivy, nightId } = await closedNight();
+    await markPaid({ groupId, nightId, playerId: ann, paid: true }, owner);
+    await markPaid({ groupId, nightId, playerId: ivy, paid: true }, owner);
+    await reopenNight(groupId, nightId);
+
+    const annSeat = await seatOf(groupId, nightId, ann);
+    const ivySeat = await seatOf(groupId, nightId, ivy);
+    await upsertSeat(
+      {
+        groupId,
+        nightId,
+        playerId: ann,
+        buyInCents: 2000,
+        cashOutCents: 3000,
+        expectedUpdatedAt: annSeat.updatedAt,
+      },
+      owner,
+    );
+    await upsertSeat(
+      {
+        groupId,
+        nightId,
+        playerId: ivy,
+        buyInCents: 2500,
+        cashOutCents: 1000,
+        expectedUpdatedAt: ivySeat.updatedAt,
+      },
+      owner,
+    );
+
+    expect((await seatOf(groupId, nightId, ann)).paidOutAt).toBeNull();
+    expect((await seatOf(groupId, nightId, ivy)).paidOutAt).toBeInstanceOf(Date);
   });
 });
 

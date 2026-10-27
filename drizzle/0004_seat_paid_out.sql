@@ -1,0 +1,1 @@
+ALTER TABLE "seats" ADD COLUMN "paid_out_at" timestamp with time zone;

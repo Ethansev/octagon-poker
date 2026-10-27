@@ -52,9 +52,9 @@ test('a night goes from deal to delete', async ({ page }) => {
   await lockIn(page, 'Cal', '$20 in');
 
   await page.getByRole('combobox', { name: 'Who’s holding the bank' }).click();
-  await page.getByRole('option', { name: 'Ava' }).click();
-  await expect(page.getByText('Ava should be holding $60')).toBeVisible();
-  await expect(seatCard(page, 'Ava')).toContainText('Bank');
+  await page.getByRole('option', { name: 'Ben' }).click();
+  await expect(page.getByText('Ben should be holding $60')).toBeVisible();
+  await expect(seatCard(page, 'Ben')).toContainText('Bank');
 
   await openSeat(page, 'Ava');
   await seatForm(page, 'Ava').getByRole('button', { name: /Rebuy/ }).click();
@@ -71,7 +71,7 @@ test('a night goes from deal to delete', async ({ page }) => {
   await lockIn(page, 'Cal', '$20 in · $10 out');
 
   await expect(page.getByText('3 of 3 cashed out')).toBeVisible();
-  await expect(page.getByText('Ava should be holding $80')).toBeVisible();
+  await expect(page.getByText('Ben should be holding $80')).toBeVisible();
   await expect(page.getByRole('button', { name: /Close the night/ })).toHaveCount(0);
 
   const host = page;
@@ -85,6 +85,14 @@ test('a night goes from deal to delete', async ({ page }) => {
   await host.getByRole('button', { name: /Close the night/ }).click();
   await expect(host.getByText('Ava takes it!')).toBeVisible();
   await expect(host.getByText('In the books')).toBeVisible();
+  await expect(host.getByRole('heading', { name: 'Ben owes $80' })).toBeVisible();
+  await host.getByRole('button', { name: 'Mark paid for Ava' }).click();
+  await expect(host.getByRole('heading', { name: 'Ben owes $10' })).toBeVisible();
+  await host.getByRole('button', { name: 'Mark paid for Cal' }).click();
+  await expect(host.getByRole('heading', { name: 'Ben paid everyone out' })).toBeVisible();
+  await host.reload();
+  await expect(host.getByRole('heading', { name: 'Ben paid everyone out' })).toBeVisible();
+  await expect(host.getByText('Ava got paid $70')).toBeVisible();
 
   await host.goto('/');
   await expect(host.getByRole('heading', { name: 'Ava took the night' })).toBeVisible();

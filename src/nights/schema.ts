@@ -43,6 +43,7 @@ export const seats = pgTable(
       .references(() => players.id),
     buyInCents: integer('buy_in_cents').notNull().default(0),
     cashOutCents: integer('cash_out_cents'),
+    paidOutAt: timestamp('paid_out_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

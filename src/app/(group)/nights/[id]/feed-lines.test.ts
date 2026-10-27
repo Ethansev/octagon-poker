@@ -147,6 +147,26 @@ describe('feedLine', () => {
       expected: { kind: 'night', mark: 'bank', text: 'Sid took over the bank from Ivy' },
     },
     {
+      name: 'the bank paying someone out',
+      input: event({
+        actorKind: 'member',
+        actorName: 'Sid',
+        action: 'seat.paid',
+        detail: { playerId: 'ivy', cents: 7000 },
+      }),
+      expected: { kind: 'seat', playerId: 'ivy', text: 'Ivy got paid $70', by: 'Sid' },
+    },
+    {
+      name: 'a pay-out being taken back',
+      input: event({ action: 'seat.unpaid', detail: { playerId: 'ivy', cents: 7000 } }),
+      expected: {
+        kind: 'seat',
+        playerId: 'ivy',
+        text: 'Ivy’s $70 pay-out was marked unpaid',
+        by: 'the host',
+      },
+    },
+    {
       name: 'an event with an unreadable detail',
       input: event({ action: 'seat.update', detail: { nope: true } }),
       expected: { kind: 'night', mark: 'other', text: 'The host made a change' },

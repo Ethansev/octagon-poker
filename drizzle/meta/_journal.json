@@ -29,6 +29,13 @@
       "when": 1793087085690,
       "tag": "0003_night_bank",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793087935494,
+      "tag": "0004_seat_paid_out",
+      "breakpoints": true
     }
   ]
 }

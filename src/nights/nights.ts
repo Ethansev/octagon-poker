@@ -14,6 +14,7 @@ export type SeatView = {
   playerColorSlot: number;
   buyInCents: number;
   cashOutCents: number | null;
+  paidOutAt: Date | null;
   updatedAt: Date;
 };
 
@@ -65,6 +66,9 @@ export type CloseNightResult =
   | { kind: 'no-bank' }
   | { kind: 'not-found' };
 
+export type MarkPaidResult =
+  { kind: 'saved' } | { kind: 'nothing-owed' } | { kind: 'night-open' } | { kind: 'not-found' };
+
 export type SetBankResult =
   { kind: 'set' } | { kind: 'not-seated' } | { kind: 'night-closed' } | { kind: 'not-found' };
 
@@ -77,6 +81,7 @@ const seatViewColumns = {
   playerColorSlot: players.colorSlot,
   buyInCents: seats.buyInCents,
   cashOutCents: seats.cashOutCents,
+  paidOutAt: seats.paidOutAt,
   updatedAt: seats.updatedAt,
 };
 
@@ -278,7 +283,11 @@ export async function upsertSeat(
       before = centsOf(existing);
       const [updated] = await tx
         .update(seats)
-        .set({ ...after, updatedAt: nextToken })
+        .set({
+          ...after,
+          paidOutAt: existing.cashOutCents === after.cashOutCents ? existing.paidOutAt : null,
+          updatedAt: nextToken,
+        })
         .where(
           and(
             eq(seats.nightId, input.nightId),
@@ -349,6 +358,38 @@ export async function setBank(
       detail: { before: night.bankPlayerId, after: input.playerId },
     });
     return { kind: 'set' };
+  });
+}
+
+export async function markPaid(
+  input: { groupId: string; nightId: string; playerId: string; paid: boolean },
+  actor: Actor,
+): Promise<MarkPaidResult> {
+  return db.transaction(async (tx): Promise<MarkPaidResult> => {
+    const night = await lockNight(tx, input.groupId, input.nightId);
+    if (!night) return { kind: 'not-found' };
+    if (night.status === 'open') return { kind: 'night-open' };
+    const [seat] = await tx
+      .select({ cashOutCents: seats.cashOutCents, paidOutAt: seats.paidOutAt })
+      .from(seats)
+      .where(and(eq(seats.nightId, night.id), eq(seats.playerId, input.playerId)));
+    if (!seat) return { kind: 'not-found' };
+    const cents = seat.cashOutCents ?? 0;
+    if (cents === 0 || night.bankPlayerId === null || night.bankPlayerId === input.playerId) {
+      return { kind: 'nothing-owed' };
+    }
+    if ((seat.paidOutAt !== null) === input.paid) return { kind: 'saved' };
+    await tx
+      .update(seats)
+      .set({ paidOutAt: input.paid ? msNow : null })
+      .where(and(eq(seats.nightId, night.id), eq(seats.playerId, input.playerId)));
+    await tx.insert(nightEvents).values({
+      nightId: night.id,
+      ...actorColumns(actor),
+      action: input.paid ? 'seat.paid' : 'seat.unpaid',
+      detail: { playerId: input.playerId, cents },
+    });
+    return { kind: 'saved' };
   });
 }
 

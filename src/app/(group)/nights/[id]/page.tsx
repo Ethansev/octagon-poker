@@ -5,6 +5,7 @@ import { MoneyFlow } from '@/app/(group)/nights/[id]/money-flow';
 import { NightFeed } from '@/app/(group)/nights/[id]/night-feed';
 import { NightHeader } from '@/app/(group)/nights/[id]/night-header';
 import { NightOwnerActions } from '@/app/(group)/nights/[id]/night-owner-actions';
+import { PayoutsCard } from '@/app/(group)/nights/[id]/payouts-card';
 import { ResultChips } from '@/app/(group)/nights/[id]/result-chips';
 import { SeatBoard } from '@/app/(group)/nights/[id]/seat-board';
 import { toSeatData } from '@/app/(group)/nights/[id]/seat-data';
@@ -12,6 +13,7 @@ import { WhoAreYou } from '@/app/(group)/nights/[id]/who-are-you';
 import { WinnerDeck } from '@/app/(group)/nights/[id]/winner-deck';
 import { centsToInput } from '@/money/money';
 import { getNight, type NightDetail } from '@/nights/nights';
+import { payoutPlan } from '@/nights/payouts';
 import { listPlayers, type Player } from '@/players/players';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
@@ -26,6 +28,7 @@ async function ClosedNight({
   players: Player[];
 }) {
   const results = await loadNightResults(viewer.group.id, night);
+  const plan = payoutPlan(night.seats, night.bankPlayerId);
   return (
     <div className='grid gap-6 lg:grid-cols-12 lg:gap-8'>
       <div className='space-y-6 lg:col-span-7'>
@@ -33,6 +36,7 @@ async function ClosedNight({
         <ResultChips seats={results.seats} />
       </div>
       <div className='space-y-6 lg:col-span-5'>
+        {plan && <PayoutsCard nightId={night.id} plan={plan} />}
         <MoneyFlow seats={results.seats} potCents={results.potCents} />
         <NightFeed events={night.events} nightDate={night.date} players={players} />
       </div>
