@@ -2,6 +2,7 @@ import { getViewer } from '@/access/viewer';
 import { CrewRoster } from '@/app/(group)/_home/crew-roster';
 import { loadHome } from '@/app/(group)/_home/load-home';
 import { OpenNightBanner } from '@/app/(group)/_home/open-night-banner';
+import { PayoutReminders } from '@/app/(group)/_home/payout-reminders';
 import { RecapCard } from '@/app/(group)/_home/recap-card';
 import { RecentNightsCard } from '@/app/(group)/_home/recent-nights-card';
 import { SeasonEmpty } from '@/app/(group)/_home/season-empty';
@@ -10,6 +11,8 @@ import { seasonGreeting, seasonKicker, seasonPrefix } from '@/app/(group)/season
 import { SeasonSwitcher } from '@/app/(group)/season-switcher';
 import { StandingsCard } from '@/app/(group)/standings-card';
 import { cn } from '@/lib/utils';
+import { listOutstandingPayouts } from '@/nights/nights';
+import { payoutReminders } from '@/nights/payout-reminders';
 import { notFound } from 'next/navigation';
 
 export default async function Home({
@@ -20,7 +23,11 @@ export default async function Home({
   const viewer = await getViewer();
   if (!viewer) notFound();
 
-  const home = await loadHome(viewer.group.id, (await searchParams).season);
+  const [home, outstanding] = await Promise.all([
+    loadHome(viewer.group.id, (await searchParams).season),
+    listOutstandingPayouts(viewer.group.id),
+  ]);
+  const reminders = payoutReminders(outstanding, viewer.role === 'member' ? viewer.playerId : null);
   const { scope } = home;
   const recapYear = scope.kind === 'all' || home.nightsPlayed === 0 ? null : scope.year;
 
@@ -40,6 +47,7 @@ export default async function Home({
 
       <div className='space-y-6 lg:space-y-8'>
         {home.openNight && <OpenNightBanner night={home.openNight} />}
+        <PayoutReminders reminders={reminders} />
 
         {home.nightsPlayed === 0 ? (
           <SeasonEmpty home={home} />

@@ -85,6 +85,9 @@ test('a night goes from deal to delete', async ({ page }) => {
   await host.getByRole('button', { name: /Close the night/ }).click();
   await expect(host.getByText('Ava takes it!')).toBeVisible();
   await expect(host.getByText('In the books')).toBeVisible();
+
+  await host.goto('/');
+  await host.getByRole('link', { name: /Ben still owes 2 people \$80/ }).click();
   await expect(host.getByRole('heading', { name: 'Ben owes $80' })).toBeVisible();
   await host.getByRole('button', { name: 'Mark paid for Ava' }).click();
   await expect(host.getByRole('heading', { name: 'Ben owes $10' })).toBeVisible();
@@ -96,6 +99,7 @@ test('a night goes from deal to delete', async ({ page }) => {
 
   await host.goto('/');
   await expect(host.getByRole('heading', { name: 'Ava took the night' })).toBeVisible();
+  await expect(host.getByText(/still owes/)).toHaveCount(0);
 
   await host.goto(nightUrl);
   await host.getByRole('button', { name: 'Reopen night' }).click();

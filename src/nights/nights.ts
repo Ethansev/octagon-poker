@@ -6,7 +6,8 @@ import type { ClosedNight, NightBalance, SeatResult } from '@/stats/nights';
 import { nightBalance, nightWinners } from '@/stats/nights';
 import type { Season } from '@/stats/season';
 import { nightsInSeason } from '@/stats/season';
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, ne, sql } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 
 export type SeatView = {
   playerId: string;
@@ -65,6 +66,16 @@ export type CloseNightResult =
   | { kind: 'not-balanced'; balance: Exclude<NightBalance, { kind: 'balanced' }> }
   | { kind: 'no-bank' }
   | { kind: 'not-found' };
+
+type PayoutPerson = { playerId: string; name: string; colorSlot: number };
+
+export type OutstandingNight = {
+  nightId: string;
+  date: string;
+  location: string | null;
+  bank: PayoutPerson;
+  payouts: (PayoutPerson & { cents: number })[];
+};
 
 export type MarkPaidResult =
   { kind: 'saved' } | { kind: 'nothing-owed' } | { kind: 'night-open' } | { kind: 'not-found' };
@@ -529,4 +540,60 @@ export async function listNights(groupId: string, season: Season): Promise<Night
       .sort((a, b) => a.localeCompare(b));
     return { ...night, winnerNames: night.status === 'closed' ? winnerNames : [] };
   });
+}
+
+export async function listOutstandingPayouts(groupId: string): Promise<OutstandingNight[]> {
+  const bank = alias(players, 'bank');
+  const rows = await db
+    .select({
+      nightId: nights.id,
+      date: nights.date,
+      location: nights.location,
+      bankId: bank.id,
+      bankName: bank.name,
+      bankColorSlot: bank.colorSlot,
+      playerId: seats.playerId,
+      name: players.name,
+      colorSlot: players.colorSlot,
+      cents: seats.cashOutCents,
+    })
+    .from(nights)
+    .innerJoin(bank, eq(bank.id, nights.bankPlayerId))
+    .innerJoin(seats, eq(seats.nightId, nights.id))
+    .innerJoin(players, eq(players.id, seats.playerId))
+    .where(
+      and(
+        eq(nights.groupId, groupId),
+        eq(nights.status, 'closed'),
+        isNotNull(nights.bankPlayerId),
+        ne(seats.playerId, bank.id),
+        gt(seats.cashOutCents, 0),
+        isNull(seats.paidOutAt),
+      ),
+    )
+    .orderBy(
+      desc(nights.date),
+      desc(nights.createdAt),
+      desc(seats.cashOutCents),
+      asc(players.name),
+    );
+
+  const byNight = new Map<string, OutstandingNight>();
+  for (const row of rows) {
+    const night = byNight.get(row.nightId) ?? {
+      nightId: row.nightId,
+      date: row.date,
+      location: row.location,
+      bank: { playerId: row.bankId, name: row.bankName, colorSlot: row.bankColorSlot },
+      payouts: [],
+    };
+    night.payouts.push({
+      playerId: row.playerId,
+      name: row.name,
+      colorSlot: row.colorSlot,
+      cents: row.cents ?? 0,
+    });
+    byNight.set(row.nightId, night);
+  }
+  return [...byNight.values()];
 }

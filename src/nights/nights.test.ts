@@ -9,6 +9,7 @@ import {
   getNight,
   listClosedNights,
   listNights,
+  listOutstandingPayouts,
   markPaid,
   removeSeat,
   reopenNight,
@@ -539,6 +540,29 @@ describe('pay-outs', () => {
     expect(await markPaid({ groupId, nightId, playerId: ann, paid: true }, owner)).toEqual({
       kind: 'night-open',
     });
+  });
+
+  it('lists what each bank still owes on closed nights only', async () => {
+    const { groupId, ann, ivy, zed, nightId } = await closedNight();
+    await markPaid({ groupId, nightId, playerId: ivy, paid: true }, owner);
+    const { id: openId } = await createNight(
+      { groupId, date: '2026-04-01', location: null, buyInCents: 2000 },
+      owner,
+    );
+    await seat(groupId, openId, ann, 2000, 5000);
+    await setBank({ groupId, nightId: openId, playerId: zed }, owner);
+
+    expect(await listOutstandingPayouts(groupId)).toEqual([
+      {
+        nightId,
+        date: '2026-03-07',
+        location: 'Ann’s',
+        bank: { playerId: zed, name: 'Zed', colorSlot: expect.any(Number) },
+        payouts: [{ playerId: ann, name: 'Ann', colorSlot: expect.any(Number), cents: 3500 }],
+      },
+    ]);
+    await markPaid({ groupId, nightId, playerId: ann, paid: true }, owner);
+    expect(await listOutstandingPayouts(groupId)).toEqual([]);
   });
 
   it('clears a pay-out when the cash-out changes after a reopen and keeps the others', async () => {
