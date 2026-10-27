@@ -1,6 +1,6 @@
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/theme/theme-provider';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
 
@@ -13,6 +13,14 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: 'Octagon Poker',
   description: 'Private record book for our home game',
+  appleWebApp: { title: 'Octagon', statusBarStyle: 'default' },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#faf8f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#0d1117' },
+  ],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
