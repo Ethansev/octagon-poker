@@ -1,3 +1,4 @@
+import { JoinLinkForm } from '@/access/join-link-form';
 import { getViewer } from '@/access/viewer';
 import { SiteHeader } from '@/app/(group)/site-header';
 import { BrandCard, brandLinkClass, BrandScreen } from '@/components/brand-card';
@@ -8,13 +9,14 @@ function AskForTheLink() {
     <BrandScreen>
       <BrandCard
         title='Ask for the group link'
-        body='This is the private record book for our home game. Open the link from the group chat and you’re in.'
+        body='This is the private record book for our home game. Open the link from the group chat, or paste it here.'
         footer={
           <Link href='/sign-in' className={brandLinkClass}>
             Hosting? Sign in
           </Link>
-        }
-      />
+        }>
+        <JoinLinkForm />
+      </BrandCard>
     </BrandScreen>
   );
 }
