@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { z } from 'zod';
+import { seedGroup } from './seed';
 
 const manifestSchema = z.object({
   display: z.literal('standalone'),
@@ -8,6 +9,7 @@ const manifestSchema = z.object({
 });
 
 test('the app can be added to a home screen', async ({ page, request }) => {
+  await seedGroup();
   await page.goto('/');
 
   const manifestHref = await page.locator('link[rel="manifest"]').getAttribute('href');
