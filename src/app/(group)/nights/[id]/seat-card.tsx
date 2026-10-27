@@ -4,11 +4,12 @@ import { cn } from '@/lib/utils';
 import { formatDollars, formatNet } from '@/money/money';
 import { PlayerAvatar } from '@/players/player-avatar';
 import { playerColor } from '@/players/player-color';
-import { PencilLine } from 'lucide-react';
+import { Landmark, PencilLine } from 'lucide-react';
 
 type SeatCardProps = {
   seat: SeatData;
   isYou: boolean;
+  isBank: boolean;
   selected: boolean;
   unsaved: boolean;
   onOpen: () => void;
@@ -71,7 +72,7 @@ function NewSeatSummary() {
   );
 }
 
-export function SeatCard({ seat, isYou, selected, unsaved, onOpen }: SeatCardProps) {
+export function SeatCard({ seat, isYou, isBank, selected, unsaved, onOpen }: SeatCardProps) {
   const color = playerColor(seat.colorSlot);
   const isNew = seat.updatedAt === null;
   const waiting = !isNew && seat.cashOutCents === null;
@@ -112,6 +113,12 @@ export function SeatCard({ seat, isYou, selected, unsaved, onOpen }: SeatCardPro
           {isYou && (
             <span className='shrink-0 rounded-full bg-ink px-1.5 py-px text-[10px] font-extrabold tracking-wider text-surface uppercase'>
               You
+            </span>
+          )}
+          {isBank && (
+            <span className='inline-flex shrink-0 items-center gap-0.5 rounded-full bg-surface-3 px-1.5 py-px text-[10px] font-extrabold tracking-wider text-ink-2 uppercase'>
+              <Landmark aria-hidden className='size-2.5' strokeWidth={3} />
+              Bank
             </span>
           )}
         </span>

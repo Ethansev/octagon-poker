@@ -1,3 +1,4 @@
+import { BankPicker } from '@/app/(group)/nights/[id]/bank-picker';
 import { CloseNightButton } from '@/app/(group)/nights/[id]/close-night-button';
 import { LiveDot } from '@/components/live-dot';
 import { formatDollars } from '@/money/money';
@@ -7,10 +8,12 @@ import { firstName } from '@/players/first-name';
 import { PlayerAvatar } from '@/players/player-avatar';
 import type { NightBalance } from '@/stats/nights';
 import { nightBalance } from '@/stats/nights';
+import { Landmark } from 'lucide-react';
 
 type BooksCardProps = {
   nightId: string;
   seats: SeatView[];
+  bankPlayerId: string | null;
   canClose: boolean;
 };
 
@@ -18,6 +21,46 @@ function headline(balance: NightBalance, seats: SeatView[]): string {
   if (balance.kind === 'empty') return 'Nobody’s sat down yet';
   const done = seats.filter((seat) => seat.cashOutCents !== null).length;
   return `${done} of ${seats.length} cashed out`;
+}
+
+function BankRow({
+  nightId,
+  seats,
+  bankPlayerId,
+  inCents,
+}: {
+  nightId: string;
+  seats: SeatView[];
+  bankPlayerId: string | null;
+  inCents: number;
+}) {
+  const bank = seats.find((seat) => seat.playerId === bankPlayerId);
+
+  return (
+    <div className='mt-5 flex flex-col gap-3 rounded-3xl bg-surface-2 p-4 sm:flex-row sm:items-center'>
+      <div className='flex min-w-0 flex-1 items-center gap-3'>
+        <span
+          aria-hidden
+          className='grid size-10 shrink-0 place-items-center rounded-full bg-surface text-ink'>
+          <Landmark className='size-5' />
+        </span>
+        <div className='min-w-0'>
+          <p className='text-xs font-extrabold tracking-[0.12em] text-ink-2 uppercase'>The bank</p>
+          <p className='text-sm font-bold'>
+            {bank ? (
+              <>
+                {firstName(bank.playerName)} should be holding{' '}
+                <span className='tabular-nums'>{formatDollars(inCents)}</span>
+              </>
+            ) : (
+              'Who’s holding the money tonight?'
+            )}
+          </p>
+        </div>
+      </div>
+      <BankPicker nightId={nightId} seats={seats} bankPlayerId={bankPlayerId} />
+    </div>
+  );
 }
 
 function BooksNote({
@@ -46,7 +89,7 @@ function BooksNote({
   }
 }
 
-export function BooksCard({ nightId, seats, canClose }: BooksCardProps) {
+export function BooksCard({ nightId, seats, bankPlayerId, canClose }: BooksCardProps) {
   const balance = nightBalance(seats);
   const inCents = seats.reduce((sum, seat) => sum + seat.buyInCents, 0);
   const outCents = seats.reduce((sum, seat) => sum + (seat.cashOutCents ?? 0), 0);
@@ -86,6 +129,10 @@ export function BooksCard({ nightId, seats, canClose }: BooksCardProps) {
         </div>
       </div>
 
+      {seats.length > 0 && (
+        <BankRow nightId={nightId} seats={seats} bankPlayerId={bankPlayerId} inCents={inCents} />
+      )}
+
       <p
         className={
           balance.kind === 'off'
@@ -114,7 +161,10 @@ export function BooksCard({ nightId, seats, canClose }: BooksCardProps) {
       )}
 
       {canClose ? (
-        <CloseNightButton nightId={nightId} blockedReason={closeBlockedReason(seats)} />
+        <CloseNightButton
+          nightId={nightId}
+          blockedReason={closeBlockedReason(seats, bankPlayerId)}
+        />
       ) : (
         <p className='mt-5 text-sm font-semibold text-ink-3'>
           The host closes the night once the books balance.

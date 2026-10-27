@@ -187,12 +187,13 @@ describe('listPlayers and getPlayer', () => {
 });
 
 describe('mergePlayers', () => {
-  it('moves seats and activity-log actors to the target and removes the source', async () => {
+  it('moves seats, the bank and activity-log actors to the target and removes the source', async () => {
     const groupId = await newGroup();
     const fromId = await newPlayer(groupId, 'Ivy B');
     const intoId = await newPlayer(groupId, 'Ivy');
     const nightId = await newNight(groupId, '2026-03-07');
     await db.insert(seats).values({ nightId, playerId: fromId, buyInCents: 2000 });
+    await db.update(nights).set({ bankPlayerId: fromId }).where(eq(nights.id, nightId));
     await db
       .insert(nightEvents)
       .values({ nightId, actorKind: 'member', actorPlayerId: fromId, action: 'seat.added' });
@@ -204,6 +205,8 @@ describe('mergePlayers', () => {
     expect(seatRows.map((s) => s.playerId)).toEqual([intoId]);
     const eventRows = await db.select().from(nightEvents);
     expect(eventRows.map((e) => e.actorPlayerId)).toEqual([intoId]);
+    const [night] = await db.select().from(nights);
+    expect(night.bankPlayerId).toBe(intoId);
     expect(await db.select().from(players).where(eq(players.id, fromId))).toEqual([]);
   });
 

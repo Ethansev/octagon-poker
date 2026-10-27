@@ -11,6 +11,7 @@ import {
   listNights,
   removeSeat,
   reopenNight,
+  setBank,
   updateNight,
   upsertSeat,
 } from '@/nights/nights';
@@ -53,6 +54,13 @@ async function seat(
   );
   if (result.kind !== 'saved') throw new Error('expected saved');
   return result.updatedAt;
+}
+
+async function closeWithBank(groupId: string, nightId: string, bankId: string) {
+  expect(await setBank({ groupId, nightId, playerId: bankId }, owner)).toEqual({ kind: 'set' });
+  const result = await closeNight(groupId, nightId);
+  if (result.kind !== 'closed') throw new Error('expected closed');
+  return result;
 }
 
 function current(view: { buyInCents: number; cashOutCents: number | null }) {
@@ -334,7 +342,7 @@ describe('closing', () => {
     await seat(groupId, nightId, ann, 2000, 3000);
     await seat(groupId, nightId, ivy, 2000, 1000);
 
-    expect(await closeNight(groupId, nightId)).toEqual({ kind: 'closed', winners: [ann] });
+    expect((await closeWithBank(groupId, nightId, ivy)).winners).toEqual([ann]);
 
     expect(
       await upsertSeat(
@@ -378,7 +386,7 @@ describe('closing', () => {
     const { groupId, ann, ivy, nightId } = await setup();
     await seat(groupId, nightId, ann, 2000, 3000);
     await seat(groupId, nightId, ivy, 2000, 1000);
-    await closeNight(groupId, nightId);
+    await closeWithBank(groupId, nightId, ann);
 
     expect(await reopenNight(groupId, nightId)).toEqual({ kind: 'reopened' });
 
@@ -403,6 +411,72 @@ describe('closing', () => {
   });
 });
 
+describe('the bank', () => {
+  it('records a seated player as the bank and logs the change', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, null);
+    await seat(groupId, nightId, ivy, 2000, null);
+    const member: Actor = { kind: 'member', playerId: ivy };
+
+    expect(await setBank({ groupId, nightId, playerId: ann }, member)).toEqual({ kind: 'set' });
+    expect(await setBank({ groupId, nightId, playerId: ivy }, member)).toEqual({ kind: 'set' });
+
+    const night = await getNight(groupId, nightId);
+    expect(night?.bankPlayerId).toBe(ivy);
+    expect(night?.events.slice(0, 2)).toMatchObject([
+      { action: 'night.bank', actorName: 'Ivy', detail: { before: ann, after: ivy } },
+      { action: 'night.bank', detail: { before: null, after: ann } },
+    ]);
+  });
+
+  it('refuses a player who is not at the table or a night from another group', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, null);
+    const otherGroup = await newGroup('Other');
+
+    expect(await setBank({ groupId, nightId, playerId: ivy }, owner)).toEqual({
+      kind: 'not-seated',
+    });
+    expect(await setBank({ groupId: otherGroup, nightId, playerId: ann }, owner)).toEqual({
+      kind: 'not-found',
+    });
+    expect((await getNight(groupId, nightId))?.bankPlayerId).toBeNull();
+  });
+
+  it('will not close a balanced night until someone holds the bank', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, 3000);
+    await seat(groupId, nightId, ivy, 2000, 1000);
+
+    expect(await closeNight(groupId, nightId)).toEqual({ kind: 'no-bank' });
+    expect((await getNight(groupId, nightId))?.status).toBe('open');
+    expect((await closeWithBank(groupId, nightId, ann)).winners).toEqual([ann]);
+  });
+
+  it('clears the bank when the bank leaves the table', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, null);
+    await seat(groupId, nightId, ivy, 2000, null);
+    await setBank({ groupId, nightId, playerId: ann }, owner);
+
+    await removeSeat({ groupId, nightId, playerId: ivy }, owner);
+    expect((await getNight(groupId, nightId))?.bankPlayerId).toBe(ann);
+    await removeSeat({ groupId, nightId, playerId: ann }, owner);
+    expect((await getNight(groupId, nightId))?.bankPlayerId).toBeNull();
+  });
+
+  it('locks the bank once the night is closed', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, 3000);
+    await seat(groupId, nightId, ivy, 2000, 1000);
+    await closeWithBank(groupId, nightId, ann);
+
+    expect(await setBank({ groupId, nightId, playerId: ivy }, owner)).toEqual({
+      kind: 'night-closed',
+    });
+  });
+});
+
 describe('creating nights', () => {
   it('returns the open night already on that date without a second night or event', async () => {
     const { groupId, nightId } = await setup();
@@ -424,7 +498,7 @@ describe('creating nights', () => {
   it('creates a new night on the same date once the first is closed', async () => {
     const { groupId, ann, nightId } = await setup();
     await seat(groupId, nightId, ann, 2000, 2000);
-    await closeNight(groupId, nightId);
+    await closeWithBank(groupId, nightId, ann);
 
     const again = await createNight(
       { groupId, date: '2026-03-07', location: null, buyInCents: null },
@@ -454,7 +528,7 @@ describe('lists and delete', () => {
     const { groupId, ann, ivy, nightId } = await setup();
     await seat(groupId, nightId, ann, 2000, 3000);
     await seat(groupId, nightId, ivy, 2000, 1000);
-    await closeNight(groupId, nightId);
+    await closeWithBank(groupId, nightId, ann);
     const open = await createNight(
       { groupId, date: '2026-03-14', location: null, buyInCents: null },
       owner,
@@ -478,7 +552,7 @@ describe('lists and delete', () => {
     await seat(groupId, nightId, ivy, 2000, 3000);
     const zed = await newPlayer(groupId, 'Zed');
     await seat(groupId, nightId, zed, 2000, 0);
-    await closeNight(groupId, nightId);
+    await closeWithBank(groupId, nightId, ann);
     const old = await createNight(
       { groupId, date: '2025-12-31', location: null, buyInCents: null },
       owner,

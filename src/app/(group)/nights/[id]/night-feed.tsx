@@ -5,7 +5,7 @@ import { env } from '@/env';
 import type { NightEventView } from '@/nights/nights';
 import { PlayerAvatar } from '@/players/player-avatar';
 import type { Player } from '@/players/players';
-import { Flag, LockOpen, Pencil, Play, Sparkle } from 'lucide-react';
+import { Flag, Landmark, LockOpen, Pencil, Play, Sparkle } from 'lucide-react';
 
 const SHOWN_EVENTS = 7;
 
@@ -31,6 +31,8 @@ function MarkIcon({ mark }: { mark: NightMark }) {
       return <Flag aria-hidden className={icon} />;
     case 'reopen':
       return <LockOpen aria-hidden className={icon} />;
+    case 'bank':
+      return <Landmark aria-hidden className={icon} />;
     case 'other':
       return <Sparkle aria-hidden className={icon} />;
   }

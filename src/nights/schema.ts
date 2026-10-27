@@ -26,6 +26,7 @@ export const nights = pgTable('nights', {
   location: text('location'),
   buyInCents: integer('buy_in_cents'),
   status: nightStatus('status').notNull().default('open'),
+  bankPlayerId: uuid('bank_player_id').references(() => players.id, { onDelete: 'set null' }),
   closedAt: timestamp('closed_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });

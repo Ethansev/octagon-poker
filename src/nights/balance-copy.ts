@@ -31,9 +31,14 @@ export function balanceNote(balance: NightBalance, seats: CountedSeat[]): string
   }
 }
 
-export function closeBlockedReason(seats: CountedSeat[]): string | null {
+export function closeBlockedReason(
+  seats: CountedSeat[],
+  bankPlayerId: string | null,
+): string | null {
   const balance = nightBalance(seats);
-  if (balance.kind === 'balanced') return null;
+  if (balance.kind === 'balanced') {
+    return bankPlayerId === null ? "Can't close yet: pick who's holding the bank." : null;
+  }
   if (balance.kind === 'empty') return 'Add players before closing the night.';
   if (balance.kind === 'missing-cash-out') {
     return `Can't close yet: waiting on a cash-out from ${namesOf(balance.playerIds, seats)}.`;

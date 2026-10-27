@@ -12,6 +12,7 @@ function useCloseNight(nightId: string) {
     startTransition(async () => {
       const result = await closeNightAction(nightId);
       if (result.kind === 'not-balanced') toast.error("The night doesn't balance yet.");
+      if (result.kind === 'no-bank') toast.error("Pick who's holding the bank first.");
       if (result.kind === 'not-found') toast.error('Night not found.');
     });
   }

@@ -6,6 +6,7 @@ import { isRealDate } from '@/nights/dates';
 import type {
   CloseNightResult,
   RemoveSeatResult,
+  SetBankResult,
   UpdateNightResult,
   UpsertSeatResult,
 } from '@/nights/nights';
@@ -15,6 +16,7 @@ import {
   deleteNight,
   removeSeat,
   reopenNight,
+  setBank,
   updateNight,
   upsertSeat,
 } from '@/nights/nights';
@@ -133,6 +135,19 @@ export async function removeSeatAction(input: {
   if (!parsed.success) return { kind: 'not-found' };
 
   const result = await removeSeat({ groupId: viewer.group.id, ...parsed.data }, actorFor(viewer));
+  refreshNight(parsed.data.nightId);
+  return result;
+}
+
+export async function setBankAction(input: {
+  nightId: string;
+  playerId: string;
+}): Promise<SetBankResult> {
+  const viewer = await requireViewer();
+  const parsed = z.object({ nightId: z.uuid(), playerId: z.uuid() }).safeParse(input);
+  if (!parsed.success) return { kind: 'not-found' };
+
+  const result = await setBank({ groupId: viewer.group.id, ...parsed.data }, actorFor(viewer));
   refreshNight(parsed.data.nightId);
   return result;
 }

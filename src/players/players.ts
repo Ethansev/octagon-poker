@@ -112,6 +112,7 @@ export async function mergePlayers(input: {
     if (shared.length > 0) return { kind: 'same-night', dates: shared.map((row) => row.date) };
 
     await tx.update(seats).set({ playerId: intoId }).where(eq(seats.playerId, fromId));
+    await tx.update(nights).set({ bankPlayerId: intoId }).where(eq(nights.bankPlayerId, fromId));
     await tx
       .update(nightEvents)
       .set({ actorPlayerId: intoId })

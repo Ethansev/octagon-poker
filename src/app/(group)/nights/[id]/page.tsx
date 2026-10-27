@@ -57,9 +57,15 @@ function OpenNight({
         nightId={night.id}
         stepCents={night.buyInCents}
         seats={night.seats.map(toSeatData)}
+        bankPlayerId={night.bankPlayerId}
         players={players}
         viewerPlayerId={viewerPlayerId}>
-        <BooksCard nightId={night.id} seats={night.seats} canClose={viewer.role === 'owner'} />
+        <BooksCard
+          nightId={night.id}
+          seats={night.seats}
+          bankPlayerId={night.bankPlayerId}
+          canClose={viewer.role === 'owner'}
+        />
         <NightFeed events={night.events} nightDate={night.date} players={players} />
       </SeatBoard>
     </div>

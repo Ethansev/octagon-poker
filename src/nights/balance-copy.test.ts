@@ -42,6 +42,23 @@ const cases = [
   },
 ];
 
+describe('closeBlockedReason without a bank', () => {
+  it.each([
+    {
+      name: 'balanced books with nobody holding the bank',
+      seats: [seat('Sid', 2000, 3000), seat('Ivy', 2000, 1000)],
+      blocked: "Can't close yet: pick who's holding the bank.",
+    },
+    {
+      name: 'missing cash-outs come before the missing bank',
+      seats: [seat('Sid', 2000, null), seat('Ivy', 2000, 1000)],
+      blocked: "Can't close yet: waiting on a cash-out from Sid.",
+    },
+  ])('$name', ({ seats, blocked }) => {
+    expect(closeBlockedReason(seats, null)).toBe(blocked);
+  });
+});
+
 describe('balanceNote', () => {
   it.each(cases)('$name', ({ seats, note }) => {
     expect(balanceNote(nightBalance(seats), seats)).toBe(note);
@@ -50,6 +67,6 @@ describe('balanceNote', () => {
 
 describe('closeBlockedReason', () => {
   it.each(cases)('$name', ({ seats, blocked }) => {
-    expect(closeBlockedReason(seats)).toBe(blocked);
+    expect(closeBlockedReason(seats, 'sid')).toBe(blocked);
   });
 });

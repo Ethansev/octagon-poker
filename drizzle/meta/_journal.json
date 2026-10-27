@@ -22,6 +22,13 @@
       "when": 1792919647569,
       "tag": "0002_player_color_slot",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793087085690,
+      "tag": "0003_night_bank",
+      "breakpoints": true
     }
   ]
 }

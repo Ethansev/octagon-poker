@@ -3,6 +3,7 @@ import type { NightEventView } from '@/nights/nights';
 import { z } from 'zod';
 
 const centsSchema = z.object({ buyInCents: z.number(), cashOutCents: z.number().nullable() });
+const bankDetailSchema = z.object({ before: z.string().nullable(), after: z.string() });
 const seatDetailSchema = z.object({
   playerId: z.string(),
   before: centsSchema.nullable(),
@@ -11,7 +12,7 @@ const seatDetailSchema = z.object({
 
 type Cents = z.infer<typeof centsSchema>;
 
-export type NightMark = 'start' | 'edit' | 'close' | 'reopen' | 'other';
+export type NightMark = 'start' | 'edit' | 'close' | 'reopen' | 'bank' | 'other';
 
 export type FeedLine =
   | { kind: 'night'; mark: NightMark; text: string }
@@ -20,6 +21,21 @@ export type FeedLine =
 function actorLabel(event: NightEventView): string {
   if (event.actorKind === 'owner') return 'The host';
   return event.actorName ?? 'Someone with the link';
+}
+
+function bankLine(event: NightEventView, names: Map<string, string>): FeedLine {
+  const bank = bankDetailSchema.safeParse(event.detail);
+  if (!bank.success) return { kind: 'night', mark: 'bank', text: 'The bank changed hands' };
+  const after = names.get(bank.data.after) ?? 'Someone';
+  const before = bank.data.before === null ? null : (names.get(bank.data.before) ?? 'someone');
+  return {
+    kind: 'night',
+    mark: 'bank',
+    text:
+      before === null
+        ? `${after} is holding the bank`
+        : `${after} took over the bank from ${before}`,
+  };
 }
 
 function seatChange(target: string, before: Cents, after: Cents): string {
@@ -56,6 +72,8 @@ export function feedLine(event: NightEventView, names: Map<string, string>): Fee
       return { kind: 'night', mark: 'close', text: `${actor} closed the books` };
     case 'night.reopen':
       return { kind: 'night', mark: 'reopen', text: `${actor} reopened the night` };
+    case 'night.bank':
+      return bankLine(event, names);
   }
 
   const seat = seatDetailSchema.safeParse(event.detail);

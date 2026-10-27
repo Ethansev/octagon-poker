@@ -21,6 +21,7 @@ type SeatBoardProps = {
   nightId: string;
   stepCents: number | null;
   seats: SeatData[];
+  bankPlayerId: string | null;
   players: Player[];
   viewerPlayerId: string | null;
   children: React.ReactNode;
@@ -46,6 +47,7 @@ export function SeatBoard({
   nightId,
   stepCents,
   seats,
+  bankPlayerId,
   players,
   viewerPlayerId,
   children,
@@ -95,6 +97,7 @@ export function SeatBoard({
                 <SeatCard
                   seat={seat}
                   isYou={seat.playerId === viewerPlayerId}
+                  isBank={seat.playerId === bankPlayerId}
                   selected={layout === 'desktop' && seat.playerId === selected?.playerId}
                   unsaved={seat.updatedAt !== null && isDirty(edits.editFor(seat))}
                   onOpen={() => selection.open(seat.playerId, 'cashOut')}

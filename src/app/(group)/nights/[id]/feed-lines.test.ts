@@ -137,6 +137,16 @@ describe('feedLine', () => {
       expected: { kind: 'seat', playerId: 'ivy', text: 'Ivy left the table', by: 'Sid' },
     },
     {
+      name: 'someone taking the bank',
+      input: event({ action: 'night.bank', detail: { before: null, after: 'sid' } }),
+      expected: { kind: 'night', mark: 'bank', text: 'Sid is holding the bank' },
+    },
+    {
+      name: 'the bank changing hands',
+      input: event({ action: 'night.bank', detail: { before: 'ivy', after: 'sid' } }),
+      expected: { kind: 'night', mark: 'bank', text: 'Sid took over the bank from Ivy' },
+    },
+    {
       name: 'an event with an unreadable detail',
       input: event({ action: 'seat.update', detail: { nope: true } }),
       expected: { kind: 'night', mark: 'other', text: 'The host made a change' },

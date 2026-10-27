@@ -32,6 +32,7 @@ export type NightDetail = {
   location: string | null;
   buyInCents: number | null;
   status: 'open' | 'closed';
+  bankPlayerId: string | null;
   seats: SeatView[];
   events: NightEventView[];
   winners: string[];
@@ -61,7 +62,11 @@ export type RemoveSeatResult =
 export type CloseNightResult =
   | { kind: 'closed'; winners: string[] }
   | { kind: 'not-balanced'; balance: Exclude<NightBalance, { kind: 'balanced' }> }
+  | { kind: 'no-bank' }
   | { kind: 'not-found' };
+
+export type SetBankResult =
+  { kind: 'set' } | { kind: 'not-seated' } | { kind: 'night-closed' } | { kind: 'not-found' };
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Cents = { buyInCents: number; cashOutCents: number | null };
@@ -223,6 +228,7 @@ export async function getNight(groupId: string, nightId: string): Promise<NightD
     location: night.location,
     buyInCents: night.buyInCents,
     status: night.status,
+    bankPlayerId: night.bankPlayerId,
     seats: seatRows,
     events: eventRows,
     winners: night.status === 'closed' ? nightWinners(closedSeats(seatRows)) : [],
@@ -308,6 +314,9 @@ export async function removeSeat(
       .where(and(eq(seats.nightId, input.nightId), eq(seats.playerId, input.playerId)))
       .returning({ buyInCents: seats.buyInCents, cashOutCents: seats.cashOutCents });
     if (!removed) return { kind: 'not-found' };
+    if (night.bankPlayerId === input.playerId) {
+      await tx.update(nights).set({ bankPlayerId: null }).where(eq(nights.id, night.id));
+    }
     await tx.insert(nightEvents).values({
       nightId: input.nightId,
       ...actorColumns(actor),
@@ -315,6 +324,31 @@ export async function removeSeat(
       detail: { playerId: input.playerId, before: centsOf(removed), after: null },
     });
     return { kind: 'removed' };
+  });
+}
+
+export async function setBank(
+  input: { groupId: string; nightId: string; playerId: string },
+  actor: Actor,
+): Promise<SetBankResult> {
+  return db.transaction(async (tx): Promise<SetBankResult> => {
+    const night = await lockNight(tx, input.groupId, input.nightId);
+    if (!night) return { kind: 'not-found' };
+    if (night.status === 'closed') return { kind: 'night-closed' };
+    const [seated] = await tx
+      .select({ playerId: seats.playerId })
+      .from(seats)
+      .where(and(eq(seats.nightId, night.id), eq(seats.playerId, input.playerId)));
+    if (!seated) return { kind: 'not-seated' };
+    if (night.bankPlayerId === input.playerId) return { kind: 'set' };
+    await tx.update(nights).set({ bankPlayerId: input.playerId }).where(eq(nights.id, night.id));
+    await tx.insert(nightEvents).values({
+      nightId: night.id,
+      ...actorColumns(actor),
+      action: 'night.bank',
+      detail: { before: night.bankPlayerId, after: input.playerId },
+    });
+    return { kind: 'set' };
   });
 }
 
@@ -334,6 +368,7 @@ export async function closeNight(groupId: string, nightId: string): Promise<Clos
     if (balance.kind !== 'balanced') return { kind: 'not-balanced', balance };
     const winners = nightWinners(closedSeats(rows));
     if (night.status === 'closed') return { kind: 'closed', winners };
+    if (night.bankPlayerId === null) return { kind: 'no-bank' };
     await tx
       .update(nights)
       .set({ status: 'closed', closedAt: sql`now()` })

@@ -51,6 +51,11 @@ test('a night goes from deal to delete', async ({ page }) => {
   await addPlayer(page, 'Cal', false);
   await lockIn(page, 'Cal', '$20 in');
 
+  await page.getByRole('combobox', { name: 'Who’s holding the bank' }).click();
+  await page.getByRole('option', { name: 'Ava' }).click();
+  await expect(page.getByText('Ava should be holding $60')).toBeVisible();
+  await expect(seatCard(page, 'Ava')).toContainText('Bank');
+
   await openSeat(page, 'Ava');
   await seatForm(page, 'Ava').getByRole('button', { name: /Rebuy/ }).click();
   await seatForm(page, 'Ava').getByLabel('Cashing out with').fill('70');
@@ -66,6 +71,7 @@ test('a night goes from deal to delete', async ({ page }) => {
   await lockIn(page, 'Cal', '$20 in · $10 out');
 
   await expect(page.getByText('3 of 3 cashed out')).toBeVisible();
+  await expect(page.getByText('Ava should be holding $80')).toBeVisible();
   await expect(page.getByRole('button', { name: /Close the night/ })).toHaveCount(0);
 
   const host = page;
