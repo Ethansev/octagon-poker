@@ -15,7 +15,7 @@ import type { NightDetail } from '@/nights/nights';
 import { firstName } from '@/players/first-name';
 import { PlayerAvatar } from '@/players/player-avatar';
 import type { Player } from '@/players/players';
-import { CalendarPlus, Lock, MapPin, Navigation } from 'lucide-react';
+import { CalendarPlus, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 const heroChip =
@@ -40,20 +40,6 @@ function whenAndWhere(night: NightDetail): string | null {
 
 function names(rsvps: NightRsvp[]): string {
   return rsvps.map((rsvp) => firstName(rsvp.name)).join(', ');
-}
-
-function Details({ night }: { night: NightDetail }) {
-  return (
-    <div className='mt-5 flex items-start gap-2.5'>
-      <MapPin aria-hidden className='mt-0.5 size-5 shrink-0 text-hero-muted' />
-      <div className='min-w-0'>
-        {night.address && <p className='font-bold break-words'>{night.address}</p>}
-        {night.notes && (
-          <p className='mt-0.5 text-sm font-semibold break-words text-hero-muted'>{night.notes}</p>
-        )}
-      </div>
-    </div>
-  );
 }
 
 function ReplyArea({
@@ -174,7 +160,6 @@ export function NightInvite({ viewer, night, phase, players, rsvps, comments }: 
   const host = players.find((player) => player.id === viewer.group.ownerPlayerId);
   const current = rsvps.find((rsvp) => rsvp.playerId === viewer.playerId)?.response ?? null;
   const going = rsvps.filter((rsvp) => rsvp.response === 'going');
-  const seesDetails = viewer.role === 'owner' || current === 'going';
   const hasDetails = night.address !== null || night.notes !== null;
   const countdown = phase === 'upcoming' ? nightCountdown(night.date, todayInGroup()) : null;
   const headline = whenAndWhere(night);
@@ -200,25 +185,14 @@ export function NightInvite({ viewer, night, phase, players, rsvps, comments }: 
                 {headline}
               </p>
             )}
-            {hasDetails && seesDetails && <Details night={night} />}
-            {hasDetails && !seesDetails && (
-              <p className='mt-5 flex items-center gap-2 text-sm font-semibold text-hero-muted'>
-                <Lock aria-hidden className='size-4 shrink-0' />
-                Tap “I’m in” to see the address.
-              </p>
-            )}
             {facts.length > 0 && (
               <p className='mt-3 text-base font-semibold text-hero-muted'>{facts.join(' · ')}</p>
             )}
             <div className='mt-4 flex flex-wrap gap-2'>
-              {night.address && seesDetails && (
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(night.address)}`}
-                  target='_blank'
-                  rel='noreferrer'
-                  className={heroChip}>
-                  <Navigation aria-hidden className='size-4' /> Directions
-                </a>
+              {hasDetails && (
+                <Link href={`/nights/${night.id}/location`} className={heroChip}>
+                  <MapPin aria-hidden className='size-4' /> Location &amp; parking
+                </Link>
               )}
               {phase === 'upcoming' && (
                 <a href={`/nights/${night.id}/calendar`} className={heroChip}>

@@ -231,7 +231,7 @@ export function NightForm({
 
       <div className='flex flex-col gap-2.5'>
         <Label htmlFor={`${id}-notes`}>
-          Notes for guests <OptionalTag />
+          Parking and notes <OptionalTag />
         </Label>
         <Input
           id={`${id}-notes`}
@@ -244,7 +244,7 @@ export function NightForm({
           aria-describedby={invalidField === 'notes' ? errorId('notes') : undefined}
         />
         <p className='text-sm font-semibold text-ink-2'>
-          The address and notes only show to people who say they’re in.
+          These stay on a separate page that only opens for people who say they’re in.
         </p>
         {invalidField === 'notes' && (
           <FieldError id={errorId('notes')}>{fieldMessages.notes}</FieldError>

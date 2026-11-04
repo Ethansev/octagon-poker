@@ -133,3 +133,11 @@ export async function removeComment(
   await db.delete(nightComments).where(eq(nightComments.id, input.commentId));
   return { kind: 'removed' };
 }
+
+export function seesNightDetails(
+  viewer: { role: 'owner' | 'member'; playerId: string | null },
+  rsvps: Pick<NightRsvp, 'playerId' | 'response'>[],
+): boolean {
+  if (viewer.role === 'owner') return true;
+  return rsvps.some((rsvp) => rsvp.playerId === viewer.playerId && rsvp.response === 'going');
+}

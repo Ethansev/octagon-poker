@@ -53,10 +53,18 @@ test('a friend replies to an invite, unlocks the address, and comments', async (
   await expect(page).toHaveURL(`/nights/${nightId}`);
   await expect(page.getByText(/You’re invited · In \d+ days/)).toBeVisible();
   await expect(page.getByText('8:30pm at Sid’s place')).toBeVisible();
-  await expect(page.getByText('Tap “I’m in” to see the address.')).toBeVisible();
   let html = await page.content();
   expect(html).not.toContain(ADDRESS);
   expect(html).not.toContain(NOTES);
+
+  await page.getByRole('link', { name: 'Location & parking' }).click();
+  await expect(page).toHaveURL(`/nights/${nightId}/location`);
+  await expect(page.getByText('Say you’re in to see the address and parking.')).toBeVisible();
+  html = await page.content();
+  expect(html).not.toContain(ADDRESS);
+  expect(html).not.toContain(NOTES);
+  await page.getByRole('link', { name: 'Back to the invite' }).click();
+  await expect(page).toHaveURL(`/nights/${nightId}?view=invite`);
 
   await expect(page.getByRole('group', { name: 'Your reply' })).toHaveCount(0);
   await iAm(page, 'Ava Stone');
@@ -71,12 +79,18 @@ test('a friend replies to an invite, unlocks the address, and comments', async (
 
   await page.getByRole('button', { name: 'I’m in' }).click();
   await expect(page.getByRole('heading', { name: '1 is in' })).toBeVisible();
+  html = await page.content();
+  expect(html).not.toContain(ADDRESS);
+  expect(html).not.toContain(NOTES);
+
+  await page.getByRole('link', { name: 'Location & parking' }).click();
   await expect(page.getByText(ADDRESS)).toBeVisible();
   await expect(page.getByText(NOTES)).toBeVisible();
   await expect(page.getByRole('link', { name: 'Directions' })).toHaveAttribute(
     'href',
     /google\.com\/maps/,
   );
+  await page.getByRole('link', { name: 'Back to the invite' }).click();
   const calendar = await page.request.get(`/nights/${nightId}/calendar`);
   expect(calendar.headers()['content-type']).toContain('text/calendar');
   expect(await calendar.text()).toContain('Secret');
@@ -121,6 +135,11 @@ test('other friends can’t see an address or delete someone else’s comment', 
   await expect(ben.page.getByRole('heading', { name: '1 is in' })).toBeVisible();
   await expect(ben.page.getByRole('button', { name: 'Delete comment' })).toHaveCount(0);
   expect(await ben.page.content()).not.toContain(ADDRESS);
+  await ben.page.goto(`/nights/${nightId}/location`);
+  await expect(ben.page.getByText('Say you’re in to see the address and parking.')).toBeVisible();
+  expect(await ben.page.content()).not.toContain(ADDRESS);
+  await ben.page.getByRole('button', { name: 'I’m in' }).click();
+  await expect(ben.page.getByText(ADDRESS)).toBeVisible();
   await ben.context.close();
 });
 
@@ -150,8 +169,10 @@ test('the host lands on the table, sees the address, and sets it from the form',
   await expect(page.getByRole('heading', { name: 'Who’s at the table' })).toBeVisible();
 
   await page.getByRole('link', { name: 'Invite', exact: true }).click();
-  await expect(page.getByText(ADDRESS)).toBeVisible();
   await expect(page.getByText(/tap “This is me”/)).toBeVisible();
+  await page.getByRole('link', { name: 'Location & parking' }).click();
+  await expect(page.getByText(ADDRESS)).toBeVisible();
+  await page.getByRole('link', { name: 'Back to the invite' }).click();
 
   await page.getByLabel('Add a comment').fill('Doors at 8');
   await page.getByRole('button', { name: 'Post' }).click();
@@ -164,6 +185,7 @@ test('the host lands on the table, sees the address, and sets it from the form',
   await dialog.getByLabel(/Address/).fill('99 New Street');
   await dialog.getByRole('button', { name: 'Save details' }).click();
   await expect(dialog).toBeHidden();
+  await page.getByRole('link', { name: 'Location & parking' }).click();
   await expect(page.getByText('99 New Street')).toBeVisible();
 });
 
@@ -171,8 +193,9 @@ test('an address never reaches a link preview', async ({ request }) => {
   const { nightId } = await seedInvite();
   const crawler = { 'user-agent': 'facebookexternalhit/1.1' };
 
-  const html = await (await request.get(`/nights/${nightId}`, { headers: crawler })).text();
-  expect(html).toContain('Sid’s place');
-  expect(html).not.toContain(ADDRESS);
-  expect(html).not.toContain(NOTES);
+  for (const path of [`/nights/${nightId}`, `/nights/${nightId}/location`]) {
+    const html = await (await request.get(path, { headers: crawler })).text();
+    expect(html, path).not.toContain(ADDRESS);
+    expect(html, path).not.toContain(NOTES);
+  }
 });

@@ -2,7 +2,14 @@ import type { Actor } from '@/access/viewer';
 import { db } from '@/db/client';
 import { resetDb } from '@/db/test-db';
 import { newGroup } from '@/groups/test-group';
-import { addComment, listComments, listRsvps, removeComment, setRsvp } from '@/nights/invites';
+import {
+  addComment,
+  listComments,
+  listRsvps,
+  removeComment,
+  seesNightDetails,
+  setRsvp,
+} from '@/nights/invites';
 import { closeNight, createNight, setBank, upsertSeat } from '@/nights/nights';
 import { nightRsvps } from '@/nights/schema';
 import { addPlayer, mergePlayers } from '@/players/players';
@@ -192,5 +199,27 @@ describe('merging players', () => {
       [intoId, 'maybe'],
     ]);
     expect(await db.select().from(nightRsvps)).toHaveLength(2);
+  });
+});
+
+describe('seesNightDetails', () => {
+  const rsvps = [
+    { playerId: 'ava', response: 'going' },
+    { playerId: 'ben', response: 'maybe' },
+  ] satisfies { playerId: string; response: 'going' | 'maybe' }[];
+
+  it.each([
+    { name: 'the host, without replying', role: 'owner', playerId: null, expected: true },
+    { name: 'someone who said they’re in', role: 'member', playerId: 'ava', expected: true },
+    { name: 'someone who said maybe', role: 'member', playerId: 'ben', expected: false },
+    { name: 'someone who hasn’t replied', role: 'member', playerId: 'cal', expected: false },
+    { name: 'someone with no name picked', role: 'member', playerId: null, expected: false },
+  ] satisfies {
+    name: string;
+    role: 'owner' | 'member';
+    playerId: string | null;
+    expected: boolean;
+  }[])('$name', ({ role, playerId, expected }) => {
+    expect(seesNightDetails({ role, playerId }, rsvps)).toBe(expected);
   });
 });

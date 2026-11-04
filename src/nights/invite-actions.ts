@@ -16,6 +16,7 @@ type NoPlayer = { kind: 'no-player' };
 
 function refreshInvite(nightId: string) {
   revalidatePath(`/nights/${nightId}`);
+  revalidatePath(`/nights/${nightId}/location`);
 }
 
 export async function setRsvpAction(input: {
