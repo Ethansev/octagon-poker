@@ -16,5 +16,6 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src/link-previews/fonts ./src/link-previews/fonts
 EXPOSE 3410
 CMD ["sh", "-c", "node node_modules/next/dist/bin/next start -p ${PORT:-3410}"]
