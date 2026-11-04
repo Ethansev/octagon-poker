@@ -1,3 +1,5 @@
+import type { Actor } from '@/access/viewer';
+
 type PayoutSeat = {
   playerId: string;
   playerName: string;
@@ -50,4 +52,9 @@ export function payoutPlan(seats: PayoutSeat[], bankPlayerId: string | null): Pa
     owedCents: payouts.reduce((sum, payout) => sum + payout.cents, 0),
     leftCents: payouts.reduce((sum, payout) => sum + (payout.paid ? 0 : payout.cents), 0),
   };
+}
+
+export function canSeePaymentHandles(actor: Actor, bankPlayerId: string | null): boolean {
+  if (actor.kind === 'owner') return true;
+  return bankPlayerId !== null && actor.playerId === bankPlayerId;
 }

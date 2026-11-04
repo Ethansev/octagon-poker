@@ -1,6 +1,8 @@
 import type { Actor } from '@/access/viewer';
 import { db } from '@/db/client';
+import { canSeePaymentHandles } from '@/nights/payouts';
 import { nightEvents, nights, seats } from '@/nights/schema';
+import { parsePaymentHandles, type PaymentHandleField } from '@/players/payment-handles';
 import { players } from '@/players/schema';
 import type { ClosedNight, NightBalance, SeatResult } from '@/stats/nights';
 import { nightBalance, nightWinners } from '@/stats/nights';
@@ -79,6 +81,12 @@ export type OutstandingNight = {
 
 export type MarkPaidResult =
   { kind: 'saved' } | { kind: 'nothing-owed' } | { kind: 'night-open' } | { kind: 'not-found' };
+
+export type SavePayoutHandlesResult =
+  | { kind: 'saved' }
+  | { kind: 'not-found' }
+  | { kind: 'not-allowed' }
+  | { kind: 'invalid-handle'; field: PaymentHandleField };
 
 export type SetBankResult =
   { kind: 'set' } | { kind: 'not-seated' } | { kind: 'night-closed' } | { kind: 'not-found' };
@@ -465,6 +473,36 @@ export async function deleteNight(
     .where(and(eq(nights.id, nightId), eq(nights.groupId, groupId)))
     .returning({ id: nights.id });
   return deleted.length > 0 ? { kind: 'deleted' } : { kind: 'not-found' };
+}
+
+export async function savePayoutHandles(
+  input: { groupId: string; nightId: string; playerId: string; venmo: string; zelle: string },
+  actor: Actor,
+): Promise<SavePayoutHandlesResult> {
+  const parsed = parsePaymentHandles(input);
+  if (parsed.kind === 'invalid') return { kind: 'invalid-handle', field: parsed.field };
+
+  return db.transaction(async (tx): Promise<SavePayoutHandlesResult> => {
+    const night = await lockNight(tx, input.groupId, input.nightId);
+    if (!night) return { kind: 'not-found' };
+    if (night.status !== 'closed' || !canSeePaymentHandles(actor, night.bankPlayerId)) {
+      return { kind: 'not-allowed' };
+    }
+    const [seat] = await tx
+      .select({ id: seats.id })
+      .from(seats)
+      .where(and(eq(seats.nightId, night.id), eq(seats.playerId, input.playerId)));
+    if (!seat) return { kind: 'not-found' };
+
+    await tx.update(players).set(parsed.handles).where(eq(players.id, input.playerId));
+    await tx.insert(nightEvents).values({
+      nightId: night.id,
+      ...actorColumns(actor),
+      action: 'player.payment',
+      detail: { playerId: input.playerId },
+    });
+    return { kind: 'saved' };
+  });
 }
 
 export async function listClosedNights(groupId: string): Promise<ClosedNight[]> {

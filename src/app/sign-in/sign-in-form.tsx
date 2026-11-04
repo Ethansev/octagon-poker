@@ -22,7 +22,13 @@ export function SignInForm() {
     setState({ kind: 'submitting' });
     const { error } = await authClient.signIn.email({ email, password });
     if (error) {
-      setState({ kind: 'failed', message: 'Wrong email or password.' });
+      setState({
+        kind: 'failed',
+        message:
+          error.status === 429
+            ? 'Too many tries. Wait a few seconds and try again.'
+            : 'Wrong email or password.',
+      });
       return;
     }
     router.replace('/');

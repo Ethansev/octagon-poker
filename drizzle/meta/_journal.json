@@ -36,6 +36,13 @@
       "when": 1793087935494,
       "tag": "0004_seat_paid_out",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793826010305,
+      "tag": "0005_player_contacts",
+      "breakpoints": true
     }
   ]
 }

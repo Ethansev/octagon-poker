@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { HOST, seedGroup } from './seed';
+import { seedGroup, signInAsHost } from './seed';
 
 async function addPlayer(page: Page, name: string, existing: boolean) {
   await page.getByRole('button', { name: 'Add player' }).click();
@@ -75,11 +75,7 @@ test('a night goes from deal to delete', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Close the night/ })).toHaveCount(0);
 
   const host = page;
-  await host.goto('/sign-in');
-  await host.getByLabel('Email').fill(HOST.email);
-  await host.getByLabel('Password').fill(HOST.password);
-  await host.getByRole('button', { name: 'Sign in' }).click();
-  await expect(host).toHaveURL('/');
+  await signInAsHost(host);
 
   await host.goto(nightUrl);
   await host.getByRole('button', { name: /Close the night/ }).click();

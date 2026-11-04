@@ -5,6 +5,8 @@ import { RenameGroupForm } from '@/app/(group)/settings/rename-group-form';
 import { SignOutCard } from '@/app/(group)/settings/sign-out-card';
 import { env } from '@/env';
 import { listPlayers } from '@/players/players';
+import { ChevronRight, Users } from 'lucide-react';
+import Link from 'next/link';
 
 export default async function SettingsPage() {
   const viewer = await requireOwner();
@@ -20,6 +22,22 @@ export default async function SettingsPage() {
       <div className='mt-6 grid items-start gap-6 lg:mt-8 lg:grid-cols-2 lg:gap-8'>
         <div className='flex flex-col gap-6 lg:gap-8'>
           <InviteLinkCard joinUrl={joinUrl} />
+          <Link
+            href='/players'
+            className='flex cursor-pointer items-center gap-4 rounded-panel bg-surface p-6 shadow-card transition hover:bg-surface-2 focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none sm:p-8'>
+            <span
+              aria-hidden
+              className='grid size-11 shrink-0 place-items-center rounded-2xl bg-surface-3 text-ink'>
+              <Users className='size-5' strokeWidth={2.25} />
+            </span>
+            <span className='min-w-0 flex-1'>
+              <span className='block text-xl leading-tight font-bold tracking-tight'>Players</span>
+              <span className='mt-1 block text-sm font-semibold text-ink-2'>
+                Names, Venmo and Zelle, and everyone’s record.
+              </span>
+            </span>
+            <ChevronRight aria-hidden className='size-5 shrink-0 text-ink-2' />
+          </Link>
           <RenameGroupForm name={viewer.group.name} />
         </div>
         <div className='flex flex-col gap-6 lg:gap-8'>

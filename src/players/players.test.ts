@@ -2,8 +2,19 @@ import { user } from '@/auth/schema';
 import { db } from '@/db/client';
 import { resetDb } from '@/db/test-db';
 import { createGroup } from '@/groups/groups';
+import { groups } from '@/groups/schema';
 import { nightEvents, nights, seats } from '@/nights/schema';
-import { addPlayer, getPlayer, listPlayers, mergePlayers } from '@/players/players';
+import {
+  addContact,
+  addPlayer,
+  getPlayer,
+  listContacts,
+  listPaymentHandles,
+  listPlayers,
+  mergePlayers,
+  setHostPlayer,
+  updateContact,
+} from '@/players/players';
 import { players } from '@/players/schema';
 import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -186,7 +197,144 @@ describe('listPlayers and getPlayer', () => {
   });
 });
 
+describe('contacts', () => {
+  const blank = { venmo: '', zelle: '' };
+
+  it('adds a player with payment info and keeps it off the plain player list', async () => {
+    const groupId = await newGroup();
+
+    const result = await addContact({ groupId, name: ' Ava  Stone ', venmo: '@ava', zelle: '' });
+
+    expect(result).toEqual({ kind: 'saved' });
+    const [contact] = await listContacts(groupId);
+    expect(contact).toMatchObject({ name: 'Ava Stone', venmoHandle: 'ava', zelleHandle: null });
+    const [player] = await listPlayers(groupId);
+    expect(player).not.toHaveProperty('venmoHandle');
+    expect(player).not.toHaveProperty('zelleHandle');
+    expect(await getPlayer(groupId, player.id)).not.toHaveProperty('venmoHandle');
+  });
+
+  it.each([
+    {
+      name: 'a name already on the list',
+      input: { name: 'IVY', ...blank },
+      expected: { kind: 'name-taken' },
+    },
+    { name: 'a blank name', input: { name: '  ', ...blank }, expected: { kind: 'invalid-name' } },
+    {
+      name: 'a bad Venmo username',
+      input: { name: 'Ava', venmo: 'not a username', zelle: '' },
+      expected: { kind: 'invalid-handle', field: 'venmo' },
+    },
+  ])('refuses to add $name and creates nobody', async ({ input, expected }) => {
+    const groupId = await newGroup();
+    await newPlayer(groupId, 'Ivy');
+
+    expect(await addContact({ groupId, ...input })).toEqual(expected);
+    expect((await listContacts(groupId)).map((contact) => contact.name)).toEqual(['Ivy']);
+  });
+
+  it('updates a name and payment info, and can clear them', async () => {
+    const groupId = await newGroup();
+    const id = await newPlayer(groupId, 'Ivy');
+
+    const saved = await updateContact({
+      groupId,
+      playerId: id,
+      name: 'Ivy Bell',
+      venmo: 'ivy',
+      zelle: '415-555-0100',
+    });
+    expect(saved).toEqual({ kind: 'saved' });
+    expect(await listPaymentHandles(groupId, [id])).toEqual({
+      [id]: { venmoHandle: 'ivy', zelleHandle: '415-555-0100' },
+    });
+
+    await updateContact({ groupId, playerId: id, name: 'Ivy Bell', ...blank });
+    const [contact] = await listContacts(groupId);
+    expect(contact).toMatchObject({ name: 'Ivy Bell', venmoHandle: null, zelleHandle: null });
+  });
+
+  it('lets a player keep their name in a new case but not take someone else’s', async () => {
+    const groupId = await newGroup();
+    const ivy = await newPlayer(groupId, 'Ivy');
+    await newPlayer(groupId, 'Sid');
+
+    expect(await updateContact({ groupId, playerId: ivy, name: 'IVY', ...blank })).toEqual({
+      kind: 'saved',
+    });
+    expect(await updateContact({ groupId, playerId: ivy, name: 'sid', ...blank })).toEqual({
+      kind: 'name-taken',
+    });
+  });
+
+  it('won’t touch a player from another group', async () => {
+    const groupId = await newGroup();
+    const otherGroupId = await newGroup('Saturday');
+    const ivy = await newPlayer(groupId, 'Ivy');
+
+    expect(
+      await updateContact({ groupId: otherGroupId, playerId: ivy, name: 'Stolen', ...blank }),
+    ).toEqual({ kind: 'not-found' });
+    expect(await listPaymentHandles(otherGroupId, [ivy])).toEqual({});
+  });
+});
+
+describe('setHostPlayer', () => {
+  it('links and unlinks the host, and refuses a player from another group', async () => {
+    const groupId = await newGroup();
+    const otherGroupId = await newGroup('Saturday');
+    const ivy = await newPlayer(groupId, 'Ivy');
+    const host = async () =>
+      (await db.select().from(groups).where(eq(groups.id, groupId)))[0].ownerPlayerId;
+
+    expect(await setHostPlayer({ groupId, playerId: ivy })).toEqual({ kind: 'saved' });
+    expect(await host()).toBe(ivy);
+    expect(await setHostPlayer({ groupId: otherGroupId, playerId: ivy })).toEqual({
+      kind: 'not-found',
+    });
+    expect(await setHostPlayer({ groupId, playerId: null })).toEqual({ kind: 'saved' });
+    expect(await host()).toBeNull();
+  });
+});
+
 describe('mergePlayers', () => {
+  it.each([
+    {
+      name: 'fills the target’s blank handles from the source',
+      from: { venmo: 'old-ivy', zelle: 'ivy@example.com' },
+      into: { venmo: '', zelle: '' },
+      expected: { venmoHandle: 'old-ivy', zelleHandle: 'ivy@example.com' },
+    },
+    {
+      name: 'keeps the target’s handles when both have them',
+      from: { venmo: 'old-ivy', zelle: 'old@example.com' },
+      into: { venmo: 'ivy', zelle: '' },
+      expected: { venmoHandle: 'ivy', zelleHandle: 'old@example.com' },
+    },
+  ])('$name', async ({ from, into, expected }) => {
+    const groupId = await newGroup();
+    const fromId = await newPlayer(groupId, 'Ivy B');
+    const intoId = await newPlayer(groupId, 'Ivy');
+    await updateContact({ groupId, playerId: fromId, name: 'Ivy B', ...from });
+    await updateContact({ groupId, playerId: intoId, name: 'Ivy', ...into });
+
+    expect(await mergePlayers({ groupId, fromId, intoId })).toEqual({ kind: 'merged' });
+    expect((await listPaymentHandles(groupId, [intoId]))[intoId]).toEqual(expected);
+  });
+
+  it('keeps the host linked when their player is merged away', async () => {
+    const groupId = await newGroup();
+    const fromId = await newPlayer(groupId, 'Ivy B');
+    const intoId = await newPlayer(groupId, 'Ivy');
+    await setHostPlayer({ groupId, playerId: fromId });
+
+    await mergePlayers({ groupId, fromId, intoId });
+
+    const [group] = await db.select().from(groups).where(eq(groups.id, groupId));
+    expect(group.ownerPlayerId).toBe(intoId);
+  });
+
   it('moves seats, the bank and activity-log actors to the target and removes the source', async () => {
     const groupId = await newGroup();
     const fromId = await newPlayer(groupId, 'Ivy B');

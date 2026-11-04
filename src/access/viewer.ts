@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation';
 import { connection } from 'next/server';
 
 export type Viewer =
-  | { role: 'owner'; userId: string; group: Group }
+  | { role: 'owner'; userId: string; group: Group; playerId: string | null }
   | { role: 'member'; group: Group; playerId: string | null };
 
 export type Actor = { kind: 'owner' } | { kind: 'member'; playerId: string | null };
@@ -35,7 +35,7 @@ export async function getViewer(): Promise<Viewer | null> {
   await connection();
   const group = await getGroup();
   const owner = await getOwnerSession();
-  if (owner) return { role: 'owner', userId: owner.userId, group };
+  if (owner) return { role: 'owner', userId: owner.userId, group, playerId: group.ownerPlayerId };
 
   const jar = await cookies();
   if (!isMemberCode(jar.get(MEMBER_COOKIE)?.value, group.inviteCode)) return null;

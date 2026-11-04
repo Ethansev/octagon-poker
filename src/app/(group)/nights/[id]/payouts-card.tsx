@@ -1,10 +1,12 @@
 'use client';
 
+import { PayoutHandles } from '@/app/(group)/nights/[id]/payout-handles';
 import { cn } from '@/lib/utils';
 import { formatDollars } from '@/money/money';
 import { markPaidAction } from '@/nights/actions';
 import type { Payout, PayoutPlan } from '@/nights/payouts';
 import { firstName } from '@/players/first-name';
+import type { PaymentHandles } from '@/players/payment-handles';
 import { PlayerAvatar } from '@/players/player-avatar';
 import { Check, Landmark } from 'lucide-react';
 import { useOptimistic, useTransition } from 'react';
@@ -42,7 +44,13 @@ function headline(bankName: string, payouts: Payout[]): string {
   return `${bankName} owes ${formatDollars(cents)}`;
 }
 
-export function PayoutsCard({ nightId, plan }: { nightId: string; plan: PayoutPlan }) {
+type PayoutsCardProps = {
+  nightId: string;
+  plan: PayoutPlan;
+  handles: Record<string, PaymentHandles> | null;
+};
+
+export function PayoutsCard({ nightId, plan, handles }: PayoutsCardProps) {
   const { shown, toggle } = usePayoutToggle(nightId, plan.payouts);
   const bankName = firstName(plan.bank.name);
   const paidCount = shown.filter((payout) => payout.paid).length;
@@ -79,44 +87,55 @@ export function PayoutsCard({ nightId, plan }: { nightId: string; plan: PayoutPl
             <li
               key={payout.playerId}
               className={cn(
-                'flex items-center gap-3 rounded-3xl p-2 pl-3 transition-colors motion-reduce:transition-none',
+                'rounded-3xl p-2 pl-3 transition-colors motion-reduce:transition-none',
                 payout.paid ? 'bg-surface-2' : 'bg-surface-3',
               )}>
-              <PlayerAvatar
-                colorSlot={payout.colorSlot}
-                name={payout.name}
-                size={36}
-                tone={payout.paid ? 'muted' : 'solid'}
-              />
-              <span className='min-w-0 flex-1'>
-                <span className={cn('block truncate font-extrabold', payout.paid && 'text-ink-2')}>
-                  {payout.name}
+              <div className='flex items-center gap-3'>
+                <PlayerAvatar
+                  colorSlot={payout.colorSlot}
+                  name={payout.name}
+                  size={36}
+                  tone={payout.paid ? 'muted' : 'solid'}
+                />
+                <span className='min-w-0 flex-1'>
+                  <span
+                    className={cn('block truncate font-extrabold', payout.paid && 'text-ink-2')}>
+                    {payout.name}
+                  </span>
+                  <span className='block text-sm font-bold text-ink-2 tabular-nums'>
+                    {payout.paid ? 'Paid ' : 'Gets '}
+                    {formatDollars(payout.cents)}
+                  </span>
                 </span>
-                <span className='block text-sm font-bold text-ink-2 tabular-nums'>
-                  {payout.paid ? 'Paid ' : 'Gets '}
-                  {formatDollars(payout.cents)}
-                </span>
-              </span>
-              <button
-                type='button'
-                onClick={() => toggle(payout)}
-                className={cn(
-                  'inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-4 text-sm font-extrabold transition focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none motion-reduce:transition-none',
-                  payout.paid
-                    ? 'bg-surface text-win shadow-card hover:text-ink-2'
-                    : 'bg-primary text-primary-ink hover:bg-primary-hover',
-                )}>
-                {payout.paid ? (
-                  <>
-                    <Check aria-hidden className='size-4' strokeWidth={3} /> Paid
-                    <span className='sr-only'>, undo for {payout.name}</span>
-                  </>
-                ) : (
-                  <>
-                    Mark paid<span className='sr-only'> for {payout.name}</span>
-                  </>
-                )}
-              </button>
+                <button
+                  type='button'
+                  onClick={() => toggle(payout)}
+                  className={cn(
+                    'inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-4 text-sm font-extrabold transition focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none motion-reduce:transition-none',
+                    payout.paid
+                      ? 'bg-surface text-win shadow-card hover:text-ink-2'
+                      : 'bg-primary text-primary-ink hover:bg-primary-hover',
+                  )}>
+                  {payout.paid ? (
+                    <>
+                      <Check aria-hidden className='size-4' strokeWidth={3} /> Paid
+                      <span className='sr-only'>, undo for {payout.name}</span>
+                    </>
+                  ) : (
+                    <>
+                      Mark paid<span className='sr-only'> for {payout.name}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              {handles && !payout.paid && (
+                <PayoutHandles
+                  nightId={nightId}
+                  playerId={payout.playerId}
+                  name={payout.name}
+                  handles={handles[payout.playerId] ?? { venmoHandle: null, zelleHandle: null }}
+                />
+              )}
             </li>
           ))}
         </ul>

@@ -2,8 +2,15 @@
 
 import { accessCookieOptions, PLAYER_COOKIE } from '@/access/cookies';
 import { requireOwner, requireViewer } from '@/access/viewer';
-import type { AddPlayerResult, MergePlayersResult } from '@/players/players';
-import { addPlayer, getPlayer, mergePlayers } from '@/players/players';
+import type { AddPlayerResult, MergePlayersResult, SaveContactResult } from '@/players/players';
+import {
+  addContact,
+  addPlayer,
+  getPlayer,
+  mergePlayers,
+  setHostPlayer,
+  updateContact,
+} from '@/players/players';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { z } from 'zod';
@@ -12,6 +19,7 @@ export type InvalidInput = { kind: 'invalid-input' };
 
 const addSchema = z.object({ name: z.string() });
 const idSchema = z.uuid();
+const contactSchema = z.object({ name: z.string(), venmo: z.string(), zelle: z.string() });
 const mergeSchema = z.object({ fromId: z.uuid(), intoId: z.uuid() });
 
 export async function addPlayerAction(formData: FormData): Promise<AddPlayerResult | InvalidInput> {
@@ -51,6 +59,56 @@ export async function mergePlayersAction(
   if (!parsed.success) return { kind: 'invalid-input' };
 
   const result = await mergePlayers({ groupId: viewer.group.id, ...parsed.data });
+  revalidatePath('/', 'layout');
+  return result;
+}
+
+function contactFields(formData: FormData) {
+  return contactSchema.safeParse({
+    name: formData.get('name'),
+    venmo: formData.get('venmo'),
+    zelle: formData.get('zelle'),
+  });
+}
+
+export async function addContactAction(
+  formData: FormData,
+): Promise<SaveContactResult | InvalidInput> {
+  const viewer = await requireOwner();
+  const fields = contactFields(formData);
+  if (!fields.success) return { kind: 'invalid-input' };
+
+  const result = await addContact({ groupId: viewer.group.id, ...fields.data });
+  revalidatePath('/', 'layout');
+  return result;
+}
+
+export async function updateContactAction(
+  playerId: string,
+  formData: FormData,
+): Promise<SaveContactResult | InvalidInput> {
+  const viewer = await requireOwner();
+  const id = idSchema.safeParse(playerId);
+  const fields = contactFields(formData);
+  if (!id.success || !fields.success) return { kind: 'invalid-input' };
+
+  const result = await updateContact({
+    groupId: viewer.group.id,
+    playerId: id.data,
+    ...fields.data,
+  });
+  revalidatePath('/', 'layout');
+  return result;
+}
+
+export async function setHostPlayerAction(
+  playerId: string | null,
+): Promise<{ kind: 'saved' } | { kind: 'not-found' } | InvalidInput> {
+  const viewer = await requireOwner();
+  const parsed = idSchema.nullable().safeParse(playerId);
+  if (!parsed.success) return { kind: 'invalid-input' };
+
+  const result = await setHostPlayer({ groupId: viewer.group.id, playerId: parsed.data });
   revalidatePath('/', 'layout');
   return result;
 }

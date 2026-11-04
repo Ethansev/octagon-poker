@@ -5,6 +5,7 @@ import { z } from 'zod';
 const centsSchema = z.object({ buyInCents: z.number(), cashOutCents: z.number().nullable() });
 const bankDetailSchema = z.object({ before: z.string().nullable(), after: z.string() });
 const paidDetailSchema = z.object({ playerId: z.string(), cents: z.number() });
+const paymentDetailSchema = z.object({ playerId: z.string() });
 const seatDetailSchema = z.object({
   playerId: z.string(),
   before: centsSchema.nullable(),
@@ -42,6 +43,18 @@ function paidLine(event: NightEventView, names: Map<string, string>): FeedLine |
       event.action === 'seat.paid'
         ? `${target} got paid ${amount}`
         : `${target}’s ${amount} pay-out was marked unpaid`,
+    by: byLabel(event, target),
+  };
+}
+
+function paymentLine(event: NightEventView, names: Map<string, string>): FeedLine | null {
+  const payment = paymentDetailSchema.safeParse(event.detail);
+  if (!payment.success) return null;
+  const target = names.get(payment.data.playerId) ?? 'A player';
+  return {
+    kind: 'seat',
+    playerId: payment.data.playerId,
+    text: `${target}’s payment info changed`,
     by: byLabel(event, target),
   };
 }
@@ -97,6 +110,11 @@ export function feedLine(event: NightEventView, names: Map<string, string>): Fee
       return { kind: 'night', mark: 'reopen', text: `${actor} reopened the night` };
     case 'night.bank':
       return bankLine(event, names);
+    case 'player.payment': {
+      const line = paymentLine(event, names);
+      if (line) return line;
+      break;
+    }
     case 'seat.paid':
     case 'seat.unpaid': {
       const line = paidLine(event, names);

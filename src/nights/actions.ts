@@ -7,6 +7,7 @@ import type {
   CloseNightResult,
   MarkPaidResult,
   RemoveSeatResult,
+  SavePayoutHandlesResult,
   SetBankResult,
   UpdateNightResult,
   UpsertSeatResult,
@@ -18,6 +19,7 @@ import {
   markPaid,
   removeSeat,
   reopenNight,
+  savePayoutHandles,
   setBank,
   updateNight,
   upsertSeat,
@@ -166,6 +168,26 @@ export async function markPaidAction(input: {
   if (!parsed.success) return { kind: 'not-found' };
 
   const result = await markPaid({ groupId: viewer.group.id, ...parsed.data }, actorFor(viewer));
+  refreshNight(parsed.data.nightId);
+  return result;
+}
+
+export async function savePayoutHandlesAction(input: {
+  nightId: string;
+  playerId: string;
+  venmo: string;
+  zelle: string;
+}): Promise<SavePayoutHandlesResult> {
+  const viewer = await requireViewer();
+  const parsed = z
+    .object({ nightId: z.uuid(), playerId: z.uuid(), venmo: z.string(), zelle: z.string() })
+    .safeParse(input);
+  if (!parsed.success) return { kind: 'not-found' };
+
+  const result = await savePayoutHandles(
+    { groupId: viewer.group.id, ...parsed.data },
+    actorFor(viewer),
+  );
   refreshNight(parsed.data.nightId);
   return result;
 }

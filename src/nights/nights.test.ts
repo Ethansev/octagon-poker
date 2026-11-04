@@ -13,12 +13,13 @@ import {
   markPaid,
   removeSeat,
   reopenNight,
+  savePayoutHandles,
   setBank,
   updateNight,
   upsertSeat,
 } from '@/nights/nights';
 import { nightEvents, nights, seats } from '@/nights/schema';
-import { addPlayer } from '@/players/players';
+import { addPlayer, listPaymentHandles } from '@/players/players';
 import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -498,6 +499,79 @@ describe('pay-outs', () => {
     if (!found) throw new Error('missing seat');
     return found;
   }
+
+  describe('payment info', () => {
+    const handles = { venmo: '@ann', zelle: '' };
+
+    it('lets the bank change it, logging who without the values', async () => {
+      const { groupId, ann, zed, nightId } = await closedNight();
+      const bank: Actor = { kind: 'member', playerId: zed };
+
+      const result = await savePayoutHandles({ groupId, nightId, playerId: ann, ...handles }, bank);
+
+      expect(result).toEqual({ kind: 'saved' });
+      expect(await listPaymentHandles(groupId, [ann])).toEqual({
+        [ann]: { venmoHandle: 'ann', zelleHandle: null },
+      });
+      const [event] = await db
+        .select()
+        .from(nightEvents)
+        .where(eq(nightEvents.action, 'player.payment'));
+      expect(event).toMatchObject({ actorPlayerId: zed, detail: { playerId: ann } });
+      expect(JSON.stringify(event.detail)).not.toContain('@ann');
+    });
+
+    it('lets the host change it', async () => {
+      const { groupId, ann, nightId } = await closedNight();
+
+      expect(
+        await savePayoutHandles({ groupId, nightId, playerId: ann, ...handles }, owner),
+      ).toEqual({ kind: 'saved' });
+    });
+
+    it.each([
+      { name: 'another player at the table', playerName: 'Bo' },
+      { name: 'someone changing their own', playerName: 'Ann' },
+    ])('refuses $name and changes nothing', async ({ playerName }) => {
+      const { groupId, ann, bo, nightId } = await closedNight();
+      const actor: Actor = { kind: 'member', playerId: playerName === 'Bo' ? bo : ann };
+
+      expect(
+        await savePayoutHandles({ groupId, nightId, playerId: ann, ...handles }, actor),
+      ).toEqual({ kind: 'not-allowed' });
+      expect(await listPaymentHandles(groupId, [ann])).toEqual({
+        [ann]: { venmoHandle: null, zelleHandle: null },
+      });
+    });
+
+    it('refuses while the night is open', async () => {
+      const { groupId, ann, nightId } = await setup();
+
+      expect(
+        await savePayoutHandles({ groupId, nightId, playerId: ann, ...handles }, owner),
+      ).toEqual({ kind: 'not-allowed' });
+    });
+
+    it('refuses a player who wasn’t at the table', async () => {
+      const { groupId, nightId } = await closedNight();
+      const stranger = await newPlayer(groupId, 'Stranger');
+
+      expect(
+        await savePayoutHandles({ groupId, nightId, playerId: stranger, ...handles }, owner),
+      ).toEqual({ kind: 'not-found' });
+    });
+
+    it('reports a bad username without saving', async () => {
+      const { groupId, ann, nightId } = await closedNight();
+
+      expect(
+        await savePayoutHandles(
+          { groupId, nightId, playerId: ann, venmo: 'not a username', zelle: '' },
+          owner,
+        ),
+      ).toEqual({ kind: 'invalid-handle', field: 'venmo' });
+    });
+  });
 
   it('marks and unmarks a pay-out once, logging each change', async () => {
     const { groupId, ann, nightId } = await closedNight();

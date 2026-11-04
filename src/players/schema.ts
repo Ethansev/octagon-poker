@@ -11,6 +11,8 @@ export const players = pgTable(
       .references(() => groups.id),
     name: text('name').notNull(),
     colorSlot: integer('color_slot').notNull(),
+    venmoHandle: text('venmo_handle'),
+    zelleHandle: text('zelle_handle'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

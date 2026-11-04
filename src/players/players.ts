@@ -1,12 +1,26 @@
 import { db } from '@/db/client';
 import { groups } from '@/groups/schema';
 import { nightEvents, nights, seats } from '@/nights/schema';
+import {
+  parsePaymentHandles,
+  type PaymentHandleField,
+  type PaymentHandles,
+} from '@/players/payment-handles';
 import { leastUsedSlot } from '@/players/player-color';
 import { players } from '@/players/schema';
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 export type Player = { id: string; groupId: string; name: string; colorSlot: number };
+
+export type Contact = Player & PaymentHandles;
+
+export type SaveContactResult =
+  | { kind: 'saved' }
+  | { kind: 'invalid-name' }
+  | { kind: 'name-taken' }
+  | { kind: 'invalid-handle'; field: PaymentHandleField }
+  | { kind: 'not-found' };
 
 export type AddPlayerResult =
   { kind: 'added'; player: Player } | { kind: 'exists'; player: Player } | { kind: 'invalid-name' };
@@ -24,6 +38,12 @@ const playerColumns = {
   groupId: players.groupId,
   name: players.name,
   colorSlot: players.colorSlot,
+};
+
+const contactColumns = {
+  ...playerColumns,
+  venmoHandle: players.venmoHandle,
+  zelleHandle: players.zelleHandle,
 };
 
 function normalizeName(raw: string): string {
@@ -85,6 +105,102 @@ export async function getPlayer(groupId: string, playerId: string): Promise<Play
   return player ?? null;
 }
 
+export async function listContacts(groupId: string): Promise<Contact[]> {
+  return db
+    .select(contactColumns)
+    .from(players)
+    .where(eq(players.groupId, groupId))
+    .orderBy(asc(players.name));
+}
+
+export async function listPaymentHandles(
+  groupId: string,
+  playerIds: string[],
+): Promise<Record<string, PaymentHandles>> {
+  if (playerIds.length === 0) return {};
+  const rows = await db
+    .select({
+      id: players.id,
+      venmoHandle: players.venmoHandle,
+      zelleHandle: players.zelleHandle,
+    })
+    .from(players)
+    .where(and(eq(players.groupId, groupId), inArray(players.id, playerIds)));
+  return Object.fromEntries(
+    rows.map((row) => [row.id, { venmoHandle: row.venmoHandle, zelleHandle: row.zelleHandle }]),
+  );
+}
+
+export async function updateContact(input: {
+  groupId: string;
+  playerId: string;
+  name: string;
+  venmo: string;
+  zelle: string;
+}): Promise<SaveContactResult> {
+  const name = normalizeName(input.name);
+  if (name.length === 0 || name.length > MAX_NAME_LENGTH) return { kind: 'invalid-name' };
+  const parsed = parsePaymentHandles(input);
+  if (parsed.kind === 'invalid') return { kind: 'invalid-handle', field: parsed.field };
+
+  return db.transaction(async (tx): Promise<SaveContactResult> => {
+    await tx
+      .select({ id: groups.id })
+      .from(groups)
+      .where(eq(groups.id, input.groupId))
+      .for('update');
+    const [taken] = await tx
+      .select({ id: players.id })
+      .from(players)
+      .where(
+        and(
+          eq(players.groupId, input.groupId),
+          ne(players.id, input.playerId),
+          sql`lower(${players.name}) = lower(${name})`,
+        ),
+      )
+      .limit(1);
+    if (taken) return { kind: 'name-taken' };
+
+    const updated = await tx
+      .update(players)
+      .set({ name, ...parsed.handles })
+      .where(and(eq(players.id, input.playerId), eq(players.groupId, input.groupId)))
+      .returning({ id: players.id });
+    return updated.length > 0 ? { kind: 'saved' } : { kind: 'not-found' };
+  });
+}
+
+export async function addContact(input: {
+  groupId: string;
+  name: string;
+  venmo: string;
+  zelle: string;
+}): Promise<SaveContactResult> {
+  const parsed = parsePaymentHandles(input);
+  if (parsed.kind === 'invalid') return { kind: 'invalid-handle', field: parsed.field };
+
+  const added = await addPlayer({ groupId: input.groupId, name: input.name });
+  if (added.kind === 'invalid-name') return { kind: 'invalid-name' };
+  if (added.kind === 'exists') return { kind: 'name-taken' };
+  await db.update(players).set(parsed.handles).where(eq(players.id, added.player.id));
+  return { kind: 'saved' };
+}
+
+export async function setHostPlayer(input: {
+  groupId: string;
+  playerId: string | null;
+}): Promise<{ kind: 'saved' } | { kind: 'not-found' }> {
+  if (input.playerId !== null && !(await getPlayer(input.groupId, input.playerId))) {
+    return { kind: 'not-found' };
+  }
+  await db
+    .update(groups)
+    .set({ ownerPlayerId: input.playerId })
+    .where(eq(groups.id, input.groupId));
+  return { kind: 'saved' };
+}
+
 export async function mergePlayers(input: {
   groupId: string;
   fromId: string;
@@ -95,11 +211,17 @@ export async function mergePlayers(input: {
 
   return db.transaction(async (tx): Promise<MergePlayersResult> => {
     const found = await tx
-      .select({ id: players.id })
+      .select({
+        id: players.id,
+        venmoHandle: players.venmoHandle,
+        zelleHandle: players.zelleHandle,
+      })
       .from(players)
       .where(and(eq(players.groupId, groupId), inArray(players.id, [fromId, intoId])))
       .for('update');
-    if (found.length !== 2) return { kind: 'not-found' };
+    const source = found.find((player) => player.id === fromId);
+    const destination = found.find((player) => player.id === intoId);
+    if (!source || !destination) return { kind: 'not-found' };
 
     const target = alias(seats, 'target_seats');
     const shared = await tx
@@ -117,7 +239,15 @@ export async function mergePlayers(input: {
       .update(nightEvents)
       .set({ actorPlayerId: intoId })
       .where(eq(nightEvents.actorPlayerId, fromId));
+    await tx.update(groups).set({ ownerPlayerId: intoId }).where(eq(groups.ownerPlayerId, fromId));
     await tx.delete(players).where(eq(players.id, fromId));
+    await tx
+      .update(players)
+      .set({
+        venmoHandle: destination.venmoHandle ?? source.venmoHandle,
+        zelleHandle: destination.zelleHandle ?? source.zelleHandle,
+      })
+      .where(eq(players.id, intoId));
     return { kind: 'merged' };
   });
 }

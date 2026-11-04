@@ -1,4 +1,4 @@
-import { getViewer, type Viewer } from '@/access/viewer';
+import { actorFor, getViewer, type Viewer } from '@/access/viewer';
 import { BooksCard } from '@/app/(group)/nights/[id]/books-card';
 import { loadNightResults } from '@/app/(group)/nights/[id]/load-night';
 import { MoneyFlow } from '@/app/(group)/nights/[id]/money-flow';
@@ -17,8 +17,8 @@ import { env } from '@/env';
 import { getGroup } from '@/groups/groups';
 import { centsToInput } from '@/money/money';
 import { getNight, type NightDetail } from '@/nights/nights';
-import { payoutPlan } from '@/nights/payouts';
-import { listPlayers, type Player } from '@/players/players';
+import { canSeePaymentHandles, payoutPlan } from '@/nights/payouts';
+import { listPaymentHandles, listPlayers, type Player } from '@/players/players';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
@@ -34,14 +34,21 @@ async function ClosedNight({
 }) {
   const results = await loadNightResults(viewer.group.id, night);
   const plan = payoutPlan(night.seats, night.bankPlayerId);
+  const handles =
+    plan && canSeePaymentHandles(actorFor(viewer), night.bankPlayerId)
+      ? await listPaymentHandles(
+          viewer.group.id,
+          plan.payouts.map((payout) => payout.playerId),
+        )
+      : null;
   return (
     <div className='grid gap-6 lg:grid-cols-12 lg:gap-8'>
-      <div className='space-y-6 lg:col-span-7'>
+      <div className='min-w-0 space-y-6 lg:col-span-7'>
         <WinnerDeck results={results} />
         <ResultChips seats={results.seats} />
       </div>
-      <div className='space-y-6 lg:col-span-5'>
-        {plan && <PayoutsCard nightId={night.id} plan={plan} />}
+      <div className='min-w-0 space-y-6 lg:col-span-5'>
+        {plan && <PayoutsCard nightId={night.id} plan={plan} handles={handles} />}
         <MoneyFlow seats={results.seats} potCents={results.potCents} />
         <NightFeed events={night.events} nightDate={night.date} players={players} />
       </div>
@@ -58,7 +65,6 @@ function OpenNight({
   night: NightDetail;
   players: Player[];
 }) {
-  const viewerPlayerId = viewer.role === 'member' ? viewer.playerId : null;
   return (
     <div className='space-y-6'>
       {viewer.role === 'member' && viewer.playerId === null && <WhoAreYou players={players} />}
@@ -68,7 +74,7 @@ function OpenNight({
         seats={night.seats.map(toSeatData)}
         bankPlayerId={night.bankPlayerId}
         players={players}
-        viewerPlayerId={viewerPlayerId}>
+        viewerPlayerId={viewer.playerId}>
         <BooksCard
           nightId={night.id}
           seats={night.seats}

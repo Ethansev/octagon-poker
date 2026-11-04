@@ -157,6 +157,16 @@ describe('feedLine', () => {
       expected: { kind: 'seat', playerId: 'ivy', text: 'Ivy got paid $70', by: 'Sid' },
     },
     {
+      name: 'a banker changing a player’s payment info',
+      input: event({
+        actorKind: 'member',
+        actorName: 'Sid',
+        action: 'player.payment',
+        detail: { playerId: 'ivy' },
+      }),
+      expected: { kind: 'seat', playerId: 'ivy', text: 'Ivy’s payment info changed', by: 'Sid' },
+    },
+    {
       name: 'a pay-out being taken back',
       input: event({ action: 'seat.unpaid', detail: { playerId: 'ivy', cents: 7000 } }),
       expected: {

@@ -1,4 +1,5 @@
-import { payoutPlan } from '@/nights/payouts';
+import type { Actor } from '@/access/viewer';
+import { canSeePaymentHandles, payoutPlan } from '@/nights/payouts';
 import { describe, expect, it } from 'vitest';
 
 const paidAt = new Date('2026-10-24T08:00:00Z');
@@ -55,5 +56,39 @@ describe('payoutPlan', () => {
     },
   ])('$name', ({ bank, seats, expected }) => {
     expect(payoutPlan(seats, bank)).toEqual(expected);
+  });
+});
+
+describe('canSeePaymentHandles', () => {
+  const rows: { name: string; actor: Actor; bank: string | null; expected: boolean }[] = [
+    { name: 'the host on any night', actor: { kind: 'owner' }, bank: 'sid', expected: true },
+    {
+      name: 'the player holding the bank',
+      actor: { kind: 'member', playerId: 'sid' },
+      bank: 'sid',
+      expected: true,
+    },
+    {
+      name: 'another player at the table',
+      actor: { kind: 'member', playerId: 'ivy' },
+      bank: 'sid',
+      expected: false,
+    },
+    {
+      name: 'someone who has not picked a name',
+      actor: { kind: 'member', playerId: null },
+      bank: 'sid',
+      expected: false,
+    },
+    {
+      name: 'someone with no name on a night with no bank',
+      actor: { kind: 'member', playerId: null },
+      bank: null,
+      expected: false,
+    },
+  ];
+
+  it.each(rows)('$name', ({ actor, bank, expected }) => {
+    expect(canSeePaymentHandles(actor, bank)).toBe(expected);
   });
 });

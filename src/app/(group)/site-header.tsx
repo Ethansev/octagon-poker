@@ -3,7 +3,7 @@ import { OctagonMark } from '@/components/octagon-mark';
 import { currentYearInGroup } from '@/dates/group-time';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/theme/theme-toggle';
-import { Gift, LogIn, Plus, Settings } from 'lucide-react';
+import { Gift, LogIn, Plus, Settings, Users } from 'lucide-react';
 import Link from 'next/link';
 
 const quietLink =
@@ -12,13 +12,22 @@ const quietLink =
 function AccountLink({ viewer }: { viewer: Viewer }) {
   if (viewer.role === 'owner') {
     return (
-      <Link
-        href='/settings'
-        aria-label='Settings'
-        className={cn(quietLink, 'w-10 lg:w-auto lg:px-4')}>
-        <Settings aria-hidden className='size-[18px]' />
-        <span className='hidden lg:inline'>Settings</span>
-      </Link>
+      <>
+        <Link
+          href='/players'
+          aria-label='Players'
+          className={cn(quietLink, 'hidden w-10 sm:inline-flex lg:w-auto lg:px-4')}>
+          <Users aria-hidden className='size-[18px]' />
+          <span className='hidden lg:inline'>Players</span>
+        </Link>
+        <Link
+          href='/settings'
+          aria-label='Settings'
+          className={cn(quietLink, 'w-10 lg:w-auto lg:px-4')}>
+          <Settings aria-hidden className='size-[18px]' />
+          <span className='hidden lg:inline'>Settings</span>
+        </Link>
+      </>
     );
   }
   return (
