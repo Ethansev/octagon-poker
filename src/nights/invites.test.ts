@@ -6,6 +6,7 @@ import {
   addComment,
   listComments,
   listRsvps,
+  nightDetailsLabel,
   removeComment,
   seesNightDetails,
   setRsvp,
@@ -221,5 +222,16 @@ describe('seesNightDetails', () => {
     expected: boolean;
   }[])('$name', ({ role, playerId, expected }) => {
     expect(seesNightDetails({ role, playerId }, rsvps)).toBe(expected);
+  });
+});
+
+describe('nightDetailsLabel', () => {
+  it.each([
+    { name: 'both', address: '1 Main St', notes: 'Buzz 3', expected: 'Location & notes' },
+    { name: 'only an address', address: '1 Main St', notes: null, expected: 'Location' },
+    { name: 'only notes', address: null, notes: 'Buzz 3', expected: 'Notes for guests' },
+    { name: 'neither', address: null, notes: null, expected: null },
+  ])('$name', ({ address, notes, expected }) => {
+    expect(nightDetailsLabel({ address, notes })).toBe(expected);
   });
 });

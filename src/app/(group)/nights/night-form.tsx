@@ -231,7 +231,7 @@ export function NightForm({
 
       <div className='flex flex-col gap-2.5'>
         <Label htmlFor={`${id}-notes`}>
-          Parking and notes <OptionalTag />
+          Notes for guests <OptionalTag />
         </Label>
         <Input
           id={`${id}-notes`}

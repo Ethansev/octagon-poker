@@ -2,7 +2,7 @@ import { getViewer } from '@/access/viewer';
 import { BackLink } from '@/app/(group)/back-link';
 import { InviteReply } from '@/app/(group)/nights/[id]/invite-reply';
 import { formatShortNightDate } from '@/nights/dates';
-import { listRsvps, seesNightDetails } from '@/nights/invites';
+import { listRsvps, nightDetailsLabel, seesNightDetails } from '@/nights/invites';
 import { getNight } from '@/nights/nights';
 import { Lock, Navigation } from 'lucide-react';
 import { notFound } from 'next/navigation';
@@ -23,7 +23,8 @@ export default async function NightLocationPage({ params }: { params: Promise<{ 
     getNight(viewer.group.id, id.data),
     listRsvps(id.data),
   ]);
-  if (!night || (night.address === null && night.notes === null)) notFound();
+  const label = night && nightDetailsLabel(night);
+  if (!night || !label) notFound();
 
   const current = rsvps.find((rsvp) => rsvp.playerId === viewer.playerId)?.response ?? null;
   const unlocked = seesNightDetails(viewer, rsvps);
@@ -34,7 +35,7 @@ export default async function NightLocationPage({ params }: { params: Promise<{ 
       <BackLink href={`/nights/${night.id}?view=invite`}>Back to the invite</BackLink>
       <section className='mt-5 rounded-panel bg-hero p-6 text-hero-ink shadow-hero sm:p-10'>
         <p className='text-xs font-extrabold tracking-[0.14em] text-hero-muted uppercase'>
-          Location &amp; parking · {formatShortNightDate(night.date)}
+          {label} · {formatShortNightDate(night.date)}
         </p>
         <h1 className='mt-3 text-4xl leading-tight font-bold tracking-tight break-words sm:text-5xl'>
           {night.location ?? 'Where we’re playing'}
@@ -57,7 +58,7 @@ export default async function NightLocationPage({ params }: { params: Promise<{ 
             {night.notes && (
               <div className='mt-7 border-t border-current/15 pt-5'>
                 <h2 className='text-xs font-extrabold tracking-[0.14em] text-hero-muted uppercase'>
-                  Parking and notes
+                  Notes for guests
                 </h2>
                 <p className='mt-2 text-lg font-semibold break-words'>{night.notes}</p>
               </div>
@@ -67,7 +68,7 @@ export default async function NightLocationPage({ params }: { params: Promise<{ 
           <>
             <p className='mt-6 flex items-center gap-2 font-semibold text-hero-muted'>
               <Lock aria-hidden className='size-4 shrink-0' />
-              Say you’re in to see the address and parking.
+              Say you’re in to see the details.
             </p>
             {canReply && (
               <div className='mt-5'>

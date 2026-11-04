@@ -141,3 +141,12 @@ export function seesNightDetails(
   if (viewer.role === 'owner') return true;
   return rsvps.some((rsvp) => rsvp.playerId === viewer.playerId && rsvp.response === 'going');
 }
+
+export function nightDetailsLabel(night: {
+  address: string | null;
+  notes: string | null;
+}): string | null {
+  if (night.address !== null && night.notes !== null) return 'Location & notes';
+  if (night.address !== null) return 'Location';
+  return night.notes === null ? null : 'Notes for guests';
+}

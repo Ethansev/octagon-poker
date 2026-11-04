@@ -9,7 +9,7 @@ import { OctagonMark } from '@/components/octagon-mark';
 import { todayInGroup } from '@/dates/group-time';
 import { formatDollars } from '@/money/money';
 import { formatNightTime, formatShortNightDate, nightCountdown } from '@/nights/dates';
-import type { NightComment, NightRsvp } from '@/nights/invites';
+import { nightDetailsLabel, type NightComment, type NightRsvp } from '@/nights/invites';
 import type { NightPhase } from '@/nights/night-phase';
 import type { NightDetail } from '@/nights/nights';
 import { firstName } from '@/players/first-name';
@@ -160,7 +160,7 @@ export function NightInvite({ viewer, night, phase, players, rsvps, comments }: 
   const host = players.find((player) => player.id === viewer.group.ownerPlayerId);
   const current = rsvps.find((rsvp) => rsvp.playerId === viewer.playerId)?.response ?? null;
   const going = rsvps.filter((rsvp) => rsvp.response === 'going');
-  const hasDetails = night.address !== null || night.notes !== null;
+  const detailsLabel = nightDetailsLabel(night);
   const countdown = phase === 'upcoming' ? nightCountdown(night.date, todayInGroup()) : null;
   const headline = whenAndWhere(night);
   const facts = [
@@ -189,9 +189,9 @@ export function NightInvite({ viewer, night, phase, players, rsvps, comments }: 
               <p className='mt-3 text-base font-semibold text-hero-muted'>{facts.join(' · ')}</p>
             )}
             <div className='mt-4 flex flex-wrap gap-2'>
-              {hasDetails && (
+              {detailsLabel && (
                 <Link href={`/nights/${night.id}/location`} className={heroChip}>
-                  <MapPin aria-hidden className='size-4' /> Location &amp; parking
+                  <MapPin aria-hidden className='size-4' /> {detailsLabel}
                 </Link>
               )}
               {phase === 'upcoming' && (

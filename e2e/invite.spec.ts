@@ -57,9 +57,9 @@ test('a friend replies to an invite, unlocks the address, and comments', async (
   expect(html).not.toContain(ADDRESS);
   expect(html).not.toContain(NOTES);
 
-  await page.getByRole('link', { name: 'Location & parking' }).click();
+  await page.getByRole('link', { name: 'Location & notes' }).click();
   await expect(page).toHaveURL(`/nights/${nightId}/location`);
-  await expect(page.getByText('Say you’re in to see the address and parking.')).toBeVisible();
+  await expect(page.getByText('Say you’re in to see the details.')).toBeVisible();
   html = await page.content();
   expect(html).not.toContain(ADDRESS);
   expect(html).not.toContain(NOTES);
@@ -83,7 +83,7 @@ test('a friend replies to an invite, unlocks the address, and comments', async (
   expect(html).not.toContain(ADDRESS);
   expect(html).not.toContain(NOTES);
 
-  await page.getByRole('link', { name: 'Location & parking' }).click();
+  await page.getByRole('link', { name: 'Location & notes' }).click();
   await expect(page.getByText(ADDRESS)).toBeVisible();
   await expect(page.getByText(NOTES)).toBeVisible();
   await expect(page.getByRole('link', { name: 'Directions' })).toHaveAttribute(
@@ -136,7 +136,7 @@ test('other friends can’t see an address or delete someone else’s comment', 
   await expect(ben.page.getByRole('button', { name: 'Delete comment' })).toHaveCount(0);
   expect(await ben.page.content()).not.toContain(ADDRESS);
   await ben.page.goto(`/nights/${nightId}/location`);
-  await expect(ben.page.getByText('Say you’re in to see the address and parking.')).toBeVisible();
+  await expect(ben.page.getByText('Say you’re in to see the details.')).toBeVisible();
   expect(await ben.page.content()).not.toContain(ADDRESS);
   await ben.page.getByRole('button', { name: 'I’m in' }).click();
   await expect(ben.page.getByText(ADDRESS)).toBeVisible();
@@ -170,7 +170,7 @@ test('the host lands on the table, sees the address, and sets it from the form',
 
   await page.getByRole('link', { name: 'Invite', exact: true }).click();
   await expect(page.getByText(/tap “This is me”/)).toBeVisible();
-  await page.getByRole('link', { name: 'Location & parking' }).click();
+  await page.getByRole('link', { name: 'Location & notes' }).click();
   await expect(page.getByText(ADDRESS)).toBeVisible();
   await page.getByRole('link', { name: 'Back to the invite' }).click();
 
@@ -185,7 +185,7 @@ test('the host lands on the table, sees the address, and sets it from the form',
   await dialog.getByLabel(/Address/).fill('99 New Street');
   await dialog.getByRole('button', { name: 'Save details' }).click();
   await expect(dialog).toBeHidden();
-  await page.getByRole('link', { name: 'Location & parking' }).click();
+  await page.getByRole('link', { name: 'Location & notes' }).click();
   await expect(page.getByText('99 New Street')).toBeVisible();
 });
 
@@ -198,4 +198,35 @@ test('an address never reaches a link preview', async ({ request }) => {
     expect(html, path).not.toContain(ADDRESS);
     expect(html, path).not.toContain(NOTES);
   }
+});
+
+test('the notes section only shows when there are notes', async ({ page }) => {
+  const { inviteCode, groupId } = await seedInvite();
+  const { id: addressOnly } = await createNight(
+    {
+      groupId,
+      date: daysFromNow(20),
+      location: 'Ava’s',
+      address: ADDRESS,
+      buyInCents: 2000,
+    },
+    OWNER,
+  );
+  const { id: bare } = await createNight(
+    { groupId, date: daysFromNow(21), location: 'Ben’s', buyInCents: 2000 },
+    OWNER,
+  );
+
+  await page.goto(`/join/${inviteCode}`);
+  await page.goto(`/nights/${addressOnly}`);
+  await iAm(page, 'Ava Stone');
+  await page.getByRole('button', { name: 'I’m in' }).click();
+  await page.getByRole('link', { name: 'Location', exact: true }).click();
+  await expect(page.getByText(ADDRESS)).toBeVisible();
+  await expect(page.getByText('Notes for guests')).toHaveCount(0);
+
+  await page.goto(`/nights/${bare}`);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Location|Notes/ })).toHaveCount(0);
+  expect((await page.goto(`/nights/${bare}/location`))?.status()).toBe(404);
 });
