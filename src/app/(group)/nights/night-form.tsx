@@ -13,7 +13,14 @@ import { useActionState, useEffect, useId, useState } from 'react';
 type NightFormResult =
   NightFormInvalid | { kind: 'saved' } | { kind: 'night-closed' } | { kind: 'not-found' };
 
-type NightFields = { date: string; time: string; location: string; buyIn: string };
+type NightFields = {
+  date: string;
+  time: string;
+  location: string;
+  address: string;
+  notes: string;
+  buyIn: string;
+};
 
 type NightFormProps = {
   action: (formData: FormData) => Promise<NightFormResult>;
@@ -29,6 +36,8 @@ const fieldMessages = {
   date: 'Pick a valid date',
   time: 'Pick a valid time',
   location: 'Keep the location under 80 characters',
+  address: 'Keep the address under 160 characters',
+  notes: 'Keep the note under 200 characters',
   buyIn: 'Enter an amount like 20 or 20.50',
 };
 
@@ -42,6 +51,8 @@ function useNightFields(defaults: NightFields) {
     setDate: set('date'),
     setTime: set('time'),
     setLocation: set('location'),
+    setAddress: set('address'),
+    setNotes: set('notes'),
     setBuyIn: set('buyIn'),
     buyInCents: parsedBuyIn.kind === 'amount' ? parsedBuyIn.cents : null,
   };
@@ -121,7 +132,8 @@ export function NightForm({
   onSaved,
 }: NightFormProps) {
   const id = useId();
-  const { fields, setDate, setTime, setLocation, setBuyIn, buyInCents } = useNightFields(defaults);
+  const { fields, setDate, setTime, setLocation, setAddress, setNotes, setBuyIn, buyInCents } =
+    useNightFields(defaults);
   const { result, submit, pending, invalidField } = useNightSubmit(action, onSaved);
   const errorId = (field: keyof NightFields) => `${id}-${field}-error`;
 
@@ -195,6 +207,47 @@ export function NightForm({
               </QuickPick>
             ))}
           </QuickPicks>
+        )}
+      </div>
+
+      <div className='flex flex-col gap-2.5'>
+        <Label htmlFor={`${id}-address`}>
+          Address <OptionalTag />
+        </Label>
+        <Input
+          id={`${id}-address`}
+          name='address'
+          value={fields.address}
+          onChange={(event) => setAddress(event.target.value)}
+          placeholder='1420 Valencia St, San Francisco'
+          autoComplete='off'
+          aria-invalid={invalidField === 'address'}
+          aria-describedby={invalidField === 'address' ? errorId('address') : undefined}
+        />
+        {invalidField === 'address' && (
+          <FieldError id={errorId('address')}>{fieldMessages.address}</FieldError>
+        )}
+      </div>
+
+      <div className='flex flex-col gap-2.5'>
+        <Label htmlFor={`${id}-notes`}>
+          Notes for guests <OptionalTag />
+        </Label>
+        <Input
+          id={`${id}-notes`}
+          name='notes'
+          value={fields.notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder='Buzz #3, street parking, bring your own drinks'
+          autoComplete='off'
+          aria-invalid={invalidField === 'notes'}
+          aria-describedby={invalidField === 'notes' ? errorId('notes') : undefined}
+        />
+        <p className='text-sm font-semibold text-ink-2'>
+          The address and notes only show to people who say they’re in.
+        </p>
+        {invalidField === 'notes' && (
+          <FieldError id={errorId('notes')}>{fieldMessages.notes}</FieldError>
         )}
       </div>
 

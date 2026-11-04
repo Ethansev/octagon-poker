@@ -28,7 +28,14 @@ import { toast } from 'sonner';
 type NightOwnerActionsProps = {
   nightId: string;
   status: 'open' | 'closed';
-  details: { date: string; time: string; location: string; buyIn: string };
+  details: {
+    date: string;
+    time: string;
+    location: string;
+    address: string;
+    notes: string;
+    buyIn: string;
+  };
 };
 
 const pill =

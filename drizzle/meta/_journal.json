@@ -57,6 +57,13 @@
       "when": 1793830293515,
       "tag": "0007_player_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793831469739,
+      "tag": "0008_night_invites",
+      "breakpoints": true
     }
   ]
 }

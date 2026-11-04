@@ -140,3 +140,10 @@ export async function removePlayerPhotoAction(playerId: string): Promise<void> {
   await removePlayerPhoto({ groupId: viewer.group.id, playerId: id.data });
   revalidatePath('/', 'layout');
 }
+
+export async function forgetMeAction(): Promise<void> {
+  await requireViewer();
+  const jar = await cookies();
+  jar.delete(PLAYER_COOKIE);
+  revalidatePath('/', 'layout');
+}

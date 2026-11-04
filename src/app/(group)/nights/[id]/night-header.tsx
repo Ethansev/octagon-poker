@@ -1,4 +1,3 @@
-import { BackLink } from '@/app/(group)/back-link';
 import { formatDollars } from '@/money/money';
 import { formatNightDate, formatNightTime } from '@/nights/dates';
 import type { NightPhase } from '@/nights/night-phase';
@@ -12,7 +11,6 @@ type NightHeaderProps = {
   potCents: number;
   playerCount: number;
   buyInCents: number | null;
-  actions: React.ReactNode;
 };
 
 function StatusPill({ phase }: { phase: NightPhase }) {
@@ -49,7 +47,6 @@ export function NightHeader({
   potCents,
   playerCount,
   buyInCents,
-  actions,
 }: NightHeaderProps) {
   const stats = [
     ...(phase === 'upcoming' ? [] : [{ label: 'pot', value: formatDollars(potCents) }]),
@@ -61,12 +58,7 @@ export function NightHeader({
 
   return (
     <>
-      <div className='flex items-center justify-between gap-3'>
-        <BackLink href='/'>All nights</BackLink>
-        {actions}
-      </div>
-
-      <header className='mt-5 flex flex-col gap-4 lg:mt-6 lg:flex-row lg:items-end lg:justify-between'>
+      <header className='flex flex-col gap-4 lg:mt-6 lg:flex-row lg:items-end lg:justify-between'>
         <div className='min-w-0'>
           <div className='flex flex-wrap items-center gap-2'>
             <StatusPill phase={phase} />

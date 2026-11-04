@@ -9,7 +9,7 @@ import { Flag, Landmark, LockOpen, Pencil, Play, Sparkle } from 'lucide-react';
 
 const SHOWN_EVENTS = 7;
 
-function formatEventTime(createdAt: Date, nightDate: string): string {
+export function formatEventTime(createdAt: Date, nightDate: string): string {
   const time = timeInGroup(createdAt);
   if (dateInGroup(createdAt) === nightDate) return time;
   const day = createdAt.toLocaleDateString('en-US', {

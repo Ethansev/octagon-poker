@@ -4,6 +4,7 @@ import {
   formatShortNightDate,
   isRealDate,
   isRealTime,
+  nightCountdown,
   nightDateParts,
   timeInputValue,
 } from '@/nights/dates';
@@ -78,5 +79,16 @@ describe('timeInputValue', () => {
     { name: 'the seconds are dropped', value: '20:30:00', expected: '20:30' },
   ])('$name', ({ value, expected }) => {
     expect(timeInputValue(value)).toBe(expected);
+  });
+});
+
+describe('nightCountdown', () => {
+  it.each([
+    { name: 'the same day', date: '2026-11-21', expected: 'Tonight' },
+    { name: 'the next day', date: '2026-11-22', expected: 'Tomorrow' },
+    { name: 'across a daylight saving change', date: '2026-11-30', expected: 'In 9 days' },
+    { name: 'a night already past', date: '2026-11-20', expected: null },
+  ])('$name', ({ date, expected }) => {
+    expect(nightCountdown(date, '2026-11-21')).toBe(expected);
   });
 });

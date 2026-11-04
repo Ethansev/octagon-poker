@@ -37,7 +37,7 @@ test('a future night reads as upcoming and doesn’t hide a live one', async ({ 
   await expect(page.getByRole('link', { name: /Live Kitchen is dealing/ })).toBeVisible();
   await expect(page.getByRole('link', { name: /Next game.*Next Kitchen/ })).toBeVisible();
 
-  await page.goto(`/nights/${nextId}`);
+  await page.goto(`/nights/${nextId}?view=table`);
   await expect(page.getByText('Upcoming', { exact: true })).toBeVisible();
   await expect(page.getByText(/8:30pm/)).toBeVisible();
   await expect(page.getByText('Live', { exact: true })).toHaveCount(0);

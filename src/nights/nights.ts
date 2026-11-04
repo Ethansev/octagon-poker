@@ -35,6 +35,8 @@ export type NightDetail = {
   date: string;
   startTime: string | null;
   location: string | null;
+  address: string | null;
+  notes: string | null;
   buyInCents: number | null;
   status: 'open' | 'closed';
   bankPlayerId: string | null;
@@ -166,6 +168,8 @@ export async function createNight(
     date: string;
     startTime?: string | null;
     location: string | null;
+    address?: string | null;
+    notes?: string | null;
     buyInCents: number | null;
   },
   actor: Actor,
@@ -191,6 +195,8 @@ export async function createNight(
         date: input.date,
         startTime: input.startTime ?? null,
         location: input.location,
+        address: input.address ?? null,
+        notes: input.notes ?? null,
         buyInCents: input.buyInCents,
       })
       .returning({ id: nights.id });
@@ -211,6 +217,8 @@ export async function updateNight(
     date: string;
     startTime?: string | null;
     location: string | null;
+    address?: string | null;
+    notes?: string | null;
     buyInCents: number | null;
   },
   actor: Actor,
@@ -225,7 +233,14 @@ export async function updateNight(
       location: input.location,
       buyInCents: input.buyInCents,
     };
-    await tx.update(nights).set(after).where(eq(nights.id, night.id));
+    await tx
+      .update(nights)
+      .set({
+        ...after,
+        address: input.address === undefined ? night.address : input.address,
+        notes: input.notes === undefined ? night.notes : input.notes,
+      })
+      .where(eq(nights.id, night.id));
     await tx.insert(nightEvents).values({
       nightId: night.id,
       ...actorColumns(actor),
@@ -277,6 +292,8 @@ export async function getNight(groupId: string, nightId: string): Promise<NightD
     date: night.date,
     startTime: night.startTime,
     location: night.location,
+    address: night.address,
+    notes: night.notes,
     buyInCents: night.buyInCents,
     status: night.status,
     bankPlayerId: night.bankPlayerId,

@@ -55,3 +55,11 @@ export function formatNightTime(startTime: string): string {
   const shown = hour % 12 === 0 ? 12 : hour % 12;
   return match[2] === '00' ? `${shown}${period}` : `${shown}:${match[2]}${period}`;
 }
+
+export function nightCountdown(date: string, today: string): string | null {
+  const days = (Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000;
+  if (days < 0) return null;
+  if (days === 0) return 'Tonight';
+  if (days === 1) return 'Tomorrow';
+  return `In ${days} days`;
+}

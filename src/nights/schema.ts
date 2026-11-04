@@ -4,10 +4,12 @@ import { sql } from 'drizzle-orm';
 import {
   check,
   date,
+  index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   time,
   timestamp,
@@ -17,6 +19,7 @@ import {
 
 export const nightStatus = pgEnum('night_status', ['open', 'closed']);
 export const actorKind = pgEnum('actor_kind', ['owner', 'member']);
+export const nightResponse = pgEnum('night_response', ['going', 'maybe', 'out']);
 
 export const nights = pgTable('nights', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -26,6 +29,8 @@ export const nights = pgTable('nights', {
   date: date('date', { mode: 'string' }).notNull(),
   startTime: time('start_time', { precision: 0 }),
   location: text('location'),
+  address: text('address'),
+  notes: text('notes'),
   buyInCents: integer('buy_in_cents'),
   status: nightStatus('status').notNull().default('open'),
   bankPlayerId: uuid('bank_player_id').references(() => players.id, { onDelete: 'set null' }),
@@ -66,3 +71,32 @@ export const nightEvents = pgTable('night_events', {
   detail: jsonb('detail').notNull().default({}),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const nightRsvps = pgTable(
+  'night_rsvps',
+  {
+    nightId: uuid('night_id')
+      .notNull()
+      .references(() => nights.id, { onDelete: 'cascade' }),
+    playerId: uuid('player_id')
+      .notNull()
+      .references(() => players.id, { onDelete: 'cascade' }),
+    response: nightResponse('response').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.nightId, t.playerId] })],
+);
+
+export const nightComments = pgTable(
+  'night_comments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    nightId: uuid('night_id')
+      .notNull()
+      .references(() => nights.id, { onDelete: 'cascade' }),
+    playerId: uuid('player_id').references(() => players.id, { onDelete: 'set null' }),
+    body: text('body').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('night_comments_night_id_idx').on(t.nightId)],
+);

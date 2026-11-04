@@ -30,10 +30,15 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-export type NightFormInvalid = { kind: 'invalid'; field: 'date' | 'time' | 'location' | 'buyIn' };
+export type NightFormInvalid = {
+  kind: 'invalid';
+  field: 'date' | 'time' | 'location' | 'address' | 'notes' | 'buyIn';
+};
 export type SeatInvalid = { kind: 'invalid'; field: 'buyIn' | 'cashOut' };
 
 const MAX_LOCATION_LENGTH = 80;
+const MAX_ADDRESS_LENGTH = 160;
+const MAX_NOTES_LENGTH = 200;
 
 const idSchema = z.uuid();
 
@@ -49,6 +54,8 @@ type NightFields = {
   date: string;
   startTime: string | null;
   location: string | null;
+  address: string | null;
+  notes: string | null;
   buyInCents: number | null;
 };
 
@@ -64,6 +71,14 @@ function parseNightFields(formData: FormData): NightFields | NightFormInvalid {
   const location = rawLocation.success ? rawLocation.data.trim() : '';
   if (location.length > MAX_LOCATION_LENGTH) return { kind: 'invalid', field: 'location' };
 
+  const rawAddress = z.string().safeParse(formData.get('address') ?? '');
+  const address = rawAddress.success ? rawAddress.data.trim() : '';
+  if (address.length > MAX_ADDRESS_LENGTH) return { kind: 'invalid', field: 'address' };
+
+  const rawNotes = z.string().safeParse(formData.get('notes') ?? '');
+  const notes = rawNotes.success ? rawNotes.data.trim() : '';
+  if (notes.length > MAX_NOTES_LENGTH) return { kind: 'invalid', field: 'notes' };
+
   const rawBuyIn = z.string().safeParse(formData.get('buyIn') ?? '');
   const buyIn = parseDollars(rawBuyIn.success ? rawBuyIn.data : '');
   if (buyIn.kind === 'invalid') return { kind: 'invalid', field: 'buyIn' };
@@ -72,6 +87,8 @@ function parseNightFields(formData: FormData): NightFields | NightFormInvalid {
     date: date.data,
     startTime: time === '' ? null : time,
     location: location === '' ? null : location,
+    address: address === '' ? null : address,
+    notes: notes === '' ? null : notes,
     buyInCents: buyIn.kind === 'amount' ? buyIn.cents : null,
   };
 }

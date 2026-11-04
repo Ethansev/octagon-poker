@@ -1,6 +1,6 @@
 import { db } from '@/db/client';
 import { groups } from '@/groups/schema';
-import { nightEvents, nights, seats } from '@/nights/schema';
+import { nightComments, nightEvents, nightRsvps, nights, seats } from '@/nights/schema';
 import {
   parsePaymentHandles,
   type PaymentHandleField,
@@ -240,6 +240,19 @@ export async function mergePlayers(input: {
       .set({ actorPlayerId: intoId })
       .where(eq(nightEvents.actorPlayerId, fromId));
     await tx.update(groups).set({ ownerPlayerId: intoId }).where(eq(groups.ownerPlayerId, fromId));
+    await tx
+      .update(nightComments)
+      .set({ playerId: intoId })
+      .where(eq(nightComments.playerId, fromId));
+    await tx
+      .update(nightRsvps)
+      .set({ playerId: intoId })
+      .where(
+        and(
+          eq(nightRsvps.playerId, fromId),
+          sql`${nightRsvps.nightId} not in (select ${nightRsvps.nightId} from ${nightRsvps} where ${nightRsvps.playerId} = ${intoId})`,
+        ),
+      );
     const [destinationPhoto] = await tx
       .select({ playerId: playerPhotos.playerId })
       .from(playerPhotos)

@@ -37,6 +37,8 @@ export default async function NewNightPage() {
                 date: todayInGroup(),
                 time: timeInputValue(hints.last?.startTime ?? null),
                 location: '',
+                address: '',
+                notes: '',
                 buyIn: centsToInput(hints.last?.buyInCents ?? null),
               }}
               picks={hints.picks}
