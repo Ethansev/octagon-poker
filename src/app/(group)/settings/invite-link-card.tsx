@@ -1,5 +1,6 @@
 'use client';
 
+import { useCopyLink } from '@/access/use-copy-link';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,33 +15,8 @@ import {
 import { resetInviteAction } from '@/groups/actions';
 import { cn } from '@/lib/utils';
 import { Check, Copy, RotateCcw } from 'lucide-react';
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
-
-type CopyState = { kind: 'idle' } | { kind: 'copied' };
-
-const COPIED_FOR_MS = 2000;
-
-function useCopyLink(link: string) {
-  const [state, setState] = useState<CopyState>({ kind: 'idle' });
-
-  useEffect(() => {
-    if (state.kind !== 'copied') return;
-    const timer = setTimeout(() => setState({ kind: 'idle' }), COPIED_FOR_MS);
-    return () => clearTimeout(timer);
-  }, [state]);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(link);
-      setState({ kind: 'copied' });
-    } catch {
-      toast.error("Couldn't copy. Select the link and copy it by hand.");
-    }
-  }
-
-  return { state, copy };
-}
 
 function useResetLink(initial: string) {
   const [link, setLink] = useState(initial);
@@ -118,7 +94,7 @@ export function InviteLinkCard({ joinUrl }: { joinUrl: string }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Reset the group link?</AlertDialogTitle>
             <AlertDialogDescription>
-              Everyone using the old link loses edit access until they open the new one.
+              Everyone gets locked out until they open the new link or enter the group password.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

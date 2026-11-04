@@ -17,6 +17,7 @@ export default defineConfig({
       DATABASE_URL: process.env.TEST_DATABASE_URL ?? '',
       BETTER_AUTH_SECRET: 'test-secret-at-least-32-characters-long',
       BETTER_AUTH_URL: 'http://localhost:3410',
+      GROUP_PASSWORD: 'test-group-password',
     },
   },
 });

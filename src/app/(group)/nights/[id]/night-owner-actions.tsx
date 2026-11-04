@@ -32,7 +32,7 @@ type NightOwnerActionsProps = {
 };
 
 const pill =
-  'inline-flex h-10 cursor-pointer items-center gap-2 rounded-full border border-line bg-surface px-4 text-sm font-extrabold text-ink transition hover:border-ink-3 hover:bg-surface-2 focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex h-10 cursor-pointer w-10 items-center justify-center gap-2 rounded-full border border-line bg-surface text-sm font-extrabold text-ink sm:w-auto sm:px-4 transition hover:border-ink-3 hover:bg-surface-2 focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 
 function useNightStatusActions(nightId: string) {
   const [pending, startTransition] = useTransition();
@@ -61,9 +61,9 @@ function EditDetails({ nightId, details }: Omit<NightOwnerActionsProps, 'status'
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button type='button' className={pill}>
+        <button type='button' aria-label='Edit details' title='Edit details' className={pill}>
           <Pencil aria-hidden className='size-4' />
-          Edit details
+          <span className='hidden sm:inline'>Edit details</span>
         </button>
       </DialogTrigger>
       <DialogContent aria-describedby={undefined}>
@@ -123,9 +123,17 @@ export function NightOwnerActions({ nightId, status, details }: NightOwnerAction
       {status === 'open' ? (
         <EditDetails nightId={nightId} details={details} />
       ) : (
-        <button type='button' className={pill} disabled={actions.pending} onClick={actions.reopen}>
+        <button
+          type='button'
+          aria-label='Reopen night'
+          title='Reopen night'
+          className={pill}
+          disabled={actions.pending}
+          onClick={actions.reopen}>
           <RotateCcw aria-hidden className='size-4' />
-          {actions.pending ? 'Reopening…' : 'Reopen night'}
+          <span className='hidden sm:inline'>
+            {actions.pending ? 'Reopening…' : 'Reopen night'}
+          </span>
         </button>
       )}
       <DeleteNight pending={actions.pending} onConfirm={actions.remove} />

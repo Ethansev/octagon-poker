@@ -8,7 +8,7 @@ export default function SignInPage() {
     <BrandScreen>
       <BrandCard
         title='Welcome back, host'
-        body='Sign in to run the books. Everyone else just uses the group link.'
+        body='Sign in to run the books. Everyone else just needs the group password.'
         footer={
           <Link href='/' className={brandLinkClass}>
             <ArrowLeft aria-hidden className='size-4' strokeWidth={3} />

@@ -4,6 +4,7 @@ import { loadNightResults } from '@/app/(group)/nights/[id]/load-night';
 import { MoneyFlow } from '@/app/(group)/nights/[id]/money-flow';
 import { NightFeed } from '@/app/(group)/nights/[id]/night-feed';
 import { NightHeader } from '@/app/(group)/nights/[id]/night-header';
+import { NightInviteButton } from '@/app/(group)/nights/[id]/night-invite-button';
 import { NightOwnerActions } from '@/app/(group)/nights/[id]/night-owner-actions';
 import { nightPreviewCopy } from '@/app/(group)/nights/[id]/night-preview-copy';
 import { PayoutsCard } from '@/app/(group)/nights/[id]/payouts-card';
@@ -12,6 +13,7 @@ import { SeatBoard } from '@/app/(group)/nights/[id]/seat-board';
 import { toSeatData } from '@/app/(group)/nights/[id]/seat-data';
 import { WhoAreYou } from '@/app/(group)/nights/[id]/who-are-you';
 import { WinnerDeck } from '@/app/(group)/nights/[id]/winner-deck';
+import { env } from '@/env';
 import { getGroup } from '@/groups/groups';
 import { centsToInput } from '@/money/money';
 import { getNight, type NightDetail } from '@/nights/nights';
@@ -114,17 +116,24 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
         playerCount={night.seats.length}
         buyInCents={night.buyInCents}
         actions={
-          viewer.role === 'owner' && (
-            <NightOwnerActions
-              nightId={night.id}
+          <div className='flex flex-wrap items-center justify-end gap-2'>
+            <NightInviteButton
+              link={`${env.BETTER_AUTH_URL}/join/${viewer.group.inviteCode}?night=${night.id}`}
+              title={nightPreviewCopy(night).title}
               status={night.status}
-              details={{
-                date: night.date,
-                location: night.location ?? '',
-                buyIn: centsToInput(night.buyInCents),
-              }}
             />
-          )
+            {viewer.role === 'owner' && (
+              <NightOwnerActions
+                nightId={night.id}
+                status={night.status}
+                details={{
+                  date: night.date,
+                  location: night.location ?? '',
+                  buyIn: centsToInput(night.buyInCents),
+                }}
+              />
+            )}
+          </div>
         }
       />
       <div className='mt-8'>

@@ -1,4 +1,10 @@
-import { generateInviteCode, inviteCodeFrom, isMemberCode } from '@/access/invite';
+import {
+  generateInviteCode,
+  inviteCodeFrom,
+  isMemberCode,
+  landingPathFrom,
+  opensGroup,
+} from '@/access/invite';
 import { describe, expect, it } from 'vitest';
 
 describe('inviteCodeFrom', () => {
@@ -26,6 +32,41 @@ describe('inviteCodeFrom', () => {
     { name: 'nothing at all', pasted: '   ', expected: null },
   ])('$name', ({ pasted, expected }) => {
     expect(inviteCodeFrom(pasted)).toBe(expected);
+  });
+});
+
+describe('opensGroup', () => {
+  const current = 'current-code-aaaaaaaaaaa';
+  const access = { password: 'Hexagon', inviteCode: current };
+
+  it.each([
+    { name: 'the password as typed', entered: 'Hexagon', expected: true },
+    { name: 'the password a phone capitalized', entered: ' hexagon\n', expected: true },
+    { name: 'the current group link', entered: `https://x.com/join/${current}`, expected: true },
+    {
+      name: 'a group link from before a reset',
+      entered: 'https://x.com/join/old',
+      expected: false,
+    },
+    { name: 'a word that only starts the same', entered: 'hexagons', expected: false },
+    { name: 'a night link', entered: 'https://x.com/nights/abc', expected: false },
+    { name: 'nothing at all', entered: '  ', expected: false },
+  ])('$name', ({ entered, expected }) => {
+    expect(opensGroup(entered, access)).toBe(expected);
+  });
+});
+
+describe('landingPathFrom', () => {
+  it.each([
+    { name: 'a night page stays put', path: '/nights/abc-123', expected: '/nights/abc-123' },
+    { name: 'the home page stays put', path: '/', expected: '/' },
+    { name: 'the stale link page goes home', path: '/join/invalid', expected: '/' },
+    { name: 'another site goes home', path: 'https://evil.example', expected: '/' },
+    { name: 'a protocol-relative path goes home', path: '//evil.example', expected: '/' },
+    { name: 'a backslash path goes home', path: '/\\evil.example', expected: '/' },
+    { name: 'a path hiding a tab goes home', path: '/\t/evil.example', expected: '/' },
+  ])('$name', ({ path, expected }) => {
+    expect(landingPathFrom(path)).toBe(expected);
   });
 });
 

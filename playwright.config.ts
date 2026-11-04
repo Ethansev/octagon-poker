@@ -14,6 +14,7 @@ if (!TEST_DATABASE_URL) throw new Error('TEST_DATABASE_URL is not set');
 process.env.DATABASE_URL = TEST_DATABASE_URL;
 process.env.BETTER_AUTH_URL = BASE_URL;
 process.env.BETTER_AUTH_SECRET ??= 'e2e-secret-at-least-32-characters-long';
+process.env.GROUP_PASSWORD = 'e2e-group-password';
 
 export default defineConfig({
   testDir: 'e2e',
@@ -39,6 +40,7 @@ export default defineConfig({
       DATABASE_URL: TEST_DATABASE_URL,
       BETTER_AUTH_URL: BASE_URL,
       BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+      GROUP_PASSWORD: process.env.GROUP_PASSWORD,
     },
   },
 });

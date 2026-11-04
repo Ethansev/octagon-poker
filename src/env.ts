@@ -13,6 +13,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   BETTER_AUTH_SECRET: z.string().min(1),
   BETTER_AUTH_URL: z.string().min(1),
+  GROUP_PASSWORD: z.string().trim().min(1),
   GROUP_TIME_ZONE: z
     .string()
     .refine(isTimeZone, 'must be an IANA time zone')
@@ -37,6 +38,9 @@ export const env: Env = {
   },
   get BETTER_AUTH_URL() {
     return read().BETTER_AUTH_URL;
+  },
+  get GROUP_PASSWORD() {
+    return read().GROUP_PASSWORD;
   },
   get GROUP_TIME_ZONE() {
     return read().GROUP_TIME_ZONE;

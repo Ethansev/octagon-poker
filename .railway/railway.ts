@@ -27,6 +27,7 @@ export default defineRailway(() => {
       BETTER_AUTH_URL: preserve(),
       GROUP_TIME_ZONE: 'America/Los_Angeles',
       GROUP_NAME: preserve(),
+      GROUP_PASSWORD: preserve(),
       OWNER_EMAIL: preserve(),
       OWNER_PASSWORD: preserve(),
     },

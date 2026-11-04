@@ -52,7 +52,7 @@ test('a shared night previews as the invite, then as the result', async ({ reque
 
   const invite = await crawl(request, `/nights/${nightId}`);
   expect(invite.title).toBe('Poker night · Sat, Oct 17 at Test Kitchen');
-  expect(invite.html).toContain('Ask for the group link');
+  expect(invite.html).toContain('What’s the password?');
   expect(invite.html).not.toContain('Ava');
 
   await setBank({ groupId: group.id, nightId, playerId: benId }, OWNER);
@@ -71,6 +71,9 @@ test('a shared night previews as the invite, then as the result', async ({ reque
   for (const url of missing) {
     expect((await request.get(url)).status(), url).toBe(404);
   }
+
+  const nightInvite = await crawl(request, `/join/${inviteCode}?night=${nightId}`);
+  expect(nightInvite.title).toBe('Ava takes it! · Octagon Poker');
 
   const groupInvite = await crawl(request, `/join/${inviteCode}`);
   expect(groupInvite.title).toBe('You’re invited to Octagon Poker');
