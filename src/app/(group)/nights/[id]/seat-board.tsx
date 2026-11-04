@@ -1,6 +1,8 @@
 'use client';
 
 import { AddPlayerTile } from '@/app/(group)/nights/[id]/add-player-tile';
+import { quickAddOrder } from '@/app/(group)/nights/[id]/quick-add-order';
+import { QuickAddTile } from '@/app/(group)/nights/[id]/quick-add-tile';
 import { SeatCard } from '@/app/(group)/nights/[id]/seat-card';
 import type { SeatData } from '@/app/(group)/nights/[id]/seat-data';
 import { SeatEditor } from '@/app/(group)/nights/[id]/seat-editor';
@@ -23,6 +25,7 @@ type SeatBoardProps = {
   seats: SeatData[];
   bankPlayerId: string | null;
   players: Player[];
+  recentPlayerIds: string[];
   viewerPlayerId: string | null;
   children: React.ReactNode;
 };
@@ -49,6 +52,7 @@ export function SeatBoard({
   seats,
   bankPlayerId,
   players,
+  recentPlayerIds,
   viewerPlayerId,
   children,
 }: SeatBoardProps) {
@@ -105,15 +109,25 @@ export function SeatBoard({
               </li>
             ))}
             <li>
-              <AddPlayerTile
-                ref={addTileRef}
-                available={available}
-                allNames={players.map((player) => player.name)}
-                onPick={(player) => {
-                  addDraft(player);
-                  selection.open(player.id, 'buyIn');
-                }}
-              />
+              {stepCents === null ? (
+                <AddPlayerTile
+                  ref={addTileRef}
+                  available={available}
+                  allNames={players.map((player) => player.name)}
+                  onPick={(player) => {
+                    addDraft(player);
+                    selection.open(player.id, 'buyIn');
+                  }}
+                />
+              ) : (
+                <QuickAddTile
+                  ref={addTileRef}
+                  nightId={nightId}
+                  buyInCents={stepCents}
+                  available={quickAddOrder(available, recentPlayerIds)}
+                  allNames={players.map((player) => player.name)}
+                />
+              )}
             </li>
           </ul>
         </section>

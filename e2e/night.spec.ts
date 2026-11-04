@@ -1,3 +1,6 @@
+import { getGroup } from '@/groups/groups';
+import { createNight } from '@/nights/nights';
+import { addPlayer as addPlayerRecord } from '@/players/players';
 import { expect, test, type Page } from '@playwright/test';
 import { seedGroup, signInAsHost } from './seed';
 
@@ -5,6 +8,8 @@ async function addPlayer(page: Page, name: string, existing: boolean) {
   await page.getByRole('button', { name: 'Add player' }).click();
   await page.getByPlaceholder('Search or add a name').fill(name);
   await page.getByRole('option', { name: existing ? name : `Add “${name}”` }).click();
+  await page.getByRole('button', { name: 'Add 1 player' }).click();
+  await expect(seatCard(page, name)).toContainText('$20 in');
 }
 
 function seatForm(page: Page, name: string) {
@@ -45,11 +50,8 @@ test('a night goes from deal to delete', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Hey, who are you?' })).toBeHidden();
 
   await addPlayer(page, 'Ava', true);
-  await lockIn(page, 'Ava', '$20 in');
   await addPlayer(page, 'Ben', false);
-  await lockIn(page, 'Ben', '$20 in');
   await addPlayer(page, 'Cal', false);
-  await lockIn(page, 'Cal', '$20 in');
 
   await page.getByRole('combobox', { name: 'Who’s holding the bank' }).click();
   await page.getByRole('option', { name: 'Ben' }).click();
@@ -106,4 +108,52 @@ test('a night goes from deal to delete', async ({ page }) => {
   await host.getByRole('alertdialog').getByRole('button', { name: 'Delete night' }).click();
   await expect(host).toHaveURL('/');
   await expect(host.getByText('Test Kitchen')).toHaveCount(0);
+});
+
+test('adding several players at once seats them all at the buy-in', async ({ page }) => {
+  const { inviteCode } = await seedGroup();
+  const group = await getGroup();
+  await addPlayerRecord({ groupId: group.id, name: 'Ava' });
+  await addPlayerRecord({ groupId: group.id, name: 'Ben' });
+  const { id } = await createNight(
+    { groupId: group.id, date: '2026-10-17', location: 'Test Kitchen', buyInCents: 2000 },
+    { kind: 'owner' },
+  );
+
+  await page.goto(`/join/${inviteCode}`);
+  await page.goto(`/nights/${id}`);
+  await page.getByRole('button', { name: 'Add player' }).click();
+  await page.getByRole('option', { name: 'Ava' }).click();
+  await page.getByRole('option', { name: 'Ben' }).click();
+  await page.getByPlaceholder('Search or add a name').fill('Cal');
+  await page.getByRole('option', { name: 'Add “Cal”' }).click();
+  await expect(page.getByRole('option', { name: /Cal/ })).toBeVisible();
+  await page.getByRole('option', { name: 'Ben' }).click();
+  await page.getByRole('option', { name: 'Ben' }).click();
+  await page.getByRole('button', { name: 'Add 3 players' }).click();
+
+  for (const name of ['Ava', 'Ben', 'Cal']) {
+    await expect(seatCard(page, name)).toContainText('$20 in');
+  }
+  await page.reload();
+  for (const name of ['Ava', 'Ben', 'Cal']) {
+    await expect(seatCard(page, name)).toContainText('$20 in');
+  }
+  await expect(page.getByText('Ben sat down with $20')).toBeVisible();
+});
+
+test('a night with no typical buy-in still adds one player at a time', async ({ page }) => {
+  const { inviteCode } = await seedGroup();
+  const group = await getGroup();
+  await addPlayerRecord({ groupId: group.id, name: 'Ava' });
+  const { id } = await createNight(
+    { groupId: group.id, date: '2026-10-17', location: 'Test Kitchen', buyInCents: null },
+    { kind: 'owner' },
+  );
+
+  await page.goto(`/join/${inviteCode}`);
+  await page.goto(`/nights/${id}`);
+  await page.getByRole('button', { name: 'Add player' }).click();
+  await page.getByRole('option', { name: 'Ava' }).click();
+  await expect(seatForm(page, 'Ava')).toBeVisible();
 });

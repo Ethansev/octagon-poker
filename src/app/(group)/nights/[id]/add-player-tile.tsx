@@ -13,7 +13,7 @@ import { addPlayerAction } from '@/players/actions';
 import { PlayerAvatar } from '@/players/player-avatar';
 import type { Player } from '@/players/players';
 import { Plus, UserPlus } from 'lucide-react';
-import type { Ref } from 'react';
+import type { ComponentProps, Ref } from 'react';
 import { useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -70,6 +70,20 @@ function useAddPlayer(allNames: string[], onPick: (player: Player) => void) {
   };
 }
 
+export function AddPlayerButton(props: ComponentProps<'button'>) {
+  return (
+    <button
+      type='button'
+      className='group flex h-full min-h-36 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-card border-2 border-dashed border-line p-4 text-sm font-extrabold text-ink-2 transition hover:border-ink-3 hover:bg-surface-2 hover:text-ink focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none'
+      {...props}>
+      <span className='grid size-11 place-items-center rounded-full bg-surface-3 transition group-hover:bg-ink group-hover:text-surface motion-reduce:transition-none'>
+        <Plus aria-hidden className='size-5' strokeWidth={3} />
+      </span>
+      Add player
+    </button>
+  );
+}
+
 export function AddPlayerTile({ available, allNames, onPick, ref }: AddPlayerTileProps) {
   const add = useAddPlayer(allNames, onPick);
   const needle = add.typed.toLowerCase();
@@ -78,16 +92,7 @@ export function AddPlayerTile({ available, allNames, onPick, ref }: AddPlayerTil
   return (
     <Popover open={add.open} onOpenChange={add.setOpen}>
       <PopoverTrigger asChild>
-        <button
-          ref={ref}
-          type='button'
-          disabled={add.pending}
-          className='group flex h-full min-h-36 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-card border-2 border-dashed border-line p-4 text-sm font-extrabold text-ink-2 transition hover:border-ink-3 hover:bg-surface-2 hover:text-ink focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none'>
-          <span className='grid size-11 place-items-center rounded-full bg-surface-3 transition group-hover:bg-ink group-hover:text-surface motion-reduce:transition-none'>
-            <Plus aria-hidden className='size-5' strokeWidth={3} />
-          </span>
-          Add player
-        </button>
+        <AddPlayerButton ref={ref} disabled={add.pending} />
       </PopoverTrigger>
       <PopoverContent
         align='start'

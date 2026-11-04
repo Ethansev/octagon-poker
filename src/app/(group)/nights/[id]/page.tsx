@@ -16,7 +16,7 @@ import { WinnerDeck } from '@/app/(group)/nights/[id]/winner-deck';
 import { env } from '@/env';
 import { getGroup } from '@/groups/groups';
 import { centsToInput } from '@/money/money';
-import { getNight, type NightDetail } from '@/nights/nights';
+import { getNight, listRecentPlayerIds, type NightDetail } from '@/nights/nights';
 import { canSeePaymentHandles, payoutPlan } from '@/nights/payouts';
 import { listPaymentHandles, listPlayers, type Player } from '@/players/players';
 import type { Metadata } from 'next';
@@ -60,10 +60,12 @@ function OpenNight({
   viewer,
   night,
   players,
+  recentPlayerIds,
 }: {
   viewer: Viewer;
   night: NightDetail;
   players: Player[];
+  recentPlayerIds: string[];
 }) {
   return (
     <div className='space-y-6'>
@@ -74,6 +76,7 @@ function OpenNight({
         seats={night.seats.map(toSeatData)}
         bankPlayerId={night.bankPlayerId}
         players={players}
+        recentPlayerIds={recentPlayerIds}
         viewerPlayerId={viewer.playerId}>
         <BooksCard
           nightId={night.id}
@@ -106,9 +109,10 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
   const id = z.uuid().safeParse((await params).id);
   if (!id.success) notFound();
 
-  const [night, players] = await Promise.all([
+  const [night, players, recentPlayerIds] = await Promise.all([
     getNight(viewer.group.id, id.data),
     listPlayers(viewer.group.id),
+    listRecentPlayerIds(viewer.group.id),
   ]);
   if (!night) notFound();
 
@@ -146,7 +150,12 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
         {night.status === 'closed' ? (
           <ClosedNight viewer={viewer} night={night} players={players} />
         ) : (
-          <OpenNight viewer={viewer} night={night} players={players} />
+          <OpenNight
+            viewer={viewer}
+            night={night}
+            players={players}
+            recentPlayerIds={recentPlayerIds}
+          />
         )}
       </div>
     </div>

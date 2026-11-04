@@ -4,6 +4,7 @@ import { actorFor, requireOwner, requireViewer } from '@/access/viewer';
 import { parseDollars } from '@/money/money';
 import { isRealDate } from '@/nights/dates';
 import type {
+  AddSeatsResult,
   CloseNightResult,
   MarkPaidResult,
   RemoveSeatResult,
@@ -13,6 +14,7 @@ import type {
   UpsertSeatResult,
 } from '@/nights/nights';
 import {
+  addSeats,
   closeNight,
   createNight,
   deleteNight,
@@ -126,6 +128,21 @@ export async function saveSeatAction(input: {
     },
     actorFor(viewer),
   );
+  refreshNight(parsed.data.nightId);
+  return result;
+}
+
+export async function addSeatsAction(input: {
+  nightId: string;
+  playerIds: string[];
+}): Promise<AddSeatsResult> {
+  const viewer = await requireViewer();
+  const parsed = z
+    .object({ nightId: z.uuid(), playerIds: z.array(z.uuid()).min(1).max(100) })
+    .safeParse(input);
+  if (!parsed.success) return { kind: 'not-found' };
+
+  const result = await addSeats({ groupId: viewer.group.id, ...parsed.data }, actorFor(viewer));
   refreshNight(parsed.data.nightId);
   return result;
 }

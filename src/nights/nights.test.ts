@@ -3,6 +3,7 @@ import { db } from '@/db/client';
 import { resetDb } from '@/db/test-db';
 import { newGroup } from '@/groups/test-group';
 import {
+  addSeats,
   closeNight,
   createNight,
   deleteNight,
@@ -10,6 +11,7 @@ import {
   listClosedNights,
   listNights,
   listOutstandingPayouts,
+  listRecentPlayerIds,
   markPaid,
   removeSeat,
   reopenNight,
@@ -294,6 +296,96 @@ describe('seating', () => {
     const night = await getNight(groupId, nightId);
     expect(night).toMatchObject({ date: '2026-03-08', location: 'Ivy’s', buyInCents: 1000 });
     expect(night?.events[0]).toMatchObject({ action: 'night.update' });
+  });
+});
+
+describe('adding several players at once', () => {
+  it('seats them at the night’s buy-in and logs each one', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+
+    const result = await addSeats({ groupId, nightId, playerIds: [ann, ivy, ann] }, owner);
+
+    expect(result).toEqual({ kind: 'added', count: 2 });
+    const night = await getNight(groupId, nightId);
+    expect(night?.seats.map((s) => [s.playerName, s.buyInCents, s.cashOutCents])).toEqual([
+      ['Ann', 2000, null],
+      ['Ivy', 2000, null],
+    ]);
+    const events = await db.select().from(nightEvents).where(eq(nightEvents.action, 'seat.add'));
+    expect(events).toHaveLength(2);
+    expect(events.map((event) => event.detail)).toContainEqual({
+      playerId: ann,
+      before: null,
+      after: { buyInCents: 2000, cashOutCents: null },
+    });
+  });
+
+  it('leaves someone already seated exactly as they were', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    await seat(groupId, nightId, ann, 5000, null);
+
+    const result = await addSeats({ groupId, nightId, playerIds: [ann, ivy] }, owner);
+
+    expect(result).toEqual({ kind: 'added', count: 1 });
+    const night = await getNight(groupId, nightId);
+    expect(night?.seats.find((s) => s.playerId === ann)?.buyInCents).toBe(5000);
+    const events = await db.select().from(nightEvents).where(eq(nightEvents.action, 'seat.add'));
+    expect(events).toHaveLength(2);
+  });
+
+  it('refuses a closed night', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    await seat(groupId, nightId, ann, 2000, 2000);
+    await closeWithBank(groupId, nightId, ann);
+
+    expect(await addSeats({ groupId, nightId, playerIds: [ivy] }, owner)).toEqual({
+      kind: 'night-closed',
+    });
+  });
+
+  it('refuses a night with no typical buy-in', async () => {
+    const { groupId, ann } = await setup();
+    const { id: nightId } = await createNight(
+      { groupId, date: '2026-03-14', location: null, buyInCents: null },
+      owner,
+    );
+
+    expect(await addSeats({ groupId, nightId, playerIds: [ann] }, owner)).toEqual({
+      kind: 'no-buy-in',
+    });
+  });
+
+  it('refuses the whole batch if a player is from another group', async () => {
+    const { groupId, ann, nightId } = await setup();
+    const otherGroupId = await newGroup('Saturday');
+    const stranger = await newPlayer(otherGroupId, 'Stranger');
+
+    expect(await addSeats({ groupId, nightId, playerIds: [ann, stranger] }, owner)).toEqual({
+      kind: 'not-found',
+    });
+    expect((await getNight(groupId, nightId))?.seats).toEqual([]);
+  });
+});
+
+describe('recent players', () => {
+  it('lists whoever played most recently first, and leaves out people who never sat', async () => {
+    const { groupId, ann, ivy, nightId } = await setup();
+    const zed = await newPlayer(groupId, 'Zed');
+    await newPlayer(groupId, 'Never');
+    const { id: later } = await createNight(
+      { groupId, date: '2026-04-01', location: null, buyInCents: null },
+      owner,
+    );
+    await seat(groupId, nightId, ann, 2000, null);
+    await seat(groupId, nightId, zed, 2000, null);
+    await seat(groupId, later, ivy, 2000, null);
+    await seat(groupId, later, ann, 2000, null);
+
+    const recent = await listRecentPlayerIds(groupId);
+
+    expect(recent).toHaveLength(3);
+    expect(recent.at(-1)).toBe(zed);
+    expect(recent.slice(0, 2).sort()).toEqual([ann, ivy].sort());
   });
 });
 

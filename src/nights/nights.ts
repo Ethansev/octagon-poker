@@ -82,6 +82,12 @@ export type OutstandingNight = {
 export type MarkPaidResult =
   { kind: 'saved' } | { kind: 'nothing-owed' } | { kind: 'night-open' } | { kind: 'not-found' };
 
+export type AddSeatsResult =
+  | { kind: 'added'; count: number }
+  | { kind: 'not-found' }
+  | { kind: 'night-closed' }
+  | { kind: 'no-buy-in' };
+
 export type SavePayoutHandlesResult =
   | { kind: 'saved' }
   | { kind: 'not-found' }
@@ -327,6 +333,57 @@ export async function upsertSeat(
     });
     return { kind: 'saved', updatedAt };
   });
+}
+
+export async function addSeats(
+  input: { groupId: string; nightId: string; playerIds: string[] },
+  actor: Actor,
+): Promise<AddSeatsResult> {
+  return db.transaction(async (tx): Promise<AddSeatsResult> => {
+    const night = await lockNight(tx, input.groupId, input.nightId);
+    if (!night) return { kind: 'not-found' };
+    if (night.status === 'closed') return { kind: 'night-closed' };
+    const { buyInCents } = night;
+    if (buyInCents === null) return { kind: 'no-buy-in' };
+
+    const playerIds = [...new Set(input.playerIds)];
+    const found = await tx
+      .select({ id: players.id })
+      .from(players)
+      .where(and(eq(players.groupId, input.groupId), inArray(players.id, playerIds)));
+    if (found.length !== playerIds.length) return { kind: 'not-found' };
+
+    const after: Cents = { buyInCents, cashOutCents: null };
+    const added = await tx
+      .insert(seats)
+      .values(
+        playerIds.map((playerId) => ({ nightId: night.id, playerId, ...after, updatedAt: msNow })),
+      )
+      .onConflictDoNothing()
+      .returning({ playerId: seats.playerId });
+    if (added.length > 0) {
+      await tx.insert(nightEvents).values(
+        added.map(({ playerId }) => ({
+          nightId: night.id,
+          ...actorColumns(actor),
+          action: 'seat.add',
+          detail: { playerId, before: null, after },
+        })),
+      );
+    }
+    return { kind: 'added', count: added.length };
+  });
+}
+
+export async function listRecentPlayerIds(groupId: string): Promise<string[]> {
+  const rows = await db
+    .select({ playerId: seats.playerId })
+    .from(seats)
+    .innerJoin(nights, eq(nights.id, seats.nightId))
+    .where(eq(nights.groupId, groupId))
+    .groupBy(seats.playerId)
+    .orderBy(sql`max(${nights.date}) desc`);
+  return rows.map((row) => row.playerId);
 }
 
 export async function removeSeat(
