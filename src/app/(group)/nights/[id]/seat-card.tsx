@@ -52,7 +52,15 @@ function UnsavedChip() {
   );
 }
 
-function SeatSummary({ seat, unsaved }: { seat: SeatData; unsaved: boolean }) {
+function SeatSummary({
+  seat,
+  unsaved,
+  upcoming,
+}: {
+  seat: SeatData;
+  unsaved: boolean;
+  upcoming: boolean;
+}) {
   return (
     <>
       <span className='block w-full text-xs font-bold text-ink-2 tabular-nums'>
@@ -87,7 +95,7 @@ export function SeatCard({
 }: SeatCardProps) {
   const color = playerColor(seat.colorSlot);
   const isNew = seat.updatedAt === null;
-  const waiting = !isNew && seat.cashOutCents === null;
+  const waiting = !isNew && !upcoming && seat.cashOutCents === null;
 
   return (
     <button
@@ -135,7 +143,11 @@ export function SeatCard({
           )}
         </span>
       </span>
-      {isNew ? <NewSeatSummary /> : <SeatSummary seat={seat} unsaved={unsaved} />}
+      {isNew ? (
+        <NewSeatSummary />
+      ) : (
+        <SeatSummary seat={seat} unsaved={unsaved} upcoming={upcoming} />
+      )}
     </button>
   );
 }

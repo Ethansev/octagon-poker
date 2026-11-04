@@ -89,7 +89,9 @@ test('a night goes from deal to delete', async ({ page }) => {
   await expect(host.getByRole('heading', { name: 'Ben owes $80' })).toBeVisible();
   await host.getByRole('button', { name: 'Mark paid for Ava' }).click();
   await expect(host.getByRole('heading', { name: 'Ben owes $10' })).toBeVisible();
+  const saved = host.waitForResponse((response) => response.request().method() === 'POST');
   await host.getByRole('button', { name: 'Mark paid for Cal' }).click();
+  await saved;
   await expect(host.getByRole('heading', { name: 'Ben paid everyone out' })).toBeVisible();
   await host.reload();
   await expect(host.getByRole('heading', { name: 'Ben paid everyone out' })).toBeVisible();
