@@ -2,6 +2,8 @@ import { JoinForm } from '@/access/join-form';
 import { getViewer } from '@/access/viewer';
 import { SiteHeader } from '@/app/(group)/site-header';
 import { BrandCard, brandLinkClass, BrandScreen } from '@/components/brand-card';
+import { listPlayerPhotoUrls } from '@/players/player-photos';
+import { PlayerPhotosProvider } from '@/players/player-photos-context';
 import Link from 'next/link';
 
 function AskForThePassword() {
@@ -26,9 +28,9 @@ export default async function GroupLayout({ children }: { children: React.ReactN
   if (!viewer) return <AskForThePassword />;
 
   return (
-    <>
+    <PlayerPhotosProvider photos={await listPlayerPhotoUrls(viewer.group.id)}>
       <SiteHeader viewer={viewer} />
       <main>{children}</main>
-    </>
+    </PlayerPhotosProvider>
   );
 }

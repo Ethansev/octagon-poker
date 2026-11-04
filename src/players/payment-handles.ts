@@ -3,8 +3,7 @@ export type PaymentHandles = { venmoHandle: string | null; zelleHandle: string |
 export type PaymentHandleField = 'venmo' | 'zelle';
 
 export type ParsedPaymentHandles =
-  | { kind: 'ok'; handles: PaymentHandles }
-  | { kind: 'invalid'; field: PaymentHandleField };
+  { kind: 'ok'; handles: PaymentHandles } | { kind: 'invalid'; field: PaymentHandleField };
 
 const venmoPattern = /^[A-Za-z0-9_-]{1,30}$/;
 const MAX_ZELLE_LENGTH = 80;

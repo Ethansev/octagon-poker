@@ -1,6 +1,10 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { initials } from '@/players/initials';
 import { playerColor } from '@/players/player-color';
+import { usePlayerPhoto } from '@/players/player-photos-context';
+import Image from 'next/image';
 
 type PlayerAvatarProps = {
   colorSlot: number;
@@ -21,6 +25,7 @@ export function PlayerAvatar({
 }: PlayerAvatarProps) {
   const color = playerColor(colorSlot);
   const letters = initials(name);
+  const photo = usePlayerPhoto(name);
   const muted = tone === 'muted';
 
   return (
@@ -43,7 +48,18 @@ export function PlayerAvatar({
             ? `0 0 0 ${ring}px var(--ring-gap), 0 0 0 ${ring * 2}px ${muted ? 'var(--ring-muted)' : color.glow}`
             : undefined,
       }}>
-      {letters}
+      {photo ? (
+        <Image
+          unoptimized
+          src={photo}
+          alt=''
+          width={size}
+          height={size}
+          className='size-full rounded-full object-cover'
+        />
+      ) : (
+        letters
+      )}
     </span>
   );
 }

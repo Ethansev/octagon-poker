@@ -1,5 +1,6 @@
 'use client';
 
+import { PhotoField } from '@/app/(group)/players/photo-field';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -73,6 +74,7 @@ export function ContactDialog({ contact, trigger }: ContactDialogProps) {
         <DialogHeader>
           <DialogTitle>{contact ? `Edit ${contact.name}` : 'Add a player'}</DialogTitle>
         </DialogHeader>
+        {contact && <PhotoField contact={contact} />}
         <form onSubmit={onSubmit} className='flex flex-col gap-4'>
           <div className='flex flex-col gap-1.5'>
             <Label htmlFor={`${idPrefix}-name`}>Name</Label>

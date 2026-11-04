@@ -50,6 +50,13 @@
       "when": 1793827342756,
       "tag": "0006_night_start_time",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793830293515,
+      "tag": "0007_player_photos",
+      "breakpoints": true
     }
   ]
 }

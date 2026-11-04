@@ -7,7 +7,7 @@ import {
   type PaymentHandles,
 } from '@/players/payment-handles';
 import { leastUsedSlot } from '@/players/player-color';
-import { players } from '@/players/schema';
+import { playerPhotos, players } from '@/players/schema';
 import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
@@ -240,6 +240,16 @@ export async function mergePlayers(input: {
       .set({ actorPlayerId: intoId })
       .where(eq(nightEvents.actorPlayerId, fromId));
     await tx.update(groups).set({ ownerPlayerId: intoId }).where(eq(groups.ownerPlayerId, fromId));
+    const [destinationPhoto] = await tx
+      .select({ playerId: playerPhotos.playerId })
+      .from(playerPhotos)
+      .where(eq(playerPhotos.playerId, intoId));
+    if (!destinationPhoto) {
+      await tx
+        .update(playerPhotos)
+        .set({ playerId: intoId })
+        .where(eq(playerPhotos.playerId, fromId));
+    }
     await tx.delete(players).where(eq(players.id, fromId));
     await tx
       .update(players)

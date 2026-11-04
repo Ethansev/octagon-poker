@@ -2,6 +2,7 @@
 
 import { accessCookieOptions, PLAYER_COOKIE } from '@/access/cookies';
 import { requireOwner, requireViewer } from '@/access/viewer';
+import { removePlayerPhoto, savePlayerPhoto, type SavePhotoResult } from '@/players/player-photos';
 import type { AddPlayerResult, MergePlayersResult, SaveContactResult } from '@/players/players';
 import {
   addContact,
@@ -111,4 +112,31 @@ export async function setHostPlayerAction(
   const result = await setHostPlayer({ groupId: viewer.group.id, playerId: parsed.data });
   revalidatePath('/', 'layout');
   return result;
+}
+
+export async function savePlayerPhotoAction(
+  playerId: string,
+  formData: FormData,
+): Promise<SavePhotoResult | InvalidInput> {
+  const viewer = await requireOwner();
+  const id = idSchema.safeParse(playerId);
+  const file = formData.get('photo');
+  if (!id.success || !(file instanceof File)) return { kind: 'invalid-input' };
+
+  const result = await savePlayerPhoto({
+    groupId: viewer.group.id,
+    playerId: id.data,
+    jpeg: Buffer.from(await file.arrayBuffer()),
+  });
+  revalidatePath('/', 'layout');
+  return result;
+}
+
+export async function removePlayerPhotoAction(playerId: string): Promise<void> {
+  const viewer = await requireOwner();
+  const id = idSchema.safeParse(playerId);
+  if (!id.success) return;
+
+  await removePlayerPhoto({ groupId: viewer.group.id, playerId: id.data });
+  revalidatePath('/', 'layout');
 }
