@@ -5,16 +5,19 @@ import { MoneyFlow } from '@/app/(group)/nights/[id]/money-flow';
 import { NightFeed } from '@/app/(group)/nights/[id]/night-feed';
 import { NightHeader } from '@/app/(group)/nights/[id]/night-header';
 import { NightOwnerActions } from '@/app/(group)/nights/[id]/night-owner-actions';
+import { nightPreviewCopy } from '@/app/(group)/nights/[id]/night-preview-copy';
 import { PayoutsCard } from '@/app/(group)/nights/[id]/payouts-card';
 import { ResultChips } from '@/app/(group)/nights/[id]/result-chips';
 import { SeatBoard } from '@/app/(group)/nights/[id]/seat-board';
 import { toSeatData } from '@/app/(group)/nights/[id]/seat-data';
 import { WhoAreYou } from '@/app/(group)/nights/[id]/who-are-you';
 import { WinnerDeck } from '@/app/(group)/nights/[id]/winner-deck';
+import { getGroup } from '@/groups/groups';
 import { centsToInput } from '@/money/money';
 import { getNight, type NightDetail } from '@/nights/nights';
 import { payoutPlan } from '@/nights/payouts';
 import { listPlayers, type Player } from '@/players/players';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 
@@ -74,6 +77,18 @@ function OpenNight({
       </SeatBoard>
     </div>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const id = z.uuid().safeParse((await params).id);
+  if (!id.success) return {};
+  const group = await getGroup();
+  const night = await getNight(group.id, id.data);
+  return night ? { openGraph: nightPreviewCopy(night) } : {};
 }
 
 export default async function NightPage({ params }: { params: Promise<{ id: string }> }) {

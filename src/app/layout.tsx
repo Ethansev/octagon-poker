@@ -13,6 +13,12 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: 'Octagon Poker',
   description: 'Private record book for our home game',
+  metadataBase: process.env.BETTER_AUTH_URL ? new URL(process.env.BETTER_AUTH_URL) : null,
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: 'You’re invited to Octagon Poker',
+    description: 'The private record book for our home game',
+  },
   appleWebApp: { title: 'Octagon', statusBarStyle: 'default' },
 };
 
