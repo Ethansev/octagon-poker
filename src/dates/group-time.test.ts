@@ -1,4 +1,4 @@
-import { dateInGroup, timeInGroup, yearInGroup } from '@/dates/group-time';
+import { clockInGroup, dateInGroup, timeInGroup, yearInGroup } from '@/dates/group-time';
 import { describe, expect, it } from 'vitest';
 
 const LA = 'America/Los_Angeles';
@@ -69,5 +69,30 @@ describe('timeInGroup', () => {
     },
   ])('$name', ({ instant, zone, expected }) => {
     expect(timeInGroup(new Date(instant), zone)).toBe(expected);
+  });
+});
+
+describe('clockInGroup', () => {
+  it.each([
+    {
+      name: 'an evening in Los Angeles reads on a 24-hour clock',
+      instant: '2026-10-18T03:30:00Z',
+      zone: LA,
+      expected: '20:30',
+    },
+    {
+      name: 'midnight reads as 00, not 24',
+      instant: '2026-10-18T07:00:00Z',
+      zone: LA,
+      expected: '00:00',
+    },
+    {
+      name: 'the same instant reads differently in another zone',
+      instant: '2026-10-18T03:30:00Z',
+      zone: 'UTC',
+      expected: '03:30',
+    },
+  ])('$name', ({ instant, zone, expected }) => {
+    expect(clockInGroup(new Date(instant), zone)).toBe(expected);
   });
 });

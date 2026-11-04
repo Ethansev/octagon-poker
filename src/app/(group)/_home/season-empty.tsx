@@ -7,7 +7,7 @@ type EmptyReason =
   { kind: 'open-only' } | { kind: 'quiet-season'; year: number } | { kind: 'no-nights' };
 
 function emptyReason(home: HomeView): EmptyReason {
-  if (home.openNight) return { kind: 'open-only' };
+  if (home.openNight && home.scope.kind !== 'past') return { kind: 'open-only' };
   if (home.scope.kind === 'past') return { kind: 'quiet-season', year: home.scope.year };
   return { kind: 'no-nights' };
 }

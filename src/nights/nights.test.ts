@@ -859,6 +859,7 @@ describe('lists and delete', () => {
       {
         id: open.id,
         date: '2026-03-14',
+        startTime: null,
         location: 'Zed’s',
         buyInCents: null,
         status: 'open',
@@ -867,6 +868,7 @@ describe('lists and delete', () => {
       {
         id: nightId,
         date: '2026-03-07',
+        startTime: null,
         location: 'Ann’s',
         buyInCents: 2000,
         status: 'closed',

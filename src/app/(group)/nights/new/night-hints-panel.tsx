@@ -3,6 +3,7 @@ import { formatDollars } from '@/money/money';
 import { formatNightDate } from '@/nights/dates';
 import { joinNames } from '@/nights/names';
 import type { NightHints } from '@/nights/night-hints';
+import { nightPhase } from '@/nights/night-phase';
 import type { NightSummary } from '@/nights/nights';
 import { firstName } from '@/players/first-name';
 import { ArrowRight } from 'lucide-react';
@@ -11,17 +12,26 @@ import Link from 'next/link';
 const kicker = 'text-xs font-extrabold tracking-[0.14em] uppercase';
 
 function OpenNightNote({ night }: { night: NightSummary }) {
+  const upcoming = nightPhase(night, new Date()) === 'upcoming';
   return (
     <Link
       href={`/nights/${night.id}`}
       className='group flex cursor-pointer items-center gap-4 rounded-card bg-surface p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-lift focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none motion-reduce:transition-none sm:p-6'>
       <div className='min-w-0 flex-1'>
-        <p className={`inline-flex items-center gap-2 text-live ${kicker}`}>
-          <LiveDot />
-          Still live · {formatNightDate(night.date)}
-        </p>
+        {upcoming ? (
+          <p className={`text-ink-2 ${kicker}`}>Coming up · {formatNightDate(night.date)}</p>
+        ) : (
+          <p className={`inline-flex items-center gap-2 text-live ${kicker}`}>
+            <LiveDot />
+            Still live · {formatNightDate(night.date)}
+          </p>
+        )}
         <p className='mt-1.5 text-lg leading-snug font-bold tracking-tight'>
-          {night.location ? `${night.location} hasn’t closed yet` : 'A night hasn’t closed yet'}
+          {upcoming
+            ? `${night.location ?? 'A night'} is already on the calendar`
+            : night.location
+              ? `${night.location} hasn’t closed yet`
+              : 'A night hasn’t closed yet'}
         </p>
         <p className='mt-0.5 text-sm font-semibold text-ink-2'>
           Logging seats for that one? Head there instead.
@@ -71,7 +81,7 @@ function LastTimeCard({ night }: { night: NightSummary }) {
 }
 
 const steps = [
-  { title: 'Deal the night', body: 'Date, spot and the usual buy-in. That’s all it takes.' },
+  { title: 'Deal the night', body: 'Date, time, spot and the usual buy-in. That’s all it takes.' },
   {
     title: 'Everyone grabs a seat',
     body: 'Each player logs their own buy-ins and rebuys from their phone.',

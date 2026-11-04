@@ -4,6 +4,7 @@ import { NewNightForm } from '@/app/(group)/nights/new/new-night-form';
 import { NightHintsPanel } from '@/app/(group)/nights/new/night-hints-panel';
 import { todayInGroup } from '@/dates/group-time';
 import { centsToInput } from '@/money/money';
+import { timeInputValue } from '@/nights/dates';
 import { nightHints } from '@/nights/night-hints';
 import { listNights } from '@/nights/nights';
 import { notFound } from 'next/navigation';
@@ -28,12 +29,13 @@ export default async function NewNightPage() {
             Deal a new night
           </h1>
           <p className='mt-3 max-w-[48ch] text-base font-semibold text-ink-2'>
-            Set the date and the spot. Seats come next, and everyone adds their own.
+            Set the date and the spot, then send the invite. Seats come next.
           </p>
           <div className='mt-8 border-t border-line pt-8'>
             <NewNightForm
               defaults={{
                 date: todayInGroup(),
+                time: timeInputValue(hints.last?.startTime ?? null),
                 location: '',
                 buyIn: centsToInput(hints.last?.buyInCents ?? null),
               }}

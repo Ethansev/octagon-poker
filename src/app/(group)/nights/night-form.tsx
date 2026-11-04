@@ -13,7 +13,7 @@ import { useActionState, useEffect, useId, useState } from 'react';
 type NightFormResult =
   NightFormInvalid | { kind: 'saved' } | { kind: 'night-closed' } | { kind: 'not-found' };
 
-type NightFields = { date: string; location: string; buyIn: string };
+type NightFields = { date: string; time: string; location: string; buyIn: string };
 
 type NightFormProps = {
   action: (formData: FormData) => Promise<NightFormResult>;
@@ -27,6 +27,7 @@ type NightFormProps = {
 
 const fieldMessages = {
   date: 'Pick a valid date',
+  time: 'Pick a valid time',
   location: 'Keep the location under 80 characters',
   buyIn: 'Enter an amount like 20 or 20.50',
 };
@@ -39,6 +40,7 @@ function useNightFields(defaults: NightFields) {
   return {
     fields,
     setDate: set('date'),
+    setTime: set('time'),
     setLocation: set('location'),
     setBuyIn: set('buyIn'),
     buyInCents: parsedBuyIn.kind === 'amount' ? parsedBuyIn.cents : null,
@@ -119,7 +121,7 @@ export function NightForm({
   onSaved,
 }: NightFormProps) {
   const id = useId();
-  const { fields, setDate, setLocation, setBuyIn, buyInCents } = useNightFields(defaults);
+  const { fields, setDate, setTime, setLocation, setBuyIn, buyInCents } = useNightFields(defaults);
   const { result, submit, pending, invalidField } = useNightSubmit(action, onSaved);
   const errorId = (field: keyof NightFields) => `${id}-${field}-error`;
 
@@ -127,22 +129,40 @@ export function NightForm({
     <form action={submit} className='flex flex-col gap-6'>
       {nightId !== null && <input type='hidden' name='nightId' value={nightId} />}
 
-      <div className='flex flex-col gap-2.5'>
-        <Label htmlFor={`${id}-date`}>When</Label>
-        <Input
-          id={`${id}-date`}
-          name='date'
-          type='date'
-          required
-          value={fields.date}
-          onChange={(event) => setDate(event.target.value)}
-          aria-invalid={invalidField === 'date'}
-          aria-describedby={invalidField === 'date' ? errorId('date') : undefined}
-          className='sm:max-w-60'
-        />
-        {invalidField === 'date' && (
-          <FieldError id={errorId('date')}>{fieldMessages.date}</FieldError>
-        )}
+      <div className='grid gap-6 sm:grid-cols-2 sm:gap-4'>
+        <div className='flex min-w-0 flex-col gap-2.5'>
+          <Label htmlFor={`${id}-date`}>When</Label>
+          <Input
+            id={`${id}-date`}
+            name='date'
+            type='date'
+            required
+            value={fields.date}
+            onChange={(event) => setDate(event.target.value)}
+            aria-invalid={invalidField === 'date'}
+            aria-describedby={invalidField === 'date' ? errorId('date') : undefined}
+          />
+          {invalidField === 'date' && (
+            <FieldError id={errorId('date')}>{fieldMessages.date}</FieldError>
+          )}
+        </div>
+        <div className='flex min-w-0 flex-col gap-2.5'>
+          <Label htmlFor={`${id}-time`}>
+            Starts at <OptionalTag />
+          </Label>
+          <Input
+            id={`${id}-time`}
+            name='time'
+            type='time'
+            value={fields.time}
+            onChange={(event) => setTime(event.target.value)}
+            aria-invalid={invalidField === 'time'}
+            aria-describedby={invalidField === 'time' ? errorId('time') : undefined}
+          />
+          {invalidField === 'time' && (
+            <FieldError id={errorId('time')}>{fieldMessages.time}</FieldError>
+          )}
+        </div>
       </div>
 
       <div className='flex flex-col gap-2.5'>

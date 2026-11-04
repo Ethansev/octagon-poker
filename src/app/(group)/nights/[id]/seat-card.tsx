@@ -12,11 +12,15 @@ type SeatCardProps = {
   isBank: boolean;
   selected: boolean;
   unsaved: boolean;
+  upcoming: boolean;
   onOpen: () => void;
 };
 
-function SeatOutcome({ seat }: { seat: SeatData }) {
+function SeatOutcome({ seat, upcoming }: { seat: SeatData; upcoming: boolean }) {
   const net = seatNetCents(seat);
+  if (net === null && upcoming) {
+    return <span className='text-sm font-extrabold text-ink-2'>Saved a seat</span>;
+  }
   if (net === null) {
     return (
       <span className='inline-flex items-center gap-1.5 text-sm font-extrabold text-pending'>
@@ -56,7 +60,7 @@ function SeatSummary({ seat, unsaved }: { seat: SeatData; unsaved: boolean }) {
         {seat.cashOutCents !== null && ` · ${formatDollars(seat.cashOutCents)} out`}
       </span>
       <span className='mt-auto flex w-full flex-wrap items-center justify-between gap-2'>
-        <SeatOutcome seat={seat} />
+        <SeatOutcome seat={seat} upcoming={upcoming} />
         {unsaved && <UnsavedChip />}
       </span>
     </>
@@ -72,7 +76,15 @@ function NewSeatSummary() {
   );
 }
 
-export function SeatCard({ seat, isYou, isBank, selected, unsaved, onOpen }: SeatCardProps) {
+export function SeatCard({
+  seat,
+  isYou,
+  isBank,
+  selected,
+  unsaved,
+  upcoming,
+  onOpen,
+}: SeatCardProps) {
   const color = playerColor(seat.colorSlot);
   const isNew = seat.updatedAt === null;
   const waiting = !isNew && seat.cashOutCents === null;

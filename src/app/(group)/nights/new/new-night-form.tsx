@@ -8,7 +8,7 @@ export function NewNightForm({
   defaults,
   picks,
 }: {
-  defaults: { date: string; location: string; buyIn: string };
+  defaults: { date: string; time: string; location: string; buyIn: string };
   picks: NightPicks;
 }) {
   return (

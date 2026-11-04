@@ -1,0 +1,1 @@
+ALTER TABLE "nights" ADD COLUMN "start_time" time(0);

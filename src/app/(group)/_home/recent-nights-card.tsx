@@ -12,7 +12,7 @@ const SHOWN = 8;
 
 function NightRow({ night }: { night: RecentNight }) {
   const { month, day, weekday } = nightDateParts(night.date);
-  const open = night.status === 'open';
+  const open = night.phase === 'live';
   return (
     <li>
       <Link
@@ -38,6 +38,8 @@ function NightRow({ night }: { night: RecentNight }) {
                 <LiveDot />
                 Live now
               </span>
+            ) : night.phase === 'upcoming' ? (
+              'Upcoming'
             ) : night.winners.length > 0 ? (
               <>
                 <span aria-hidden>🏆 </span>

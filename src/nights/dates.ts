@@ -36,3 +36,22 @@ export function formatShortNightDate(value: string): string {
     day: 'numeric',
   });
 }
+
+const clockPattern = /^([01]\d|2[0-3]):([0-5]\d)(?::\d{2})?$/;
+
+export function isRealTime(value: string): boolean {
+  return clockPattern.test(value);
+}
+
+export function timeInputValue(startTime: string | null): string {
+  return startTime === null ? '' : startTime.slice(0, 5);
+}
+
+export function formatNightTime(startTime: string): string {
+  const match = clockPattern.exec(startTime);
+  if (!match) return startTime;
+  const hour = Number(match[1]);
+  const period = hour < 12 ? 'am' : 'pm';
+  const shown = hour % 12 === 0 ? 12 : hour % 12;
+  return match[2] === '00' ? `${shown}${period}` : `${shown}:${match[2]}${period}`;
+}

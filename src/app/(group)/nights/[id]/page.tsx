@@ -16,6 +16,8 @@ import { WinnerDeck } from '@/app/(group)/nights/[id]/winner-deck';
 import { env } from '@/env';
 import { getGroup } from '@/groups/groups';
 import { centsToInput } from '@/money/money';
+import { timeInputValue } from '@/nights/dates';
+import { nightPhase, type NightPhase } from '@/nights/night-phase';
 import { getNight, listRecentPlayerIds, type NightDetail } from '@/nights/nights';
 import { canSeePaymentHandles, payoutPlan } from '@/nights/payouts';
 import { listPaymentHandles, listPlayers, type Player } from '@/players/players';
@@ -61,11 +63,13 @@ function OpenNight({
   night,
   players,
   recentPlayerIds,
+  phase,
 }: {
   viewer: Viewer;
   night: NightDetail;
   players: Player[];
   recentPlayerIds: string[];
+  phase: NightPhase;
 }) {
   return (
     <div className='space-y-6'>
@@ -77,12 +81,14 @@ function OpenNight({
         bankPlayerId={night.bankPlayerId}
         players={players}
         recentPlayerIds={recentPlayerIds}
-        viewerPlayerId={viewer.playerId}>
+        viewerPlayerId={viewer.playerId}
+        upcoming={phase === 'upcoming'}>
         <BooksCard
           nightId={night.id}
           seats={night.seats}
           bankPlayerId={night.bankPlayerId}
           canClose={viewer.role === 'owner'}
+          upcoming={phase === 'upcoming'}
         />
         <NightFeed events={night.events} nightDate={night.date} players={players} />
       </SeatBoard>
@@ -115,12 +121,14 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
     listRecentPlayerIds(viewer.group.id),
   ]);
   if (!night) notFound();
+  const phase = nightPhase(night, new Date());
 
   return (
     <div className='mx-auto max-w-[1360px] px-4 pt-5 pb-20 sm:px-6 lg:px-10 lg:pt-8'>
       <NightHeader
-        status={night.status}
+        phase={phase}
         date={night.date}
+        startTime={night.startTime}
         location={night.location}
         potCents={night.seats.reduce((sum, seat) => sum + seat.buyInCents, 0)}
         playerCount={night.seats.length}
@@ -138,6 +146,7 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
                 status={night.status}
                 details={{
                   date: night.date,
+                  time: timeInputValue(night.startTime),
                   location: night.location ?? '',
                   buyIn: centsToInput(night.buyInCents),
                 }}
@@ -155,6 +164,7 @@ export default async function NightPage({ params }: { params: Promise<{ id: stri
             night={night}
             players={players}
             recentPlayerIds={recentPlayerIds}
+            phase={phase}
           />
         )}
       </div>

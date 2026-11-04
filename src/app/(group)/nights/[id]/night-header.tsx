@@ -1,11 +1,13 @@
 import { BackLink } from '@/app/(group)/back-link';
 import { formatDollars } from '@/money/money';
-import { formatNightDate } from '@/nights/dates';
+import { formatNightDate, formatNightTime } from '@/nights/dates';
+import type { NightPhase } from '@/nights/night-phase';
 import { MapPin } from 'lucide-react';
 
 type NightHeaderProps = {
-  status: 'open' | 'closed';
+  phase: NightPhase;
   date: string;
+  startTime: string | null;
   location: string | null;
   potCents: number;
   playerCount: number;
@@ -13,8 +15,15 @@ type NightHeaderProps = {
   actions: React.ReactNode;
 };
 
-function StatusPill({ status }: { status: 'open' | 'closed' }) {
-  if (status === 'closed') {
+function StatusPill({ phase }: { phase: NightPhase }) {
+  if (phase === 'upcoming') {
+    return (
+      <span className='rounded-full bg-surface-3 px-3 py-1 text-xs font-extrabold tracking-[0.12em] text-ink uppercase'>
+        Upcoming
+      </span>
+    );
+  }
+  if (phase === 'closed') {
     return (
       <span className='rounded-full bg-ink px-3 py-1 text-xs font-extrabold tracking-[0.12em] text-surface uppercase'>
         In the books
@@ -33,8 +42,9 @@ function StatusPill({ status }: { status: 'open' | 'closed' }) {
 }
 
 export function NightHeader({
-  status,
+  phase,
   date,
+  startTime,
   location,
   potCents,
   playerCount,
@@ -42,8 +52,10 @@ export function NightHeader({
   actions,
 }: NightHeaderProps) {
   const stats = [
-    { label: 'pot', value: formatDollars(potCents) },
-    { label: playerCount === 1 ? 'player' : 'players', value: String(playerCount) },
+    ...(phase === 'upcoming' ? [] : [{ label: 'pot', value: formatDollars(potCents) }]),
+    ...(phase === 'upcoming' && playerCount === 0
+      ? []
+      : [{ label: playerCount === 1 ? 'player' : 'players', value: String(playerCount) }]),
     ...(buyInCents === null ? [] : [{ label: 'buy-in', value: formatDollars(buyInCents) }]),
   ];
 
@@ -57,9 +69,10 @@ export function NightHeader({
       <header className='mt-5 flex flex-col gap-4 lg:mt-6 lg:flex-row lg:items-end lg:justify-between'>
         <div className='min-w-0'>
           <div className='flex flex-wrap items-center gap-2'>
-            <StatusPill status={status} />
+            <StatusPill phase={phase} />
             <span className='text-sm font-extrabold tracking-[0.12em] text-ink-2 uppercase'>
               {formatNightDate(date)}
+              {startTime !== null && ` · ${formatNightTime(startTime)}`}
             </span>
           </div>
           <h1 className='mt-2 text-5xl leading-none font-bold tracking-tight break-words sm:text-6xl'>

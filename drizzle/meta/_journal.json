@@ -43,6 +43,13 @@
       "when": 1793826010305,
       "tag": "0005_player_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793827342756,
+      "tag": "0006_night_start_time",
+      "breakpoints": true
     }
   ]
 }

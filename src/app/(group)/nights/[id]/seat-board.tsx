@@ -27,6 +27,7 @@ type SeatBoardProps = {
   players: Player[];
   recentPlayerIds: string[];
   viewerPlayerId: string | null;
+  upcoming: boolean;
   children: React.ReactNode;
 };
 
@@ -54,6 +55,7 @@ export function SeatBoard({
   players,
   recentPlayerIds,
   viewerPlayerId,
+  upcoming,
   children,
 }: SeatBoardProps) {
   const layout = useBoardLayout();
@@ -93,7 +95,9 @@ export function SeatBoard({
             Who’s at the table
           </h2>
           <p className='mt-1 text-sm font-semibold text-ink-2'>
-            Done playing? Tap your seat, count your chips, lock it in.
+            {upcoming
+              ? 'Save seats ahead of time. Buy-ins and cash-outs come on the night.'
+              : 'Done playing? Tap your seat, count your chips, lock it in.'}
           </p>
           <ul className='mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3'>
             {rows.map((seat) => (
@@ -104,6 +108,7 @@ export function SeatBoard({
                   isBank={seat.playerId === bankPlayerId}
                   selected={layout === 'desktop' && seat.playerId === selected?.playerId}
                   unsaved={seat.updatedAt !== null && isDirty(edits.editFor(seat))}
+                  upcoming={upcoming}
                   onOpen={() => selection.open(seat.playerId, 'cashOut')}
                 />
               </li>

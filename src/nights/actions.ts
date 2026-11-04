@@ -2,7 +2,7 @@
 
 import { actorFor, requireOwner, requireViewer } from '@/access/viewer';
 import { parseDollars } from '@/money/money';
-import { isRealDate } from '@/nights/dates';
+import { isRealDate, isRealTime } from '@/nights/dates';
 import type {
   AddSeatsResult,
   CloseNightResult,
@@ -30,7 +30,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
-export type NightFormInvalid = { kind: 'invalid'; field: 'date' | 'location' | 'buyIn' };
+export type NightFormInvalid = { kind: 'invalid'; field: 'date' | 'time' | 'location' | 'buyIn' };
 export type SeatInvalid = { kind: 'invalid'; field: 'buyIn' | 'cashOut' };
 
 const MAX_LOCATION_LENGTH = 80;
@@ -45,11 +45,20 @@ const seatInputSchema = z.object({
   expectedUpdatedAt: z.iso.datetime().nullable(),
 });
 
-type NightFields = { date: string; location: string | null; buyInCents: number | null };
+type NightFields = {
+  date: string;
+  startTime: string | null;
+  location: string | null;
+  buyInCents: number | null;
+};
 
 function parseNightFields(formData: FormData): NightFields | NightFormInvalid {
   const date = z.string().safeParse(formData.get('date'));
   if (!date.success || !isRealDate(date.data)) return { kind: 'invalid', field: 'date' };
+
+  const rawTime = z.string().safeParse(formData.get('time') ?? '');
+  const time = rawTime.success ? rawTime.data.trim() : '';
+  if (time !== '' && !isRealTime(time)) return { kind: 'invalid', field: 'time' };
 
   const rawLocation = z.string().safeParse(formData.get('location') ?? '');
   const location = rawLocation.success ? rawLocation.data.trim() : '';
@@ -61,6 +70,7 @@ function parseNightFields(formData: FormData): NightFields | NightFormInvalid {
 
   return {
     date: date.data,
+    startTime: time === '' ? null : time,
     location: location === '' ? null : location,
     buyInCents: buyIn.kind === 'amount' ? buyIn.cents : null,
   };
@@ -86,7 +96,7 @@ export async function createNightAction(formData: FormData): Promise<NightFormIn
 export async function updateNightAction(
   formData: FormData,
 ): Promise<UpdateNightResult | NightFormInvalid> {
-  const viewer = await requireViewer();
+  const viewer = await requireOwner();
   const nightId = idSchema.safeParse(formData.get('nightId'));
   if (!nightId.success) return { kind: 'not-found' };
   const fields = parseNightFields(formData);

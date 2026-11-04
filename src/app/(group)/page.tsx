@@ -1,6 +1,7 @@
 import { getViewer } from '@/access/viewer';
 import { CrewRoster } from '@/app/(group)/_home/crew-roster';
 import { loadHome } from '@/app/(group)/_home/load-home';
+import { NextNightBanner } from '@/app/(group)/_home/next-night-banner';
 import { OpenNightBanner } from '@/app/(group)/_home/open-night-banner';
 import { PayoutReminders } from '@/app/(group)/_home/payout-reminders';
 import { RecapCard } from '@/app/(group)/_home/recap-card';
@@ -47,6 +48,7 @@ export default async function Home({
 
       <div className='space-y-6 lg:space-y-8'>
         {home.openNight && <OpenNightBanner night={home.openNight} />}
+        {home.nextNight && <NextNightBanner night={home.nextNight} />}
         <PayoutReminders reminders={reminders} />
 
         {home.nightsPlayed === 0 ? (

@@ -8,7 +8,7 @@ import {
   PreviewMark,
 } from '@/link-previews/preview-card';
 import { formatDollars, formatNet } from '@/money/money';
-import { formatShortNightDate } from '@/nights/dates';
+import { formatNightTime, formatShortNightDate } from '@/nights/dates';
 import type { NightDetail } from '@/nights/nights';
 import { firstName } from '@/players/first-name';
 
@@ -51,6 +51,10 @@ function CardHeader({ groupName, aside }: { groupName: string; aside?: string })
 export function NightInviteCard({ groupName, night }: { groupName: string; night: NightDetail }) {
   const shown = night.seats.slice(0, SHOWN_SEATS);
   const more = night.seats.length - shown.length;
+  const details = [
+    night.startTime === null ? null : formatNightTime(night.startTime),
+    night.buyInCents === null ? null : `${formatDollars(night.buyInCents)} buy-in`,
+  ].filter((detail) => detail !== null);
 
   return (
     <PreviewFrame>
@@ -83,7 +87,7 @@ export function NightInviteCard({ groupName, night }: { groupName: string; night
               {`at ${night.location}`}
             </div>
           )}
-          {night.buyInCents !== null && (
+          {details.length > 0 && (
             <div
               style={{
                 display: 'flex',
@@ -92,7 +96,7 @@ export function NightInviteCard({ groupName, night }: { groupName: string; night
                 fontWeight: 600,
                 color: previewColors.muted,
               }}>
-              {`${formatDollars(night.buyInCents)} buy-in`}
+              {details.join(' · ')}
             </div>
           )}
         </div>

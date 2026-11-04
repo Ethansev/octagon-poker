@@ -1,12 +1,12 @@
 import { winnerHeadline } from '@/app/(group)/nights/[id]/winner-copy';
 import { formatDollars } from '@/money/money';
-import { formatShortNightDate } from '@/nights/dates';
+import { formatNightTime, formatShortNightDate } from '@/nights/dates';
 import type { NightDetail } from '@/nights/nights';
 import { firstName } from '@/players/first-name';
 
 export type PreviewNight = Pick<
   NightDetail,
-  'date' | 'location' | 'buyInCents' | 'status' | 'winners'
+  'date' | 'startTime' | 'location' | 'buyInCents' | 'status' | 'winners'
 > & {
   seats: Pick<NightDetail['seats'][number], 'playerId' | 'playerName' | 'buyInCents'>[];
 };
@@ -27,13 +27,14 @@ export function nightPreviewCopy(night: PreviewNight): { title: string; descript
     };
   }
 
+  const when = night.startTime === null ? '' : `, ${formatNightTime(night.startTime)}`;
   const where = night.location ? ` at ${night.location}` : '';
   const details = [
     night.buyInCents === null ? null : `${formatDollars(night.buyInCents)} buy-in`,
     night.seats.length === 0 ? null : `${players(night.seats.length)} so far`,
   ].filter((detail) => detail !== null);
   return {
-    title: `Poker night · ${formatShortNightDate(night.date)}${where}`,
+    title: `Poker night · ${formatShortNightDate(night.date)}${when}${where}`,
     description: details.length === 0 ? 'You’re invited' : details.join(' · '),
   };
 }

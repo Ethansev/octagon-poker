@@ -9,6 +9,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  time,
   timestamp,
   unique,
   uuid,
@@ -23,6 +24,7 @@ export const nights = pgTable('nights', {
     .notNull()
     .references(() => groups.id),
   date: date('date', { mode: 'string' }).notNull(),
+  startTime: time('start_time', { precision: 0 }),
   location: text('location'),
   buyInCents: integer('buy_in_cents'),
   status: nightStatus('status').notNull().default('open'),

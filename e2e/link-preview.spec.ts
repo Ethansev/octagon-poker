@@ -75,6 +75,19 @@ test('a shared night previews as the invite, then as the result', async ({ reque
   const nightInvite = await crawl(request, `/join/${inviteCode}?night=${nightId}`);
   expect(nightInvite.title).toBe('Ava takes it! · Octagon Poker');
 
+  const { id: timedNight } = await createNight(
+    {
+      groupId: group.id,
+      date: '2026-11-14',
+      startTime: '20:30',
+      location: 'Test Kitchen',
+      buyInCents: 2000,
+    },
+    OWNER,
+  );
+  const timed = await crawl(request, `/nights/${timedNight}`);
+  expect(timed.title).toBe('Poker night · Sat, Nov 14, 8:30pm at Test Kitchen');
+
   const groupInvite = await crawl(request, `/join/${inviteCode}`);
   expect(groupInvite.title).toBe('You’re invited to Octagon Poker');
 });

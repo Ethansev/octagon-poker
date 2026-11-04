@@ -33,6 +33,7 @@ export type NightEventView = {
 export type NightDetail = {
   id: string;
   date: string;
+  startTime: string | null;
   location: string | null;
   buyInCents: number | null;
   status: 'open' | 'closed';
@@ -45,6 +46,7 @@ export type NightDetail = {
 export type NightSummary = {
   id: string;
   date: string;
+  startTime: string | null;
   location: string | null;
   buyInCents: number | null;
   status: 'open' | 'closed';
@@ -159,7 +161,13 @@ function closedSeats(
 export type CreateNightResult = { kind: 'created'; id: string } | { kind: 'existing'; id: string };
 
 export async function createNight(
-  input: { groupId: string; date: string; location: string | null; buyInCents: number | null },
+  input: {
+    groupId: string;
+    date: string;
+    startTime?: string | null;
+    location: string | null;
+    buyInCents: number | null;
+  },
   actor: Actor,
 ): Promise<CreateNightResult> {
   return db.transaction(async (tx) => {
@@ -181,6 +189,7 @@ export async function createNight(
       .values({
         groupId: input.groupId,
         date: input.date,
+        startTime: input.startTime ?? null,
         location: input.location,
         buyInCents: input.buyInCents,
       })
@@ -200,6 +209,7 @@ export async function updateNight(
     groupId: string;
     nightId: string;
     date: string;
+    startTime?: string | null;
     location: string | null;
     buyInCents: number | null;
   },
@@ -209,14 +219,24 @@ export async function updateNight(
     const night = await lockNight(tx, input.groupId, input.nightId);
     if (!night) return { kind: 'not-found' };
     if (night.status === 'closed') return { kind: 'night-closed' };
-    const after = { date: input.date, location: input.location, buyInCents: input.buyInCents };
+    const after = {
+      date: input.date,
+      startTime: input.startTime === undefined ? night.startTime : input.startTime,
+      location: input.location,
+      buyInCents: input.buyInCents,
+    };
     await tx.update(nights).set(after).where(eq(nights.id, night.id));
     await tx.insert(nightEvents).values({
       nightId: night.id,
       ...actorColumns(actor),
       action: 'night.update',
       detail: {
-        before: { date: night.date, location: night.location, buyInCents: night.buyInCents },
+        before: {
+          date: night.date,
+          startTime: night.startTime,
+          location: night.location,
+          buyInCents: night.buyInCents,
+        },
         after,
       },
     });
@@ -255,6 +275,7 @@ export async function getNight(groupId: string, nightId: string): Promise<NightD
   return {
     id: night.id,
     date: night.date,
+    startTime: night.startTime,
     location: night.location,
     buyInCents: night.buyInCents,
     status: night.status,
@@ -590,11 +611,28 @@ export async function listClosedNights(groupId: string): Promise<ClosedNight[]> 
   }));
 }
 
+export async function listOpenNights(groupId: string): Promise<NightSummary[]> {
+  const rows = await db
+    .select({
+      id: nights.id,
+      date: nights.date,
+      startTime: nights.startTime,
+      location: nights.location,
+      buyInCents: nights.buyInCents,
+      status: nights.status,
+    })
+    .from(nights)
+    .where(and(eq(nights.groupId, groupId), eq(nights.status, 'open')))
+    .orderBy(desc(nights.date), desc(nights.createdAt));
+  return rows.map((night) => ({ ...night, winnerNames: [] }));
+}
+
 export async function listNights(groupId: string, season: Season): Promise<NightSummary[]> {
   const nightRows = await db
     .select({
       id: nights.id,
       date: nights.date,
+      startTime: nights.startTime,
       location: nights.location,
       buyInCents: nights.buyInCents,
       status: nights.status,

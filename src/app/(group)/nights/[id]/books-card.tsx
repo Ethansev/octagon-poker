@@ -11,6 +11,7 @@ import { nightBalance } from '@/stats/nights';
 import { Landmark } from 'lucide-react';
 
 type BooksCardProps = {
+  upcoming: boolean;
   nightId: string;
   seats: SeatView[];
   bankPlayerId: string | null;
@@ -89,7 +90,7 @@ function BooksNote({
   }
 }
 
-export function BooksCard({ nightId, seats, bankPlayerId, canClose }: BooksCardProps) {
+export function BooksCard({ nightId, seats, bankPlayerId, canClose, upcoming }: BooksCardProps) {
   const balance = nightBalance(seats);
   const inCents = seats.reduce((sum, seat) => sum + seat.buyInCents, 0);
   const outCents = seats.reduce((sum, seat) => sum + (seat.cashOutCents ?? 0), 0);
@@ -100,10 +101,14 @@ export function BooksCard({ nightId, seats, bankPlayerId, canClose }: BooksCardP
     <section
       aria-labelledby='books-heading'
       className='rounded-panel bg-surface p-5 shadow-card sm:p-7'>
-      <p className='inline-flex items-center gap-2 text-xs font-extrabold tracking-[0.14em] text-live uppercase'>
-        <LiveDot />
-        Live books
-      </p>
+      {upcoming ? (
+        <p className='text-xs font-extrabold tracking-[0.14em] text-ink-2 uppercase'>The books</p>
+      ) : (
+        <p className='inline-flex items-center gap-2 text-xs font-extrabold tracking-[0.14em] text-live uppercase'>
+          <LiveDot />
+          Live books
+        </p>
+      )}
       <h2
         id='books-heading'
         className='mt-2 text-3xl leading-none font-bold tracking-tight tabular-nums sm:text-4xl'>

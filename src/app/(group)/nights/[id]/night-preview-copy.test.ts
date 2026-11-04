@@ -5,6 +5,7 @@ const ivy = { playerId: 'ivy', playerName: 'Ivy Chen', buyInCents: 20000 };
 const sid = { playerId: 'sid', playerName: 'Sid Rao', buyInCents: 20000 };
 const openNight: PreviewNight = {
   date: '2026-10-17',
+  startTime: null,
   location: 'Sid’s',
   buyInCents: 20000,
   status: 'open',
@@ -29,6 +30,12 @@ describe('nightPreviewCopy', () => {
       night: { ...openNight, location: null, buyInCents: null, seats: [] },
       title: 'Poker night · Sat, Oct 17',
       description: 'You’re invited',
+    },
+    {
+      name: 'an open night with a start time says when',
+      night: { ...openNight, startTime: '20:30:00' },
+      title: 'Poker night · Sat, Oct 17, 8:30pm at Sid’s',
+      description: '$200 buy-in · 2 players so far',
     },
     {
       name: 'a closed night names one winner by first name',

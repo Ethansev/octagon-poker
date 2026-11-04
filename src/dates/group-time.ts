@@ -22,6 +22,11 @@ export function timeInGroup(date: Date, zone: string = env.GROUP_TIME_ZONE): str
   return `${part(parts, 'hour')}:${part(parts, 'minute')}${part(parts, 'dayPeriod').toLowerCase()}`;
 }
 
+export function clockInGroup(date: Date, zone: string = env.GROUP_TIME_ZONE): string {
+  const parts = partsOf(date, zone, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  return `${part(parts, 'hour')}:${part(parts, 'minute')}`;
+}
+
 export function todayInGroup(): string {
   return dateInGroup(new Date());
 }

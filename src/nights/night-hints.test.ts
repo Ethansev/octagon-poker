@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 function night(overrides: Partial<NightSummary> & { id: string }): NightSummary {
   return {
     date: '2026-10-17',
+    startTime: null,
     location: null,
     buyInCents: null,
     status: 'closed',

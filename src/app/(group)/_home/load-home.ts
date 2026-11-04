@@ -6,7 +6,8 @@ import {
 } from '@/app/(group)/season-players';
 import { resolveSeason, seasonScope, type SeasonScope } from '@/app/(group)/seasons';
 import { currentYearInGroup } from '@/dates/group-time';
-import { listClosedNights, listNights, type NightSummary } from '@/nights/nights';
+import { nightPhase, type NightPhase } from '@/nights/night-phase';
+import { listClosedNights, listNights, listOpenNights, type NightSummary } from '@/nights/nights';
 import { listPlayers } from '@/players/players';
 import { nightPot, nightWinners, seatNet, type ClosedNight } from '@/stats/nights';
 import { recap } from '@/stats/recap';
@@ -27,6 +28,7 @@ export type LastNight = {
 };
 
 export type RecentNight = NightSummary & {
+  phase: NightPhase;
   winners: { playerId: string; name: string; colorSlot: number }[];
 };
 
@@ -47,6 +49,7 @@ export type HomeView = {
   highlights: HomeHighlights;
   lastNight: LastNight | null;
   openNight: NightSummary | null;
+  nextNight: NightSummary | null;
   recentNights: RecentNight[];
   previousRecapYear: number | null;
 };
@@ -83,10 +86,12 @@ function recentNightsOf(
   summaries: NightSummary[],
   closed: ClosedNight[],
   identify: Identify,
+  now: Date,
 ): RecentNight[] {
   const seatsById = new Map(closed.map((night) => [night.id, night.seats]));
   return summaries.map((summary) => ({
     ...summary,
+    phase: nightPhase(summary, now),
     winners: nightWinners(seatsById.get(summary.id) ?? [])
       .map((playerId) => ({ playerId, ...identify(playerId) }))
       .sort((a, b) => a.name.localeCompare(b.name)),
@@ -98,11 +103,15 @@ export async function loadHome(
   rawSeason: string | string[] | undefined,
 ): Promise<HomeView> {
   const { season, seasons } = await resolveSeason(groupId, rawSeason);
-  const [allClosed, summaries, roster] = await Promise.all([
+  const [allClosed, summaries, roster, openNights] = await Promise.all([
     listClosedNights(groupId),
     listNights(groupId, season),
     listPlayers(groupId),
+    listOpenNights(groupId),
   ]);
+  const now = new Date();
+  const started = openNights.filter((night) => nightPhase(night, now) === 'live');
+  const upcoming = openNights.filter((night) => nightPhase(night, now) === 'upcoming');
   const identify = identifyFrom(roster);
   const scope = seasonScope(season, currentYearInGroup());
   const closed = nightsInSeason(allClosed, season);
@@ -139,8 +148,9 @@ export async function loadHome(
         : null,
     },
     lastNight: lastNightOf(closed[0], summaries, identify),
-    openNight: summaries.find((night) => night.status === 'open') ?? null,
-    recentNights: recentNightsOf(summaries, closed, identify),
+    openNight: started[0] ?? null,
+    nextNight: upcoming.at(-1) ?? null,
+    recentNights: recentNightsOf(summaries, closed, identify, now),
     previousRecapYear:
       previousYear !== null && allClosed.some((night) => night.date.startsWith(`${previousYear}-`))
         ? previousYear
