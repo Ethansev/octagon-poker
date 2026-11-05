@@ -2,7 +2,7 @@ import { getViewer } from '@/access/viewer';
 import { BackLink } from '@/app/(group)/back-link';
 import { InviteReply } from '@/app/(group)/nights/[id]/invite-reply';
 import { formatShortNightDate } from '@/nights/dates';
-import { listRsvps, nightDetailsLabel, seesNightDetails } from '@/nights/invites';
+import { listAttendance, nightDetailsLabel, seesNightDetails } from '@/nights/invites';
 import { getNight } from '@/nights/nights';
 import { Lock, Navigation } from 'lucide-react';
 import { notFound } from 'next/navigation';
@@ -21,7 +21,7 @@ export default async function NightLocationPage({ params }: { params: Promise<{ 
 
   const [night, rsvps] = await Promise.all([
     getNight(viewer.group.id, id.data),
-    listRsvps(id.data),
+    listAttendance(id.data),
   ]);
   const label = night && nightDetailsLabel(night);
   if (!night || !label) notFound();

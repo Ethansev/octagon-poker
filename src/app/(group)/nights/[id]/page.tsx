@@ -20,7 +20,7 @@ import { env } from '@/env';
 import { getGroup } from '@/groups/groups';
 import { centsToInput } from '@/money/money';
 import { timeInputValue } from '@/nights/dates';
-import { listComments, listRsvps } from '@/nights/invites';
+import { listAttendance, listComments } from '@/nights/invites';
 import { nightPhase, type NightPhase } from '@/nights/night-phase';
 import { nightView } from '@/nights/night-view';
 import { getNight, listRecentPlayerIds, type NightDetail } from '@/nights/nights';
@@ -109,8 +109,13 @@ export async function generateMetadata({
   const id = z.uuid().safeParse((await params).id);
   if (!id.success) return {};
   const group = await getGroup();
-  const night = await getNight(group.id, id.data);
-  return night ? { openGraph: nightPreviewCopy(night) } : {};
+  const [night, attendance] = await Promise.all([
+    getNight(group.id, id.data),
+    listAttendance(id.data),
+  ]);
+  if (!night) return {};
+  const going = attendance.filter((player) => player.response === 'going');
+  return { openGraph: nightPreviewCopy(night, going.length) };
 }
 
 export default async function NightPage({
@@ -130,7 +135,7 @@ export default async function NightPage({
     getNight(viewer.group.id, id.data),
     listPlayers(viewer.group.id),
     listRecentPlayerIds(viewer.group.id),
-    listRsvps(id.data),
+    listAttendance(id.data),
     listComments(id.data),
   ]);
   if (!night) notFound();
@@ -145,7 +150,7 @@ export default async function NightPage({
         <div className='flex flex-wrap items-center justify-end gap-2'>
           <NightInviteButton
             link={`${env.BETTER_AUTH_URL}/join/${viewer.group.inviteCode}?night=${night.id}`}
-            title={nightPreviewCopy(night).title}
+            title={nightPreviewCopy(night, goingIds.length).title}
             status={night.status}
           />
           {viewer.role === 'owner' && (
@@ -189,6 +194,7 @@ export default async function NightPage({
           players={players}
           rsvps={rsvps}
           comments={comments}
+          recentPlayerIds={recentPlayerIds}
         />
       ) : (
         <div className='mt-5 lg:mt-6'>

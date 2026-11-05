@@ -9,11 +9,12 @@ import {
 } from '@/link-previews/preview-card';
 import { formatDollars, formatNet } from '@/money/money';
 import { formatNightTime, formatShortNightDate } from '@/nights/dates';
+import type { NightRsvp } from '@/nights/invites';
 import type { NightDetail } from '@/nights/nights';
 import { firstName } from '@/players/first-name';
 
 const SHOWN_RESULTS = 4;
-const SHOWN_SEATS = 5;
+const SHOWN_GOING = 5;
 
 function clamp(lines: number): React.CSSProperties {
   return { display: 'block', lineClamp: lines };
@@ -48,9 +49,17 @@ function CardHeader({ groupName, aside }: { groupName: string; aside?: string })
   );
 }
 
-export function NightInviteCard({ groupName, night }: { groupName: string; night: NightDetail }) {
-  const shown = night.seats.slice(0, SHOWN_SEATS);
-  const more = night.seats.length - shown.length;
+export function NightInviteCard({
+  groupName,
+  night,
+  going,
+}: {
+  groupName: string;
+  night: NightDetail;
+  going: NightRsvp[];
+}) {
+  const shown = going.slice(0, SHOWN_GOING);
+  const more = going.length - shown.length;
   const details = [
     night.startTime === null ? null : formatNightTime(night.startTime),
     night.buyInCents === null ? null : `${formatDollars(night.buyInCents)} buy-in`,
@@ -102,10 +111,10 @@ export function NightInviteCard({ groupName, night }: { groupName: string; night
         </div>
         {shown.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, width: 320 }}>
-            <PreviewKicker>{`Who’s in · ${night.seats.length}`}</PreviewKicker>
-            {shown.map((seat) => (
-              <div key={seat.playerId} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <PreviewAvatar name={seat.playerName} colorSlot={seat.playerColorSlot} />
+            <PreviewKicker>{`Who’s in · ${going.length}`}</PreviewKicker>
+            {shown.map((player) => (
+              <div key={player.playerId} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <PreviewAvatar name={player.name} colorSlot={player.colorSlot} />
                 <div
                   style={{
                     flex: 1,
@@ -115,7 +124,7 @@ export function NightInviteCard({ groupName, night }: { groupName: string; night
                     fontSize: 30,
                     fontWeight: 800,
                   }}>
-                  {firstName(seat.playerName)}
+                  {firstName(player.name)}
                 </div>
               </div>
             ))}

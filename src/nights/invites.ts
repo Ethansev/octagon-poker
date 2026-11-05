@@ -1,6 +1,6 @@
 import type { Actor } from '@/access/viewer';
 import { db } from '@/db/client';
-import { nightComments, nightRsvps, nights } from '@/nights/schema';
+import { nightComments, nightRsvps, nights, seats } from '@/nights/schema';
 import { players } from '@/players/schema';
 import { and, asc, eq, ne, sql } from 'drizzle-orm';
 
@@ -68,18 +68,33 @@ export async function setRsvp(input: {
   return { kind: 'saved' };
 }
 
-export async function listRsvps(nightId: string): Promise<NightRsvp[]> {
-  return db
-    .select({
-      playerId: nightRsvps.playerId,
-      name: players.name,
-      colorSlot: players.colorSlot,
-      response: nightRsvps.response,
-    })
-    .from(nightRsvps)
-    .innerJoin(players, eq(players.id, nightRsvps.playerId))
-    .where(eq(nightRsvps.nightId, nightId))
-    .orderBy(asc(nightRsvps.updatedAt), asc(players.name));
+export async function listAttendance(nightId: string): Promise<NightRsvp[]> {
+  const [replies, seated] = await Promise.all([
+    db
+      .select({
+        playerId: nightRsvps.playerId,
+        name: players.name,
+        colorSlot: players.colorSlot,
+        response: nightRsvps.response,
+      })
+      .from(nightRsvps)
+      .innerJoin(players, eq(players.id, nightRsvps.playerId))
+      .where(eq(nightRsvps.nightId, nightId))
+      .orderBy(asc(nightRsvps.updatedAt), asc(players.name)),
+    db
+      .select({ playerId: seats.playerId, name: players.name, colorSlot: players.colorSlot })
+      .from(seats)
+      .innerJoin(players, eq(players.id, seats.playerId))
+      .where(eq(seats.nightId, nightId))
+      .orderBy(asc(players.name)),
+  ]);
+  const replied = new Set(replies.map((reply) => reply.playerId));
+  return [
+    ...replies,
+    ...seated
+      .filter((seat) => !replied.has(seat.playerId))
+      .map((seat): NightRsvp => ({ ...seat, response: 'going' })),
+  ];
 }
 
 export async function addComment(input: {

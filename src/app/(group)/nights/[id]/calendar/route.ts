@@ -1,6 +1,6 @@
 import { getViewer } from '@/access/viewer';
 import { env } from '@/env';
-import { listRsvps, seesNightDetails } from '@/nights/invites';
+import { listAttendance, seesNightDetails } from '@/nights/invites';
 import { nightCalendarFile } from '@/nights/night-calendar';
 import { getNight } from '@/nights/nights';
 import { z } from 'zod';
@@ -13,7 +13,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   const night = await getNight(viewer.group.id, id.data);
   if (!night) return new Response(null, { status: 404 });
 
-  const seesAddress = seesNightDetails(viewer, await listRsvps(night.id));
+  const seesAddress = seesNightDetails(viewer, await listAttendance(night.id));
 
   const file = nightCalendarFile({
     id: night.id,

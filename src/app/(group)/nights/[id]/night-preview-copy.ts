@@ -15,7 +15,10 @@ function players(count: number): string {
   return count === 1 ? '1 player' : `${count} players`;
 }
 
-export function nightPreviewCopy(night: PreviewNight): { title: string; description: string } {
+export function nightPreviewCopy(
+  night: PreviewNight,
+  goingCount: number,
+): { title: string; description: string } {
   if (night.status === 'closed') {
     const winners = night.seats
       .filter((seat) => night.winners.includes(seat.playerId))
@@ -31,7 +34,7 @@ export function nightPreviewCopy(night: PreviewNight): { title: string; descript
   const where = night.location ? ` at ${night.location}` : '';
   const details = [
     night.buyInCents === null ? null : `${formatDollars(night.buyInCents)} buy-in`,
-    night.seats.length === 0 ? null : `${players(night.seats.length)} so far`,
+    goingCount === 0 ? null : `${players(goingCount)} so far`,
   ].filter((detail) => detail !== null);
   return {
     title: `Poker night · ${formatShortNightDate(night.date)}${when}${where}`,

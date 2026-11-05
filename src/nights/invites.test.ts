@@ -4,14 +4,22 @@ import { resetDb } from '@/db/test-db';
 import { newGroup } from '@/groups/test-group';
 import {
   addComment,
+  listAttendance,
   listComments,
-  listRsvps,
   nightDetailsLabel,
   removeComment,
   seesNightDetails,
   setRsvp,
+  type NightResponse,
 } from '@/nights/invites';
-import { closeNight, createNight, setBank, upsertSeat } from '@/nights/nights';
+import {
+  addSeats,
+  closeNight,
+  createNight,
+  removeSeat,
+  setBank,
+  upsertSeat,
+} from '@/nights/nights';
 import { nightRsvps } from '@/nights/schema';
 import { addPlayer, mergePlayers } from '@/players/players';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -46,6 +54,85 @@ async function close(groupId: string, nightId: string, playerId: string) {
   await closeNight(groupId, nightId);
 }
 
+describe('attendance', () => {
+  it('counts anyone with a seat as in, even without a reply', async () => {
+    const { groupId, ava, ben, nightId } = await setup();
+
+    await setRsvp({ groupId, nightId, playerId: ben, response: 'going' });
+    await addSeats({ groupId, nightId, playerIds: [ava] }, owner);
+
+    expect((await listAttendance(nightId)).map((r) => [r.name, r.response])).toEqual([
+      ['Ben', 'going'],
+      ['Ava', 'going'],
+    ]);
+  });
+
+  it('lets a seated player say they can’t make it', async () => {
+    const { groupId, ava, nightId } = await setup();
+
+    await addSeats({ groupId, nightId, playerIds: [ava] }, owner);
+    await setRsvp({ groupId, nightId, playerId: ava, response: 'out' });
+
+    expect((await listAttendance(nightId)).map((r) => r.response)).toEqual(['out']);
+  });
+
+  it.each([
+    {
+      name: 'quick adding someone who said they couldn’t flips them to in',
+      response: 'out',
+      seat: (groupId: string, nightId: string, playerId: string) =>
+        addSeats({ groupId, nightId, playerIds: [playerId] }, owner),
+    },
+    {
+      name: 'saving a new seat for someone who said maybe flips them to in',
+      response: 'maybe',
+      seat: (groupId: string, nightId: string, playerId: string) =>
+        upsertSeat(
+          {
+            groupId,
+            nightId,
+            playerId,
+            buyInCents: 2000,
+            cashOutCents: null,
+            expectedUpdatedAt: null,
+          },
+          owner,
+        ),
+    },
+  ] satisfies {
+    name: string;
+    response: NightResponse;
+    seat: (groupId: string, nightId: string, playerId: string) => Promise<unknown>;
+  }[])('$name', async ({ response, seat }) => {
+    const { groupId, ava, nightId } = await setup();
+
+    await setRsvp({ groupId, nightId, playerId: ava, response });
+    await seat(groupId, nightId, ava);
+
+    expect((await listAttendance(nightId)).map((r) => r.response)).toEqual(['going']);
+  });
+
+  it('keeps someone’s own yes when their seat is removed, and drops a seat-only player', async () => {
+    const { groupId, ava, ben, nightId } = await setup();
+
+    await setRsvp({ groupId, nightId, playerId: ava, response: 'going' });
+    await addSeats({ groupId, nightId, playerIds: [ava, ben] }, owner);
+    await removeSeat({ groupId, nightId, playerId: ava }, owner);
+    await removeSeat({ groupId, nightId, playerId: ben }, owner);
+
+    expect((await listAttendance(nightId)).map((r) => r.name)).toEqual(['Ava']);
+  });
+
+  it('unlocks the night details for a seated player', async () => {
+    const { groupId, ava, nightId } = await setup();
+    await addSeats({ groupId, nightId, playerIds: [ava] }, owner);
+
+    expect(seesNightDetails({ role: 'member', playerId: ava }, await listAttendance(nightId))).toBe(
+      true,
+    );
+  });
+});
+
 describe('replies', () => {
   it('records a reply and lets someone change their mind', async () => {
     const { groupId, ava, nightId } = await setup();
@@ -53,7 +140,9 @@ describe('replies', () => {
     await setRsvp({ groupId, nightId, playerId: ava, response: 'maybe' });
     await setRsvp({ groupId, nightId, playerId: ava, response: 'going' });
 
-    expect((await listRsvps(nightId)).map((r) => [r.name, r.response])).toEqual([['Ava', 'going']]);
+    expect((await listAttendance(nightId)).map((r) => [r.name, r.response])).toEqual([
+      ['Ava', 'going'],
+    ]);
   });
 
   it('keeps people in the order they said yes, and a repeat tap doesn’t lose a place', async () => {
@@ -65,7 +154,7 @@ describe('replies', () => {
     await new Promise((resolve) => setTimeout(resolve, 5));
     await setRsvp({ groupId, nightId, playerId: ava, response: 'going' });
 
-    expect((await listRsvps(nightId)).map((r) => r.name)).toEqual(['Ava', 'Ben']);
+    expect((await listAttendance(nightId)).map((r) => r.name)).toEqual(['Ava', 'Ben']);
   });
 
   it('sends someone to the back if they back out and return', async () => {
@@ -79,7 +168,7 @@ describe('replies', () => {
     await new Promise((resolve) => setTimeout(resolve, 5));
     await setRsvp({ groupId, nightId, playerId: ava, response: 'going' });
 
-    expect((await listRsvps(nightId)).map((r) => r.name)).toEqual(['Ben', 'Ava']);
+    expect((await listAttendance(nightId)).map((r) => r.name)).toEqual(['Ben', 'Ava']);
   });
 
   it('refuses a closed night', async () => {
@@ -193,10 +282,10 @@ describe('merging players', () => {
     expect(await mergePlayers({ groupId, fromId, intoId })).toEqual({ kind: 'merged' });
 
     expect((await listComments(nightId))[0].playerId).toBe(intoId);
-    expect((await listRsvps(nightId)).map((r) => [r.playerId, r.response])).toEqual([
+    expect((await listAttendance(nightId)).map((r) => [r.playerId, r.response])).toEqual([
       [intoId, 'going'],
     ]);
-    expect((await listRsvps(otherNight)).map((r) => [r.playerId, r.response])).toEqual([
+    expect((await listAttendance(otherNight)).map((r) => [r.playerId, r.response])).toEqual([
       [intoId, 'maybe'],
     ]);
     expect(await db.select().from(nightRsvps)).toHaveLength(2);

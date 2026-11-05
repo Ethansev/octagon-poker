@@ -4,6 +4,8 @@ import { InviteReply } from '@/app/(group)/nights/[id]/invite-reply';
 import { formatEventTime } from '@/app/(group)/nights/[id]/night-feed';
 import { NightTable, TABLE_SEATS } from '@/app/(group)/nights/[id]/night-table';
 import { NotYouButton } from '@/app/(group)/nights/[id]/not-you-button';
+import { quickAddOrder } from '@/app/(group)/nights/[id]/quick-add-order';
+import { QuickAddTile } from '@/app/(group)/nights/[id]/quick-add-tile';
 import { WhoAreYou } from '@/app/(group)/nights/[id]/who-are-you';
 import { OctagonMark } from '@/components/octagon-mark';
 import { todayInGroup } from '@/dates/group-time';
@@ -15,7 +17,7 @@ import type { NightDetail } from '@/nights/nights';
 import { firstName } from '@/players/first-name';
 import { PlayerAvatar } from '@/players/player-avatar';
 import type { Player } from '@/players/players';
-import { CalendarPlus, MapPin } from 'lucide-react';
+import { CalendarPlus, MapPin, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 const heroChip =
@@ -30,6 +32,7 @@ type NightInviteProps = {
   players: Player[];
   rsvps: NightRsvp[];
   comments: NightComment[];
+  recentPlayerIds: string[];
 };
 
 function whenAndWhere(night: NightDetail): string | null {
@@ -85,18 +88,21 @@ function ReplyArea({
   );
 }
 
-function WhosIn({ rsvps }: { rsvps: NightRsvp[] }) {
+function WhosIn({ rsvps, addPlayers }: { rsvps: NightRsvp[]; addPlayers: React.ReactNode }) {
   const going = rsvps.filter((rsvp) => rsvp.response === 'going');
   const maybe = rsvps.filter((rsvp) => rsvp.response === 'maybe');
   const out = rsvps.filter((rsvp) => rsvp.response === 'out');
 
   return (
     <section aria-labelledby='whos-in-heading' className={`${panel} lg:col-span-5`}>
-      <h2 id='whos-in-heading' className='text-2xl font-bold tracking-tight'>
-        {going.length === 0
-          ? 'Nobody’s in yet'
-          : `${going.length} ${going.length === 1 ? 'is' : 'are'} in`}
-      </h2>
+      <div className='flex items-center justify-between gap-3'>
+        <h2 id='whos-in-heading' className='text-2xl font-bold tracking-tight'>
+          {going.length === 0
+            ? 'Nobody’s in yet'
+            : `${going.length} ${going.length === 1 ? 'is' : 'are'} in`}
+        </h2>
+        {addPlayers}
+      </div>
       {going.length > TABLE_SEATS && (
         <p className='mt-0.5 text-sm font-semibold text-ink-2'>
           {TABLE_SEATS} at the table at a time. Everyone else rotates in.
@@ -155,7 +161,15 @@ function Comment({
   );
 }
 
-export function NightInvite({ viewer, night, phase, players, rsvps, comments }: NightInviteProps) {
+export function NightInvite({
+  viewer,
+  night,
+  phase,
+  players,
+  rsvps,
+  comments,
+  recentPlayerIds,
+}: NightInviteProps) {
   const me = players.find((player) => player.id === viewer.playerId);
   const host = players.find((player) => player.id === viewer.group.ownerPlayerId);
   const current = rsvps.find((rsvp) => rsvp.playerId === viewer.playerId)?.response ?? null;
@@ -168,6 +182,10 @@ export function NightInvite({ viewer, night, phase, players, rsvps, comments }: 
     host ? `Hosted by ${firstName(host.name)}` : null,
   ].filter((fact) => fact !== null);
   const needsName = viewer.role === 'member' && !me && phase !== 'closed';
+  const alreadyIn = new Set([
+    ...going.map((rsvp) => rsvp.playerId),
+    ...night.seats.map((seat) => seat.playerId),
+  ]);
 
   return (
     <div className='mt-6 space-y-6 lg:space-y-8'>
@@ -211,7 +229,31 @@ export function NightInvite({ viewer, night, phase, players, rsvps, comments }: 
       {needsName && <WhoAreYou players={players} />}
 
       <div className='grid items-start gap-6 lg:grid-cols-12 lg:gap-8'>
-        <WhosIn rsvps={rsvps} />
+        <WhosIn
+          rsvps={rsvps}
+          addPlayers={
+            viewer.role === 'owner' &&
+            phase !== 'closed' &&
+            night.buyInCents !== null && (
+              <QuickAddTile
+                nightId={night.id}
+                buyInCents={night.buyInCents}
+                available={quickAddOrder(
+                  players.filter((player) => !alreadyIn.has(player.id)),
+                  recentPlayerIds,
+                )}
+                allNames={players.map((player) => player.name)}
+                trigger={
+                  <button
+                    type='button'
+                    className='inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-surface-3 px-4 text-sm font-extrabold transition hover:bg-ink hover:text-surface focus-visible:ring-4 focus-visible:ring-focus/40 focus-visible:outline-none motion-reduce:transition-none'>
+                    <Plus aria-hidden className='size-4' strokeWidth={3} /> Add player
+                  </button>
+                }
+              />
+            )
+          }
+        />
 
         <section aria-labelledby='comments-heading' className={`${panel} min-w-0 lg:col-span-7`}>
           <h2 id='comments-heading' className='text-2xl font-bold tracking-tight'>

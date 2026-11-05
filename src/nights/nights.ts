@@ -1,7 +1,7 @@
 import type { Actor } from '@/access/viewer';
 import { db } from '@/db/client';
 import { canSeePaymentHandles } from '@/nights/payouts';
-import { nightEvents, nights, seats } from '@/nights/schema';
+import { nightEvents, nightRsvps, nights, seats } from '@/nights/schema';
 import { parsePaymentHandles, type PaymentHandleField } from '@/players/payment-handles';
 import { players } from '@/players/schema';
 import type { ClosedNight, NightBalance, SeatResult } from '@/stats/nights';
@@ -135,6 +135,18 @@ async function lockNight(tx: Tx, groupId: string, nightId: string) {
     .where(and(eq(nights.id, nightId), eq(nights.groupId, groupId)))
     .for('update');
   return night ?? null;
+}
+
+async function clearDeclines(tx: Tx, nightId: string, playerIds: string[]) {
+  await tx
+    .delete(nightRsvps)
+    .where(
+      and(
+        eq(nightRsvps.nightId, nightId),
+        inArray(nightRsvps.playerId, playerIds),
+        ne(nightRsvps.response, 'going'),
+      ),
+    );
 }
 
 async function findSeatView(tx: Tx, nightId: string, playerId: string): Promise<SeatView | null> {
@@ -339,6 +351,7 @@ export async function upsertSeat(
         const current = await findSeatView(tx, input.nightId, input.playerId);
         return current ? { kind: 'conflict', current } : { kind: 'not-found' };
       }
+      await clearDeclines(tx, input.nightId, [input.playerId]);
       updatedAt = inserted.updatedAt;
     } else {
       const existing = await findSeatView(tx, input.nightId, input.playerId);
@@ -400,6 +413,11 @@ export async function addSeats(
       .onConflictDoNothing()
       .returning({ playerId: seats.playerId });
     if (added.length > 0) {
+      await clearDeclines(
+        tx,
+        night.id,
+        added.map(({ playerId }) => playerId),
+      );
       await tx.insert(nightEvents).values(
         added.map(({ playerId }) => ({
           nightId: night.id,

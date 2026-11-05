@@ -18,7 +18,7 @@ import { addPlayerAction } from '@/players/actions';
 import { PlayerAvatar } from '@/players/player-avatar';
 import type { Player } from '@/players/players';
 import { Check, UserPlus } from 'lucide-react';
-import type { Ref } from 'react';
+import type { ReactElement, Ref } from 'react';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -27,6 +27,7 @@ type QuickAddTileProps = {
   buyInCents: number;
   available: Player[];
   allNames: string[];
+  trigger?: ReactElement;
   ref?: Ref<HTMLButtonElement>;
 };
 
@@ -101,7 +102,14 @@ function useQuickAdd(nightId: string, allNames: string[]) {
   };
 }
 
-export function QuickAddTile({ nightId, buyInCents, available, allNames, ref }: QuickAddTileProps) {
+export function QuickAddTile({
+  nightId,
+  buyInCents,
+  available,
+  allNames,
+  trigger,
+  ref,
+}: QuickAddTileProps) {
   const add = useQuickAdd(nightId, allNames);
   const needle = add.typed.toLowerCase();
   const pickedIds = new Set(add.picked.map((player) => player.id));
@@ -115,10 +123,8 @@ export function QuickAddTile({ nightId, buyInCents, available, allNames, ref }: 
 
   return (
     <Popover open={add.open} onOpenChange={add.setOpen}>
-      <PopoverTrigger asChild>
-        <AddPlayerButton ref={ref} />
-      </PopoverTrigger>
-      <PopoverContent align='start' className='w-72 overflow-hidden p-0'>
+      <PopoverTrigger asChild>{trigger ?? <AddPlayerButton ref={ref} />}</PopoverTrigger>
+      <PopoverContent align='start' collisionPadding={16} className='w-72 overflow-hidden p-0'>
         <Command shouldFilter={false}>
           <CommandInput
             placeholder='Search or add a name'

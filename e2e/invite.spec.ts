@@ -189,6 +189,23 @@ test('the host lands on the table, sees the address, and sets it from the form',
   await expect(page.getByText('99 New Street')).toBeVisible();
 });
 
+test('the host adds someone from the invite and they fill a seat', async ({ page }) => {
+  const { groupId, nightId } = await seedInvite();
+  await addPlayer({ groupId, name: 'Ava Stone' });
+  await signInAsHost(page);
+
+  await page.goto(`/nights/${nightId}?view=invite`);
+  await expect(page.getByRole('heading', { name: 'Nobody’s in yet' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Add player' }).click();
+  await page.getByRole('option', { name: /Ava Stone/ }).click();
+  await page.getByRole('button', { name: 'Add 1 player' }).click();
+  await expect(page.getByRole('heading', { name: '1 is in' })).toBeVisible();
+
+  await page.goto(`/nights/${nightId}?view=table`);
+  await expect(page.getByRole('button', { name: /Ava/ }).first()).toBeVisible();
+});
+
 test('an address never reaches a link preview', async ({ request }) => {
   const { nightId } = await seedInvite();
   const crawler = { 'user-agent': 'facebookexternalhit/1.1' };

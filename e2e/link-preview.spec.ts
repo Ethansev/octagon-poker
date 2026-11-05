@@ -1,5 +1,6 @@
 import type { Actor } from '@/access/viewer';
 import { getGroup } from '@/groups/groups';
+import { setRsvp } from '@/nights/invites';
 import { closeNight, createNight, setBank, upsertSeat } from '@/nights/nights';
 import { addPlayer } from '@/players/players';
 import { expect, test, type APIRequestContext } from '@playwright/test';
@@ -39,6 +40,25 @@ async function seatedPlayer(groupId: string, nightId: string, name: string, cash
   await upsertSeat(seat, OWNER);
   return added.player.id;
 }
+
+test('a reply without a seat still shows on the preview', async ({ request }) => {
+  await seedGroup();
+  const group = await getGroup();
+  const { id: nightId } = await createNight(
+    { groupId: group.id, date: '2026-10-17', location: 'Test Kitchen', buyInCents: 2000 },
+    OWNER,
+  );
+  const before = await crawl(request, `/nights/${nightId}`);
+  expect(openGraph(before.html, 'description')).toBe('$20 buy-in');
+
+  const added = await addPlayer({ groupId: group.id, name: 'Ava Stone' });
+  if (added.kind === 'invalid-name') throw new Error('Could not add Ava');
+  await setRsvp({ groupId: group.id, nightId, playerId: added.player.id, response: 'going' });
+
+  const after = await crawl(request, `/nights/${nightId}`);
+  expect(openGraph(after.html, 'description')).toBe('$20 buy-in · 1 player so far');
+  expect(after.image.equals(before.image)).toBe(false);
+});
 
 test('a shared night previews as the invite, then as the result', async ({ request }) => {
   const { inviteCode } = await seedGroup();

@@ -2,6 +2,7 @@ import { loadNightResults } from '@/app/(group)/nights/[id]/load-night';
 import { NightInviteCard, NightResultCard } from '@/app/(group)/nights/[id]/night-preview';
 import { getGroup } from '@/groups/groups';
 import { previewSize, renderPreview } from '@/link-previews/preview-card';
+import { listAttendance } from '@/nights/invites';
 import { getNight } from '@/nights/nights';
 import { z } from 'zod';
 
@@ -19,7 +20,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   if (!night) return new Response(null, { status: 404 });
 
   if (night.status === 'open') {
-    return renderPreview(<NightInviteCard groupName={group.name} night={night} />);
+    const attendance = await listAttendance(night.id);
+    const going = attendance.filter((player) => player.response === 'going');
+    return renderPreview(<NightInviteCard groupName={group.name} night={night} going={going} />);
   }
   const results = await loadNightResults(group.id, night);
   return renderPreview(<NightResultCard groupName={group.name} night={night} results={results} />);
