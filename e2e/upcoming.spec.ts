@@ -1,6 +1,7 @@
 import type { Actor } from '@/access/viewer';
 import { getGroup } from '@/groups/groups';
-import { createNight } from '@/nights/nights';
+import { addSeats, createNight } from '@/nights/nights';
+import { addPlayer } from '@/players/players';
 import { expect, test } from '@playwright/test';
 import { seedGroup, signInAsHost } from './seed';
 
@@ -47,6 +48,28 @@ test('a future night reads as upcoming and doesn’t hide a live one', async ({ 
 
   await page.goto(`/nights/${liveId}`);
   await expect(page.getByText('Live', { exact: true })).toBeVisible();
+});
+
+test('a saved seat on a night that hasn’t started doesn’t read as playing', async ({ page }) => {
+  const { inviteCode } = await seedGroup();
+  const group = await getGroup();
+  const { id: nightId } = await createNight(
+    { groupId: group.id, date: daysFromNow(7), location: 'Next Kitchen', buyInCents: 2000 },
+    OWNER,
+  );
+  const added = await addPlayer({ groupId: group.id, name: 'Ava Stone' });
+  if (added.kind === 'invalid-name') throw new Error('Could not add Ava');
+  await addSeats({ groupId: group.id, nightId, playerIds: [added.player.id] }, OWNER);
+
+  await page.goto(`/join/${inviteCode}`);
+  await page.goto(`/nights/${nightId}?view=table`);
+  await expect(page.getByRole('heading', { name: '1 seat saved' })).toBeVisible();
+  await expect(page.getByText('Waiting on')).toHaveCount(0);
+  await expect(page.getByText('still on the table')).toHaveCount(0);
+
+  await page.getByRole('button', { name: /Ava Stone/ }).click();
+  await expect(page.getByText('Seat saved', { exact: true })).toBeVisible();
+  await expect(page.getByText(/still playing/i)).toHaveCount(0);
 });
 
 test('the host sets and changes a start time', async ({ page }) => {

@@ -18,8 +18,9 @@ type BooksCardProps = {
   canClose: boolean;
 };
 
-function headline(balance: NightBalance, seats: SeatView[]): string {
+function headline(balance: NightBalance, seats: SeatView[], notStarted: boolean): string {
   if (balance.kind === 'empty') return 'Nobody’s sat down yet';
+  if (notStarted) return `${seats.length} ${seats.length === 1 ? 'seat' : 'seats'} saved`;
   const done = seats.filter((seat) => seat.cashOutCents !== null).length;
   return `${done} of ${seats.length} cashed out`;
 }
@@ -96,6 +97,7 @@ export function BooksCard({ nightId, seats, bankPlayerId, canClose, upcoming }: 
   const outCents = seats.reduce((sum, seat) => sum + (seat.cashOutCents ?? 0), 0);
   const progress = inCents > 0 ? Math.min(100, Math.round((outCents / inCents) * 100)) : 0;
   const waiting = seats.filter((seat) => seat.cashOutCents === null);
+  const notStarted = upcoming && seats.length > 0 && waiting.length === seats.length;
 
   return (
     <section
@@ -112,42 +114,46 @@ export function BooksCard({ nightId, seats, bankPlayerId, canClose, upcoming }: 
       <h2
         id='books-heading'
         className='mt-2 text-3xl leading-none font-bold tracking-tight tabular-nums sm:text-4xl'>
-        {headline(balance, seats)}
+        {headline(balance, seats, notStarted)}
       </h2>
 
-      <div className='mt-5'>
-        <div
-          role='progressbar'
-          aria-label='Cashed out so far'
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={progress}
-          className='h-4 overflow-hidden rounded-full bg-surface-3'>
+      {!notStarted && (
+        <div className='mt-5'>
           <div
-            className='h-full rounded-full bg-live transition-[width] duration-500 motion-reduce:transition-none'
-            style={{ width: `${progress}%` }}
-          />
+            role='progressbar'
+            aria-label='Cashed out so far'
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={progress}
+            className='h-4 overflow-hidden rounded-full bg-surface-3'>
+            <div
+              className='h-full rounded-full bg-live transition-[width] duration-500 motion-reduce:transition-none'
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className='mt-2 flex justify-between text-sm font-bold text-ink-2 tabular-nums'>
+            <span>{formatDollars(outCents)} out</span>
+            <span>{formatDollars(inCents)} in</span>
+          </div>
         </div>
-        <div className='mt-2 flex justify-between text-sm font-bold text-ink-2 tabular-nums'>
-          <span>{formatDollars(outCents)} out</span>
-          <span>{formatDollars(inCents)} in</span>
-        </div>
-      </div>
+      )}
 
       {seats.length > 0 && (
         <BankRow nightId={nightId} seats={seats} bankPlayerId={bankPlayerId} inCents={inCents} />
       )}
 
-      <p
-        className={
-          balance.kind === 'off'
-            ? 'mt-4 rounded-2xl bg-error-soft px-4 py-3 text-sm font-bold text-error'
-            : 'mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-sm font-bold'
-        }>
-        <BooksNote balance={balance} seats={seats} gap={inCents - outCents} />
-      </p>
+      {!notStarted && (
+        <p
+          className={
+            balance.kind === 'off'
+              ? 'mt-4 rounded-2xl bg-error-soft px-4 py-3 text-sm font-bold text-error'
+              : 'mt-4 rounded-2xl bg-surface-2 px-4 py-3 text-sm font-bold'
+          }>
+          <BooksNote balance={balance} seats={seats} gap={inCents - outCents} />
+        </p>
+      )}
 
-      {waiting.length > 0 && (
+      {!notStarted && waiting.length > 0 && (
         <div className='mt-4'>
           <p className='text-xs font-extrabold tracking-[0.12em] text-ink-2 uppercase'>
             Waiting on

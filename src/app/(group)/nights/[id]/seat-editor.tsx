@@ -29,6 +29,7 @@ type SeatEditorProps = {
   seat: SeatData;
   stepCents: number | null;
   isYou: boolean;
+  upcoming: boolean;
   focusField: SeatField | null;
   edits: SeatEdits;
   onSaved: () => void;
@@ -57,9 +58,11 @@ function useFocusOnMount(field: SeatField | null) {
   return { buyInRef, cashOutRef };
 }
 
-function seatStatus(seat: SeatData, isYou: boolean, dirty: boolean): string {
+function seatStatus(seat: SeatData, isYou: boolean, dirty: boolean, upcoming: boolean): string {
   if (seat.updatedAt === null) return 'New at the table';
   if (dirty) return 'Unsaved changes';
+  if (upcoming && seat.cashOutCents === null)
+    return isYou ? 'That’s you. Seat saved.' : 'Seat saved';
   if (isYou)
     return seat.cashOutCents === null
       ? 'That’s you. Still playing.'
@@ -82,8 +85,7 @@ function NetPreview({
   if (draft.cashOutCents !== null && draft.buyInCents === null) {
     return <span className='text-error'>Fix the buy-in above to see the net.</span>;
   }
-  if (net === null)
-    return <span className='text-ink-3'>Leave it blank while they’re still playing.</span>;
+  if (net === null) return <span className='text-ink-3'>Leave it blank until they cash out.</span>;
   if (net > 0) return <span className='text-win'>That’s {formatNet(net)} on the night</span>;
   if (net === 0) return <span className='text-ink-2'>Broke even. Free poker.</span>;
   return <span className='text-loss'>{formatNet(net)} tonight. Next one’s yours.</span>;
@@ -139,6 +141,7 @@ export function SeatEditor({
   seat,
   stepCents,
   isYou,
+  upcoming,
   focusField,
   edits,
   onSaved,
@@ -173,7 +176,9 @@ export function SeatEditor({
               </span>
             )}
           </p>
-          <p className='text-sm font-bold text-ink-2'>{seatStatus(seat, isYou, draft.dirty)}</p>
+          <p className='text-sm font-bold text-ink-2'>
+            {seatStatus(seat, isYou, draft.dirty, upcoming)}
+          </p>
         </div>
       </div>
 

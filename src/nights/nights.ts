@@ -1,5 +1,6 @@
 import type { Actor } from '@/access/viewer';
 import { db } from '@/db/client';
+import { groups } from '@/groups/schema';
 import { canSeePaymentHandles } from '@/nights/payouts';
 import { nightEvents, nightRsvps, nights, seats } from '@/nights/schema';
 import { parsePaymentHandles, type PaymentHandleField } from '@/players/payment-handles';
@@ -218,6 +219,15 @@ export async function createNight(
       action: 'night.create',
       detail: { date: input.date, location: input.location, buyInCents: input.buyInCents },
     });
+    const [group] = await tx
+      .select({ ownerPlayerId: groups.ownerPlayerId })
+      .from(groups)
+      .where(eq(groups.id, input.groupId));
+    if (group?.ownerPlayerId) {
+      await tx
+        .insert(nightRsvps)
+        .values({ nightId: night.id, playerId: group.ownerPlayerId, response: 'going' });
+    }
     return { kind: 'created', id: night.id };
   });
 }

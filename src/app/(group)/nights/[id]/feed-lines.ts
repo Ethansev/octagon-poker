@@ -101,7 +101,7 @@ export function feedLine(event: NightEventView, names: Map<string, string>): Fee
   const actor = actorLabel(event);
   switch (event.action) {
     case 'night.create':
-      return { kind: 'night', mark: 'start', text: `${actor} started the night` };
+      return { kind: 'night', mark: 'start', text: `${actor} set up the night` };
     case 'night.update':
       return { kind: 'night', mark: 'edit', text: `${actor} edited the night details` };
     case 'night.close':
@@ -133,7 +133,7 @@ export function feedLine(event: NightEventView, names: Map<string, string>): Fee
   switch (event.action) {
     case 'seat.add':
       return line(
-        after ? `${target} sat down with ${formatDollars(after.buyInCents)}` : `${target} sat down`,
+        after ? `${target} took a seat with ${formatDollars(after.buyInCents)}` : `${target} took a seat`,
       );
     case 'seat.remove':
       return line(`${target} left the table`);

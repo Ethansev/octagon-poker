@@ -37,6 +37,7 @@ test('a night goes from deal to delete', async ({ page }) => {
   await expect(page).toHaveURL('/');
 
   await page.goto('/nights/new');
+  await page.getByLabel('When').fill('2026-10-17');
   await page.getByLabel(/Where/).fill('Test Kitchen');
   await page.getByLabel(/Typical buy-in/).fill('20');
   await page.getByRole('button', { name: 'Deal the night' }).click();
@@ -141,7 +142,7 @@ test('adding several players at once seats them all at the buy-in', async ({ pag
   for (const name of ['Ava', 'Ben', 'Cal']) {
     await expect(seatCard(page, name)).toContainText('$20 in');
   }
-  await expect(page.getByText('Ben sat down with $20')).toBeVisible();
+  await expect(page.getByText('Ben took a seat with $20')).toBeVisible();
 });
 
 test('a night with no typical buy-in still adds one player at a time', async ({ page }) => {

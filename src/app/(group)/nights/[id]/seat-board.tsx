@@ -74,6 +74,7 @@ export function SeatBoard({
       seat={selected}
       stepCents={stepCents}
       isYou={selected.playerId === viewerPlayerId}
+      upcoming={upcoming}
       focusField={selection.focus}
       edits={edits}
       onSaved={() => selection.afterSave(selected.playerId)}

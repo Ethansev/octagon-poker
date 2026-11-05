@@ -21,7 +21,7 @@ import {
   upsertSeat,
 } from '@/nights/nights';
 import { nightRsvps } from '@/nights/schema';
-import { addPlayer, mergePlayers } from '@/players/players';
+import { addPlayer, mergePlayers, setHostPlayer } from '@/players/players';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 beforeEach(resetDb);
@@ -55,6 +55,23 @@ async function close(groupId: string, nightId: string, playerId: string) {
 }
 
 describe('attendance', () => {
+  it('starts a new night with the host in, once', async () => {
+    const { groupId, ava } = await setup();
+    await setHostPlayer({ groupId, playerId: ava });
+    const night = { groupId, date: '2026-12-05', location: 'Sid’s', buyInCents: 2000 };
+
+    const { id } = await createNight(night, owner);
+    await createNight(night, owner);
+
+    expect((await listAttendance(id)).map((r) => [r.name, r.response])).toEqual([['Ava', 'going']]);
+  });
+
+  it('starts a new night empty when nobody is marked as the host', async () => {
+    const { nightId } = await setup();
+
+    expect(await listAttendance(nightId)).toEqual([]);
+  });
+
   it('counts anyone with a seat as in, even without a reply', async () => {
     const { groupId, ava, ben, nightId } = await setup();
 

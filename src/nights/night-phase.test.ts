@@ -22,7 +22,7 @@ describe('nightPhase', () => {
       expected: 'live',
     },
     {
-      name: 'today with no start time is live',
+      name: 'today with no start time is live by the evening',
       night: { date: '2026-10-17', startTime: null, status: 'open' },
       expected: 'live',
     },
@@ -42,6 +42,16 @@ describe('nightPhase', () => {
     expected: string;
   }[])('$name', ({ night, expected }) => {
     expect(nightPhase(night, eightPmOct17InLa, LA)).toBe(expected);
+  });
+
+  it('today with no start time waits for the evening', () => {
+    const night: { date: string; startTime: null; status: 'open' } = {
+      date: '2026-10-17',
+      startTime: null,
+      status: 'open',
+    };
+    expect(nightPhase(night, new Date('2026-10-17T15:00:00Z'), LA)).toBe('upcoming');
+    expect(nightPhase(night, new Date('2026-10-18T01:00:00Z'), LA)).toBe('live');
   });
 
   it('judges the date in the group’s zone, not UTC', () => {

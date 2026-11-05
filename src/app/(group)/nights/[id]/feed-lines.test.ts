@@ -29,7 +29,7 @@ describe('feedLine', () => {
     {
       name: 'the host starting the night',
       input: event({}),
-      expected: { kind: 'night', mark: 'start', text: 'The host started the night' },
+      expected: { kind: 'night', mark: 'start', text: 'The host set up the night' },
     },
     {
       name: 'the host closing the books',
@@ -42,7 +42,7 @@ describe('feedLine', () => {
         action: 'seat.add',
         detail: { playerId: 'ivy', before: null, after: { buyInCents: 2000, cashOutCents: null } },
       }),
-      expected: { kind: 'seat', playerId: 'ivy', text: 'Ivy sat down with $20', by: 'the host' },
+      expected: { kind: 'seat', playerId: 'ivy', text: 'Ivy took a seat with $20', by: 'the host' },
     },
     {
       name: 'a first cash-out',
