@@ -133,7 +133,9 @@ export function feedLine(event: NightEventView, names: Map<string, string>): Fee
   switch (event.action) {
     case 'seat.add':
       return line(
-        after ? `${target} took a seat with ${formatDollars(after.buyInCents)}` : `${target} took a seat`,
+        after
+          ? `${target} took a seat with ${formatDollars(after.buyInCents)}`
+          : `${target} took a seat`,
       );
     case 'seat.remove':
       return line(`${target} left the table`);
